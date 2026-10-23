@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PokéOh! - Duelo de Cartas (Pokémon x Yu-Gi-Oh!)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="src/css/style.css">
+</head>
+<body>
+  <!-- ============================================== -->
+  <!-- MENÚ PRINCIPAL DEL JUEGO (MAIN MENU)          -->
+  <!-- ============================================== -->
+  <div class="main-menu-overlay" id="main-menu-overlay">
+    <div class="main-menu-container">
+      <div class="main-menu-header">
+        <div class="menu-user-bar">
+          <button class="menu-user-pill" id="btn-menu-user" type="button" title="Gestión de Usuario / Perfil">
+            <span class="user-pill-avatar" id="menu-user-avatar">👤</span>
+            <span class="user-pill-name" id="menu-user-name">Iniciar Sesión</span>
+            <span class="user-pill-badge" id="menu-user-badge">INVITADO</span>
+          </button>
+        </div>
+        <div class="menu-brand-icon">⚡</div>
+        <h1 class="main-menu-title">POKÉ-OH!</h1>
+        <p class="main-menu-subtitle" data-i18n="menuSubtitle">DUELO DE CARTAS ESTRATÉGICO (POKÉMON x YU-GI-OH!)</p>
+        <div class="main-menu-tag" data-i18n="menuTag">151 POKÉMON • ITEMS MULTIGENERACIÓN • TABLA DE TIPOS</div>
+      </div>
+
+      <div class="main-menu-buttons">
+        <button class="menu-btn btn-primary-action" id="btn-menu-pve" type="button">
+          <span class="menu-btn-icon">⚔️</span>
+          <div class="menu-btn-content">
+            <span class="menu-btn-title" data-i18n="menuPveTitle">JUGADOR VS IA</span>
+            <span class="menu-btn-desc" data-i18n="menuPveDesc">Duelo individual contra Blue con dificultad, LP y mazos personalizables</span>
+          </div>
+          <span class="menu-btn-arrow">›</span>
+        </button>
+
+        <button class="menu-btn btn-primary-action" id="btn-menu-deck" type="button">
+          <span class="menu-btn-icon">🎴</span>
+          <div class="menu-btn-content">
+            <span class="menu-btn-title" data-i18n="menuDeckTitle">DECK BUILDER & COLECCIÓN</span>
+            <span class="menu-btn-desc" data-i18n="menuDeckDesc">Personaliza hasta 5 barajas de 40 cartas y explora los 151 Pokémon</span>
+          </div>
+          <span class="menu-btn-arrow">›</span>
+        </button>
+
+        <button class="menu-btn btn-secondary-action" id="btn-menu-rules" type="button">
+          <span class="menu-btn-icon">📖</span>
+          <div class="menu-btn-content">
+            <span class="menu-btn-title" data-i18n="menuRulesTitle">CÓMO JUGAR / REGLAS</span>
+            <span class="menu-btn-desc" data-i18n="menuRulesDesc">Guía completa de fases, sacrificios, combates y tipos</span>
+          </div>
+          <span class="menu-btn-arrow">›</span>
+        </button>
+
+        <button class="menu-btn btn-primary-action" id="btn-menu-pvp" type="button">
+          <span class="menu-btn-icon">🌐</span>
+          <div class="menu-btn-content">
+            <span class="menu-btn-title" data-i18n="menuPvpTitle">2 JUGADORES ONLINE</span>
+            <span class="menu-btn-desc" data-i18n="menuPvpDesc">Duelos tácticos en tiempo real con servidor Colyseus</span>
+          </div>
+          <span class="menu-btn-arrow">›</span>
+        </button>
+
+        <button class="menu-btn btn-secondary-action" id="btn-menu-shop" type="button">
+          <span class="menu-btn-icon">🛒</span>
+          <div class="menu-btn-content">
+            <span class="menu-btn-title" data-i18n="menuShopTitle">TIENDA DE CARTAS</span>
+            <span class="menu-btn-desc" data-i18n="menuShopDesc">Sobres de refuerzo, cartas raras y cosméticos</span>
+          </div>
+          <span class="menu-badge-soon" data-i18n="badgeSoon">PRÓXIMAMENTE</span>
+        </button>
+
+        <button class="menu-btn btn-settings-action" id="btn-menu-settings" type="button">
+          <span class="menu-btn-icon">⚙️</span>
+          <div class="menu-btn-content">
+            <span class="menu-btn-title" data-i18n="menuSettingsTitle">CONFIGURACIÓN & AUDIO</span>
+            <span class="menu-btn-desc" data-i18n="menuSettingsDesc">Idioma (Español / English), volumen general, música y efectos</span>
+          </div>
+          <span class="menu-btn-arrow">›</span>
+        </button>
+      </div>
+
+      <div class="main-menu-footer">
+        <span>POKÉ-OH! • Antigravity Duel Engine • 2026</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenedor Principal con Marcador Lateral y Tablero de Duelo -->
+  <div class="game-container">
+
+    <!-- ============================================== -->
+    <!-- MARCADOR LATERAL: PUNTOS, ESTADÍSTICAS Y AUDIO -->
+    <!-- ============================================== -->
+    <aside class="duel-sidebar" id="duel-sidebar">
+      <div class="sidebar-header">
+        <div class="logo-box">
+          <span class="logo-icon">⚡</span>
+          <h2 class="sidebar-title">POKÉ-OH!</h2>
+        </div>
+        <button class="sidebar-user-pill" id="btn-sidebar-user" type="button" title="Perfil de Usuario">
+          <span class="user-pill-avatar" id="sidebar-user-avatar">👤</span>
+          <span class="user-pill-name" id="sidebar-user-name">Iniciar Sesión</span>
+        </button>
+      </div>
+
+      <!-- MARCADOR PRINCIPAL DE PUNTOS DE DUELO -->
+      <div class="scoreboard-main">
+        <div class="score-label">PUNTOS DE DUELO</div>
+        <div class="score-display">
+          <span class="score-trophy">🏆</span>
+          <span class="score-digits" id="scoreboard-points">0000</span>
+          <span class="score-unit">PTS</span>
+        </div>
+        <div class="score-tier-badge" id="scoreboard-tier">Rango: Aspirante</div>
+      </div>
+
+      <!-- ESTADO DE VIDA / LP -->
+      <div class="sidebar-section">
+        <div class="section-title">PUNTOS DE VIDA (LP)</div>
+        
+        <div class="lp-stat-box player-stat">
+          <div class="lp-stat-header">
+            <span class="lp-trainer-name">🔴 Red (Tú)</span>
+            <span class="lp-stat-val" id="side-player-lp">8000</span>
+          </div>
+          <div class="lp-bar-track">
+            <div class="lp-bar-fill player-fill" id="side-player-bar" style="width: 100%;"></div>
+          </div>
+        </div>
+
+        <div class="lp-stat-box opponent-stat">
+          <div class="lp-stat-header">
+            <span class="lp-trainer-name">🔵 Blue (Rival)</span>
+            <span class="lp-stat-val" id="side-opponent-lp">8000</span>
+          </div>
+          <div class="lp-bar-track">
+            <div class="lp-bar-fill opponent-fill" id="side-opponent-bar" style="width: 100%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MÉTRICAS DE COMBATE -->
+      <div class="sidebar-section">
+        <div class="section-title">MÉTRICAS DEL DUELO</div>
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <span class="metric-val" id="metric-sacrificios">0</span>
+            <span class="metric-lbl">Sacrificios</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-val" id="metric-invocaciones">0</span>
+            <span class="metric-lbl">Invocaciones</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-val" id="metric-destruidos">0</span>
+            <span class="metric-lbl">Derrotados</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-val" id="metric-dano">0</span>
+            <span class="metric-lbl">Daño Total</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONTROLES DE AUDIO -->
+      <div class="sidebar-section">
+        <div class="section-title">AUDIO & MÚSICA</div>
+        <div class="audio-controls-row">
+          <button class="audio-btn active" id="btn-toggle-bgm" type="button" title="Música de Batalla GBA">
+            <span class="audio-btn-icon" id="bgm-icon">🎵</span> Música: <b id="bgm-status">ON</b>
+          </button>
+          <button class="audio-btn active" id="btn-toggle-sfx" type="button" title="Efectos de Sonido Showdown">
+            <span class="audio-btn-icon" id="sfx-icon">🔊</span> SFX: <b id="sfx-status">ON</b>
+          </button>
+        </div>
+      </div>
+
+      <!-- GUÍAS, MAZOS Y TIPOS -->
+      <div class="sidebar-section">
+        <div class="system-actions-row">
+          <button class="sidebar-action-btn" id="btn-open-rules" type="button" title="Reglamento e Instrucciones del Juego">
+            <span class="btn-icon">📖</span> <b data-i18n="btnRules">REGLAS</b>
+          </button>
+          <button class="sidebar-action-btn" id="btn-open-deck-builder" type="button" title="Constructor de Barajas & Colección">
+            <span class="btn-icon">🎴</span> <b data-i18n="btnDeckShort">MAZOS</b>
+          </button>
+        </div>
+        <button class="sidebar-action-btn" id="btn-open-type-chart" type="button" title="Consultar tabla de tipos y ventajas (+/- 300)" style="margin-top: 6px;">
+          <span class="btn-icon">📜</span> <b>TABLA DE TIPOS</b> (±300)
+        </button>
+      </div>
+
+      <!-- ACCIONES DEL SISTEMA -->
+      <div class="sidebar-section">
+        <div class="system-actions-row">
+          <button class="sidebar-action-btn" id="btn-open-settings" type="button" title="Configuración / Settings">
+            <span class="btn-icon">⚙️</span> <b data-i18n="btnSettings">AJUSTES</b>
+          </button>
+          <button class="sidebar-action-btn btn-home" id="btn-return-menu" type="button" title="Volver al Menú Principal / Main Menu">
+            <span class="btn-icon">🏠</span> <b data-i18n="btnMainMenu">MENÚ</b>
+          </button>
+        </div>
+      </div>
+
+      <!-- HISTORIAL EN VIVO DE PUNTOS -->
+      <div class="sidebar-section score-log-section">
+        <div class="section-title">HISTORIAL DE PUNTOS</div>
+        <div class="score-log" id="score-log-list">
+          <div class="log-entry">
+            <span class="log-badge-turn">T1</span>
+            <span class="log-desc">¡Duelo iniciado! Invoca tus Pokémon.</span>
+            <span class="log-pts">+0</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Contenedor Principal del Juego -->
+    <div class="duel-arena">
+
+      <!-- ============================================== -->
+      <!-- MITAD SUPERIOR: RIVAL / JUGADOR 2 (OPPONENT)  -->
+      <!-- ============================================== -->
+      <section class="player-half opponent-side" id="opponent-side">
+        <!-- Barra superior: Mano del Rival y Contador de Vida -->
+        <header class="player-hud">
+          <div class="hud-profile">
+            <div class="avatar-icon opponent-avatar" title="Entrenador Rival: Blue">
+              <img src="https://play.pokemonshowdown.com/sprites/trainers/blue.png" class="trainer-avatar-img" alt="Blue" draggable="false">
+            </div>
+            <div class="hud-info">
+              <span class="player-name">Rival (Blue)</span>
+              <span class="player-status">Esperando turno</span>
+            </div>
+          </div>
+
+        <!-- Mano del Rival (Cartas ocultas / boca abajo) -->
+        <div class="hand-container opponent-hand" id="opponent-hand">
+          <div class="card-slot hand-slot card-back"><span>POKÉ-OH</span></div>
+          <div class="card-slot hand-slot card-back"><span>POKÉ-OH</span></div>
+          <div class="card-slot hand-slot card-back"><span>POKÉ-OH</span></div>
+          <div class="card-slot hand-slot card-back"><span>POKÉ-OH</span></div>
+          <div class="card-slot hand-slot card-back"><span>POKÉ-OH</span></div>
+        </div>
+
+        <div class="lp-meter opponent-lp">
+          <span class="lp-tag">LP</span>
+          <span class="lp-value" id="opponent-lp-val">8000</span>
+        </div>
+      </header>
+
+      <!-- Mat / Tablero del Rival -->
+      <div class="playmat-grid">
+        <!-- Fila Trasera Rival: Magias/Trampas y Mazo -->
+        <div class="board-row spells-row">
+          <div class="card-slot deck-slot" id="opponent-deck">
+            <span class="slot-badge">MAZO</span>
+            <span class="slot-sub">40</span>
+          </div>
+          <div class="card-slot spell-trap-slot"><span class="slot-badge">M / T</span><span class="slot-num">1</span></div>
+          <div class="card-slot spell-trap-slot"><span class="slot-badge">M / T</span><span class="slot-num">2</span></div>
+          <div class="card-slot spell-trap-slot"><span class="slot-badge">M / T</span><span class="slot-num">3</span></div>
+          <div class="card-slot spell-trap-slot"><span class="slot-badge">M / T</span><span class="slot-num">4</span></div>
+          <div class="card-slot spell-trap-slot"><span class="slot-badge">M / T</span><span class="slot-num">5</span></div>
+          <div class="card-slot extra-slot"><span class="slot-badge">EXTRA</span></div>
+        </div>
+
+        <!-- Fila Delantera Rival: Monstruos y Cementerio -->
+        <div class="board-row monsters-row">
+          <div class="card-slot gy-slot" id="opponent-gy">
+            <span class="slot-badge">GY</span>
+            <span class="slot-sub">0</span>
+          </div>
+          <div class="card-slot monster-slot"><span class="slot-badge">MONSTRUO</span><span class="slot-num">1</span></div>
+          <div class="card-slot monster-slot"><span class="slot-badge">MONSTRUO</span><span class="slot-num">2</span></div>
+          <div class="card-slot monster-slot"><span class="slot-badge">MONSTRUO</span><span class="slot-num">3</span></div>
+          <div class="card-slot monster-slot"><span class="slot-badge">MONSTRUO</span><span class="slot-num">4</span></div>
+          <div class="card-slot monster-slot"><span class="slot-badge">MONSTRUO</span><span class="slot-num">5</span></div>
+          <div class="card-slot field-spell-slot"><span class="slot-badge">CAMPO</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- PANEL CENTRAL: FASES, TURNOS Y COMBATE         -->
+    <!-- ============================================== -->
+    <div class="arena-center-divider">
+      <div class="turn-indicator">
+        <span class="turn-count" id="turn-display">TURNO 1</span>
+        <span class="turn-player" id="turn-player-display">TURNO DE JUGADOR</span>
+      </div>
+
+      <div class="phases-track">
+        <div class="phase-step" id="phase-draw">ROBO</div>
+        <span class="phase-arrow">›</span>
+        <div class="phase-step active" id="phase-main">PRINCIPAL</div>
+        <span class="phase-arrow">›</span>
+        <div class="phase-step" id="phase-battle">BATALLA</div>
+        <span class="phase-arrow">›</span>
+        <div class="phase-step" id="phase-end">FIN</div>
+      </div>
+
+      <div class="phase-controls">
+        <button class="phase-btn" id="btn-next-phase" type="button">Siguiente Fase ⏭️</button>
+      </div>
+
+      <!-- Banner de Notificación de Combate y Efectos -->
+      <div class="battle-log-toast" id="battle-toast">¡Fase Principal activa! Invoca o prepara tus Pokémon.</div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- MITAD INFERIOR: JUGADOR / TÚ (PLAYER)          -->
+    <!-- ============================================== -->
+    <section class="player-half player-side" id="player-side">
+      <!-- Mat / Tablero del Jugador -->
+      <div class="playmat-grid">
+        <!-- Fila Delantera Jugador: Monstruos y Cementerio -->
+        <div class="board-row monsters-row">
+          <div class="card-slot field-spell-slot"><span class="slot-badge">CAMPO</span></div>
+          <div class="card-slot monster-slot"><span class="slot-badge">MONSTRUO</span><span class="slot-num">1</span></div>
+          <div class="card-slot monster-slot"><span class="slot-badge">MONSTRUO</span><span class="slot-num">2</span></div>
+          <div class="card-slot monster-slot"><span class="slot-badge">MONSTRUO</span><span class="slot-num">3</span></div>
+          <div class="card-slot monster-slot"><span class="slot-badge">MONSTRUO</span><span class="slot-num">4</span></div>
+          <div class="card-slot monster-slot"><span class="slot-badge">MONSTRUO</span><span class="slot-num">5</span></div>
+          <div class="card-slot gy-slot" id="player-gy">
+            <span class="slot-badge">GY</span>
+            <span class="slot-sub">0</span>
+          </div>
+        </div>
+
+        <!-- Fila Trasera Jugador: Magias/Trampas y Mazo -->
+        <div class="board-row spells-row">
+          <div class="card-slot extra-slot"><span class="slot-badge">EXTRA</span></div>
+          <div class="card-slot spell-trap-slot"><span class="slot-badge">M / T</span><span class="slot-num">1</span></div>
+          <div class="card-slot spell-trap-slot"><span class="slot-badge">M / T</span><span class="slot-num">2</span></div>
+          <div class="card-slot spell-trap-slot"><span class="slot-badge">M / T</span><span class="slot-num">3</span></div>
+          <div class="card-slot spell-trap-slot"><span class="slot-badge">M / T</span><span class="slot-num">4</span></div>
+          <div class="card-slot spell-trap-slot"><span class="slot-badge">M / T</span><span class="slot-num">5</span></div>
+          <div class="card-slot deck-slot" id="player-deck">
+            <span class="slot-badge">MAZO</span>
+            <span class="slot-sub">40</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra inferior: Mano del Jugador y Contador de Vida -->
+      <footer class="player-hud">
+        <div class="hud-profile">
+          <div class="avatar-icon player-avatar" title="Entrenador: Red">
+            <img src="https://play.pokemonshowdown.com/sprites/trainers/red.png" class="trainer-avatar-img" alt="Red" draggable="false">
+          </div>
+          <div class="hud-info">
+            <span class="player-name">Jugador (Red)</span>
+            <span class="player-status active-turn">Tu Turno</span>
+          </div>
+        </div>
+
+        <!-- Mano del Jugador (Espacios para cartas visibles) -->
+        <div class="hand-container player-hand" id="player-hand"></div>
+
+        <div class="lp-meter player-lp">
+          <span class="lp-tag">LP</span>
+          <span class="lp-value" id="player-lp-val">8000</span>
+        </div>
+      </footer>
+    </section>
+  </div> <!-- Fin de .duel-arena -->
+  </div> <!-- Fin de .game-container -->
+
+  <!-- Overlay para Animaciones de Combate y Efectos Visuales (Rayos, Fuego, Cortes, Vórtice) -->
+  <div id="battle-fx-overlay" class="battle-fx-overlay"></div>
+
+  <!-- Panel de Inspección de Carta (Hover Detallado) -->
+  <div class="card-detail-inspector hidden" id="card-inspector">
+    <div class="inspector-art-box">
+      <img id="inspector-img" src="" alt="" draggable="false" style="display: none;">
+    </div>
+    <div class="inspector-info">
+      <h3 id="inspector-name">Nombre de Carta</h3>
+      <div class="inspector-badges">
+        <span class="inspector-type" id="inspector-type">Básico</span>
+        <span class="inspector-stats" id="inspector-stats">ATK 0 / DEF 0</span>
+      </div>
+      <p class="inspector-desc" id="inspector-desc">Pasa el cursor sobre cualquier carta para leer todos sus detalles y efectos.</p>
+    </div>
+  </div>
+
+  <!-- Contenedor de Textos Flotantes de Daño y Curación -->
+  <div id="floating-fx-container" class="floating-fx-container"></div>
+
+  <!-- Modal de Selección de Sacrificios (Invocación por Tributo) -->
+  <div class="modal-overlay hidden" id="tribute-modal">
+    <div class="modal-box">
+      <h3 class="modal-title">⭐ Invocación por Sacrificio</h3>
+      <p class="modal-desc" id="tribute-prompt">Selecciona el(los) Pokémon que enviarás al Cementerio como tributo:</p>
+      <div class="tribute-selection-grid" id="tribute-options"></div>
+      <div class="modal-actions">
+        <button class="phase-btn btn-cancel" id="btn-cancel-tribute" type="button">Cancelar Invocación</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Selección de Objetivo para Cartas de Equipo -->
+  <div class="modal-overlay hidden" id="equip-modal">
+    <div class="modal-box">
+      <h3 class="modal-title">🗡️ Seleccionar Pokémon a Equipar</h3>
+      <p class="modal-desc" id="equip-prompt">Elige a qué Pokémon deseas equipar esta carta:</p>
+      <div class="tribute-selection-grid" id="equip-options"></div>
+      <div class="modal-actions">
+        <button class="phase-btn btn-cancel" id="btn-cancel-equip" type="button">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Fin del Duelo (Victoria / Derrota) -->
+  <div class="modal-overlay hidden" id="game-over-modal">
+    <div class="modal-box game-over-box">
+      <div class="game-over-badge" id="game-over-icon">🏆</div>
+      <h2 class="game-over-title" id="game-over-title">¡VICTORIA!</h2>
+      <p class="game-over-desc" id="game-over-desc">Has derrotado al rival en el campo de batalla de Poké-Oh.</p>
+      <div class="modal-actions game-over-actions">
+        <button class="phase-btn btn-restart" id="btn-restart-duel" type="button" data-i18n="btnPlayAgain">Jugar Otra Partida ⚔️</button>
+        <button class="phase-btn btn-menu-return" id="btn-game-over-menu" type="button" data-i18n="btnReturnMainMenu">Volver al Menú Principal 🏠</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmación de Uso de Cartas Mágicas y de Equipo -->
+  <div class="modal-overlay hidden" id="spell-confirm-modal">
+    <div class="modal-box spell-confirm-box">
+      <h3 class="modal-title" id="spell-confirm-title" data-i18n="spellConfirmTitle">✨ Usar Carta Mágica</h3>
+      <div class="spell-confirm-body">
+        <div class="spell-confirm-card-preview" id="spell-confirm-preview"></div>
+        <div class="spell-confirm-details">
+          <h4 id="spell-confirm-name">Nombre de Carta</h4>
+          <div class="spell-confirm-tag" id="spell-confirm-tag">MÁGICA - Objeto</div>
+          <p class="spell-confirm-desc" id="spell-confirm-desc">Efecto de la carta...</p>
+          <div class="spell-confirm-target" id="spell-confirm-target-info" style="display: none;">
+            <span data-i18n="targetLabel">Objetivo:</span> <b id="spell-confirm-target-name">Pokémon</b>
+          </div>
+        </div>
+      </div>
+      <p class="spell-confirm-question" data-i18n="spellConfirmQuestion">¿Cómo deseas jugar esta carta?</p>
+      <div class="modal-actions spell-actions-3col">
+        <button class="phase-btn btn-confirm" id="btn-spell-confirm-yes" type="button" data-i18n="btnActivateNow">✨ Activar Ahora</button>
+        <button class="phase-btn btn-set" id="btn-spell-confirm-set" type="button" data-i18n="btnSetFaceDown">🃏 Colocar Boca Abajo</button>
+        <button class="phase-btn btn-cancel" id="btn-spell-confirm-no" type="button" data-i18n="btnKeepInHand">❌ Mantener en Mano</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Activar Carta Colocada Boca Abajo en Campo -->
+  <div class="modal-overlay hidden" id="activate-set-modal">
+    <div class="modal-box spell-confirm-box">
+      <h3 class="modal-title" id="activate-set-title" data-i18n="activateSetTitle">🃏 Carta Boca Abajo</h3>
+      <div class="spell-confirm-body">
+        <div class="spell-confirm-card-preview" id="activate-set-preview"></div>
+        <div class="spell-confirm-details">
+          <h4 id="activate-set-name">Nombre de Carta</h4>
+          <div class="spell-confirm-tag" id="activate-set-tag">MÁGICA / TRAMPA</div>
+          <p class="spell-confirm-desc" id="activate-set-desc">Efecto de la carta...</p>
+        </div>
+      </div>
+      <p class="spell-confirm-question" data-i18n="activateSetQuestion">¿Deseas activar esta carta ahora?</p>
+      <div class="modal-actions">
+        <button class="phase-btn btn-confirm" id="btn-activate-set-yes" type="button" data-i18n="btnActivateNow">✨ Activar Ahora</button>
+        <button class="phase-btn btn-cancel" id="btn-activate-set-no" type="button" data-i18n="btnKeepFaceDown">Cerrar / Mantener Oculta</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Configuración Pre-Partida (LP y Nivel de IA) -->
+  <div class="modal-overlay hidden" id="pre-game-modal">
+    <div class="modal-box pre-game-box">
+      <div class="modal-header-with-close">
+        <h3 class="modal-title" data-i18n="preGameTitle">⚔️ Configurar Partida</h3>
+        <button class="modal-close-x" id="btn-close-pre-game-x" type="button" title="Cerrar">&times;</button>
+      </div>
+
+      <!-- Configuración de Puntos de Vida (LP) -->
+      <div class="setup-section">
+        <div class="setup-section-title">
+          <span data-i18n="setupLpLabel">PUNTOS DE VIDA INICIALES (LP)</span>
+          <b class="setup-lp-display" id="setup-lp-display">8000 LP</b>
+        </div>
+        <input type="range" class="setup-slider" id="slider-setup-lp" min="1000" max="20000" step="500" value="8000">
+        <div class="setup-lp-presets">
+          <button type="button" class="preset-btn" data-lp="4000">4000 LP</button>
+          <button type="button" class="preset-btn active" data-lp="8000">8000 LP</button>
+          <button type="button" class="preset-btn" data-lp="12000">12000 LP</button>
+          <button type="button" class="preset-btn" data-lp="16000">16000 LP</button>
+        </div>
+      </div>
+
+      <!-- Configuración de Dificultad de la IA -->
+      <div class="setup-section">
+        <div class="setup-section-title">
+          <span data-i18n="setupAiLabel">NIVEL DEL RIVAL (BLUE)</span>
+          <span class="setup-diff-tag diff-tag-medium" id="setup-diff-tag">Medio</span>
+        </div>
+        <div class="diff-cards-grid">
+          <div class="diff-card" data-diff="facil">
+            <div class="diff-card-header">
+              <span class="diff-icon">🌱</span>
+              <span class="diff-name" data-i18n="diffEasyName">FÁCIL</span>
+            </div>
+            <p class="diff-desc" data-i18n="diffEasyDesc">La IA comete errores basados en aleatoriedad y su mazo contiene menos evoluciones.</p>
+          </div>
+
+          <div class="diff-card active" data-diff="medio">
+            <div class="diff-card-header">
+              <span class="diff-icon">⚖️</span>
+              <span class="diff-name" data-i18n="diffMediumName">MEDIO</span>
+            </div>
+            <p class="diff-desc" data-i18n="diffMediumDesc">Juego estándar sin errores. Mazo similar al del jugador en ataque y defensa.</p>
+          </div>
+
+          <div class="diff-card" data-diff="dificil">
+            <div class="diff-card-header">
+              <span class="diff-icon">🔥</span>
+              <span class="diff-name" data-i18n="diffHardName">DIFÍCIL</span>
+            </div>
+            <p class="diff-desc" data-i18n="diffHardDesc">La IA posee cartas de mayor ataque/defensa, evoluciones letales y juego estratégico.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selección de Baraja del Jugador -->
+      <div class="setup-section">
+        <div class="setup-section-title">
+          <span data-i18n="setupDeckLabel">BARAJA DEL JUGADOR (RED)</span>
+          <button type="button" class="btn-deck-edit-shortcut" id="btn-edit-deck-from-setup" data-i18n="btnDeckBuilderShortcut">🎴 Editar en Deck Builder</button>
+        </div>
+        <div class="deck-selector-grid" id="setup-deck-options">
+          <!-- Renderizado dinámico con los 5 mazos del jugador -->
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="phase-btn btn-confirm" id="btn-start-duel" type="button" data-i18n="btnStartDuel">⚔️ ¡Comenzar Duelo!</button>
+        <button class="phase-btn btn-cancel" id="btn-cancel-pre-game" type="button" data-i18n="btnCancel">Volver al Menú</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Configuración y Audio (Accesible siempre) -->
+  <div class="modal-overlay hidden" id="settings-modal">
+    <div class="modal-box settings-box">
+      <div class="modal-header-with-close">
+        <h3 class="modal-title" data-i18n="settingsTitle">⚙️ Ajustes & Configuración</h3>
+        <button class="modal-close-x" id="btn-close-settings-x" type="button" title="Cerrar">&times;</button>
+      </div>
+
+      <!-- Selector de Idioma -->
+      <div class="setup-section">
+        <div class="setup-section-title">
+          <span data-i18n="langSectionTitle">IDIOMA / LANGUAGE</span>
+        </div>
+        <div class="lang-selector-row">
+          <button type="button" class="lang-btn active" id="btn-lang-es" data-lang="es">🇪🇸 Español</button>
+          <button type="button" class="lang-btn" id="btn-lang-en" data-lang="en">🇬🇧 English</button>
+        </div>
+      </div>
+
+      <!-- Modulación de Audio -->
+      <div class="setup-section">
+        <div class="setup-section-title">
+          <span data-i18n="audioSectionTitle">CONTROL DE AUDIO Y VOLUMEN</span>
+          <button type="button" class="btn-mute-toggle" id="btn-mute-all" data-i18n="btnMuteAll">🔊 Silenciar Todo</button>
+        </div>
+
+        <!-- Volumen Master -->
+        <div class="audio-slider-group">
+          <div class="audio-slider-header">
+            <span data-i18n="masterVolLabel">🔊 Sonido General:</span>
+            <b id="val-vol-master">100%</b>
+          </div>
+          <input type="range" class="setup-slider" id="slider-vol-master" min="0" max="100" value="100">
+        </div>
+
+        <!-- Música de Batalla -->
+        <div class="audio-slider-group">
+          <div class="audio-slider-header">
+            <span data-i18n="musicVolLabel">🎵 Música de Batalla (BGM):</span>
+            <div class="audio-toggle-wrap">
+              <input type="checkbox" id="chk-music-active" checked>
+              <label for="chk-music-active" data-i18n="lblActive">Activa</label>
+              <b id="val-vol-music">80%</b>
+            </div>
+          </div>
+          <input type="range" class="setup-slider" id="slider-vol-music" min="0" max="100" value="80">
+        </div>
+
+        <!-- Efectos de Sonido -->
+        <div class="audio-slider-group">
+          <div class="audio-slider-header">
+            <span data-i18n="sfxVolLabel">💥 Efectos de Sonido (SFX):</span>
+            <div class="audio-toggle-wrap">
+              <input type="checkbox" id="chk-sfx-active" checked>
+              <label for="chk-sfx-active" data-i18n="lblActive">Activo</label>
+              <b id="val-vol-sfx">80%</b>
+            </div>
+          </div>
+          <input type="range" class="setup-slider" id="slider-vol-sfx" min="0" max="100" value="80">
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="phase-btn btn-confirm" id="btn-save-settings" type="button" data-i18n="btnSaveClose">✔️ Guardar y Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Informativo para funciones en desarrollo (2P Online / Tienda) -->
+  <div class="modal-overlay hidden" id="notice-modal">
+    <div class="modal-box notice-box">
+      <div class="notice-icon" id="notice-icon">🌐</div>
+      <h3 class="modal-title" id="notice-title" data-i18n="noticeTitle">Próximamente</h3>
+      <p class="modal-desc" id="notice-desc" data-i18n="noticeDesc">Esta función se encuentra actualmente en desarrollo para futuras actualizaciones.</p>
+      <div class="modal-actions">
+        <button class="phase-btn btn-confirm" id="btn-close-notice" type="button" data-i18n="btnUnderstood">Entendido ✔️</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Tabla de Tipos y Efectividades (+/- 300 ATK/DEF) -->
+  <div class="modal-overlay hidden" id="type-chart-modal">
+    <div class="modal-box type-chart-box">
+      <div class="modal-header-with-close">
+        <h3 class="modal-title">📜 Tabla de Tipos Pokémon</h3>
+        <button class="modal-close-x" id="btn-close-type-chart-x" type="button" title="Cerrar">&times;</button>
+      </div>
+      <p class="modal-desc">
+        En combate: Tener <b>ventaja elemental</b> suma temporalmente <b>+300 ATK y DEF</b> para el cálculo.<br>
+        Tener <b>desventaja elemental</b> resta <b>-300 ATK y DEF</b>. Luego las cartas vuelven a sus valores habituales.
+      </p>
+      <div class="type-chart-grid" id="type-chart-grid">
+        <!-- Generado dinámicamente desde logica.js -->
+      </div>
+      <div class="modal-actions">
+        <button class="phase-btn" id="btn-close-type-chart" type="button">Entendido ✔️</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Deck Builder y Colección Completa de Cartas -->
+  <div class="modal-overlay hidden" id="deck-builder-modal">
+    <div class="modal-box deck-builder-box">
+      <div class="modal-header-with-close">
+        <div class="modal-header-titles">
+          <h3 class="modal-title" data-i18n="deckBuilderTitle">🎴 Constructor de Barajas & Colección</h3>
+          <p class="modal-subtitle" data-i18n="deckBuilderSubtitle">Crea hasta 5 mazos de exactamente 40 cartas (máx. 3 copias de cada una).</p>
+        </div>
+        <button class="modal-close-x" id="btn-close-deck-builder-x" type="button" title="Cerrar">&times;</button>
+      </div>
+
+      <!-- Barra Superior: Pestañas de Mazos, Nombre y Acciones -->
+      <div class="deck-builder-top-bar">
+        <div class="deck-tabs-row" id="deck-builder-tabs">
+          <!-- 5 pestañas de mazos generadas dinámicamente -->
+        </div>
+
+        <div class="deck-name-edit-wrap">
+          <input type="text" id="deck-name-input" class="deck-name-input" maxlength="25" placeholder="Nombre del Mazo">
+          <button type="button" class="btn-deck-action" id="btn-rename-deck" title="Guardar nombre">✏️</button>
+        </div>
+
+        <div class="deck-counter-badge" id="deck-counter-badge">
+          <span id="deck-cards-count">0</span> / 40
+        </div>
+
+        <div class="deck-top-actions">
+          <button type="button" class="btn-deck-action btn-deck-save" id="btn-save-current-deck" data-i18n="btnSaveDeck">💾 Guardar Mazo</button>
+          <button type="button" class="btn-deck-action btn-deck-auto" id="btn-autofill-deck" data-i18n="btnAutoFill">🎲 Autocompletar</button>
+          <button type="button" class="btn-deck-action btn-deck-clear" id="btn-clear-deck" data-i18n="btnClearDeck">🗑️ Vaciar</button>
+        </div>
+      </div>
+
+      <!-- Cuerpo del Deck Builder: Mazo Actual (Izq) vs Colección Completa (Der) -->
+      <div class="deck-builder-workspace">
+        <!-- Panel Izquierdo: Mazo Actual -->
+        <div class="deck-side-panel deck-current-panel">
+          <div class="panel-header">
+            <h4 data-i18n="deckCurrentTitle">BARAJA ACTUAL</h4>
+            <span class="panel-sub" id="deck-breakdown-text">0 Monstruos • 0 Magias • 0 Trampas</span>
+          </div>
+          <div class="deck-current-scroll" id="deck-current-list">
+            <!-- Renderizado de cartas en el mazo con selector x1/x2/x3 -->
+          </div>
+        </div>
+
+        <!-- Panel Derecho: Colección Completa & Galería -->
+        <div class="deck-side-panel deck-collection-panel">
+          <div class="panel-header collection-filters-header">
+            <div class="search-input-wrap">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="collection-search-input" placeholder="Buscar por nombre o ataque..." data-i18n-placeholder="searchPlaceholder">
+            </div>
+
+            <div class="filter-controls-row">
+              <select id="filter-collection-category" class="deck-select-filter">
+                <option value="todos">Todas las Cartas</option>
+                <option value="basico">Pokémon Básicos</option>
+                <option value="fase1">Fase 1 (1 Sacrificio)</option>
+                <option value="fase2">Fase 2 & Legendarios (2 Sacrificios)</option>
+                <option value="magia">Magias & Equipos</option>
+                <option value="trampa">Trampas</option>
+              </select>
+
+              <select id="filter-collection-element" class="deck-select-filter">
+                <option value="todos">Todos los Tipos</option>
+                <option value="fuego">🔥 Fuego</option>
+                <option value="agua">💧 Agua</option>
+                <option value="planta">🌿 Planta</option>
+                <option value="electrico">⚡ Eléctrico</option>
+                <option value="psiquico">🔮 Psíquico</option>
+                <option value="lucha">🥊 Lucha</option>
+                <option value="tierra">🌍 Tierra</option>
+                <option value="roca">🪨 Roca</option>
+                <option value="bicho">🐛 Bicho</option>
+                <option value="fantasma">👻 Fantasma</option>
+                <option value="dragon">🐉 Dragón</option>
+                <option value="hielo">❄️ Hielo</option>
+                <option value="veneno">☠️ Veneno</option>
+                <option value="hada">✨ Hada</option>
+                <option value="normal">⚪ Normal</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="deck-collection-scroll" id="deck-collection-grid">
+            <!-- Renderizado dinámico de todas las cartas de la base de datos con stock -->
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="phase-btn btn-confirm" id="btn-close-deck-builder" type="button" data-i18n="btnSaveAndClose">✔️ Listo / Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Reglamento e Instrucciones de Juego -->
+  <div class="modal-overlay hidden" id="rules-modal">
+    <div class="modal-box rules-box">
+      <div class="modal-header-with-close">
+        <h3 class="modal-title" data-i18n="rulesTitle">📖 Guía y Reglamento de Poké-Oh!</h3>
+        <button class="modal-close-x" id="btn-close-rules-x" type="button" title="Cerrar">&times;</button>
+      </div>
+
+      <!-- Navegación por pestañas de reglas -->
+      <div class="rules-nav-tabs" id="rules-tabs">
+        <button type="button" class="rules-tab-btn active" data-tab="tab-rules-obj" data-i18n="ruleTabObjective">🎯 Objetivo & Fases</button>
+        <button type="button" class="rules-tab-btn" data-tab="tab-rules-summons" data-i18n="ruleTabSummons">⭐ Invocación & Sacrificios</button>
+        <button type="button" class="rules-tab-btn" data-tab="tab-rules-battle" data-i18n="ruleTabBattle">⚔️ Combate & Tipos (±300)</button>
+        <button type="button" class="rules-tab-btn" data-tab="tab-rules-spells" data-i18n="ruleTabSpells">🪄 Magias, Equipos & Trampas</button>
+        <button type="button" class="rules-tab-btn" data-tab="tab-rules-secrets" data-i18n="ruleTabSecrets">🃏 Boca Abajo & Secretos</button>
+      </div>
+
+      <!-- Contenidos de las pestañas -->
+      <div class="rules-content-area" id="rules-content">
+        <!-- Pestaña 1: Objetivo y Fases -->
+        <div class="rules-tab-pane active" id="tab-rules-obj">
+          <div class="rule-block">
+            <h4 data-i18n="ruleHeaderObjective">🏆 Objetivo del Duelo</h4>
+            <p data-i18n="ruleDescObjective">El objetivo es reducir los <b>Puntos de Vida (LP)</b> del rival a <b>0</b> mediante ataques de tus Pokémon o efectos de soporte, mientras proteges tus propios LP.</p>
+          </div>
+          <div class="rule-block">
+            <h4 data-i18n="ruleHeaderTurnStructure">⏱️ Estructura de Turnos y Fases</h4>
+            <ul class="rule-steps-list">
+              <li><b data-i18n="ruleStep1Title">1. Fase de Robo (Draw):</b> <span data-i18n="ruleStep1Desc">Robas automáticamente 1 carta de tu baraja al inicio de tu turno.</span></li>
+              <li><b data-i18n="ruleStep2Title">2. Fase Principal (Main):</b> <span data-i18n="ruleStep2Desc">Puedes invocar hasta <b>1 Pokémon normal</b> por turno, equipar objetos, activar cartas mágicas o colocarlas boca abajo, y alternar la posición de tus Pokémon entre Ataque y Defensa.</span></li>
+              <li><b data-i18n="ruleStep3Title">3. Fase de Batalla (Battle):</b> <span data-i18n="ruleStep3Desc">Declara ataques con tus Pokémon en modo Ataque. <i>¡Importante! El jugador (Red) solo puede atacar a partir del Turno 2, mientras que el rival (Blue) sí puede atacar en su primer turno.</i></span></li>
+              <li><b data-i18n="ruleStep4Title">4. Fase Final (End):</b> <span data-i18n="ruleStep4Desc">Se concluye el turno y se pasa el control automáticamente al oponente.</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Pestaña 2: Invocación & Sacrificios -->
+        <div class="rules-tab-pane" id="tab-rules-summons">
+          <div class="rule-block">
+            <h4 data-i18n="ruleHeaderSummons">⭐ Tipos de Monstruo y Requisitos de Sacrificio</h4>
+            <div class="rule-grid-3">
+              <div class="rule-card-item">
+                <span class="rule-card-badge badge-green">Básico</span>
+                <h5>Pokémon Básico</h5>
+                <p><b>0 Sacrificios.</b> Se invoca directamente a cualquier zona de monstruos vacía de tu campo.</p>
+              </div>
+              <div class="rule-card-item">
+                <span class="rule-card-badge badge-blue">★1 Sacrificio</span>
+                <h5>Fase 1 (Evolución)</h5>
+                <p><b>Requiere 1 sacrificio.</b> Envía 1 Pokémon de tu campo al cementerio para invocarlo (o arrástralo sobre un Pokémon en campo).</p>
+              </div>
+              <div class="rule-card-item">
+                <span class="rule-card-badge badge-gold">★2 Sacrificios</span>
+                <h5>Fase 2 & Legendarios</h5>
+                <p><b>Requiere 2 sacrificios.</b> Pokémon devastadores como Charizard, Blastoise o Mewtwo que requieren sacrificar 2 Pokémon de tu campo.</p>
+              </div>
+            </div>
+            <p class="rule-note">⚠️ <b>Regla estricta:</b> Solo puedes realizar <b>1 invocación de monstruo por turno</b>. Las cartas mágicas y de equipo son libres y no consumen esta invocación.</p>
+          </div>
+        </div>
+
+        <!-- Pestaña 3: Combate & Tipos -->
+        <div class="rules-tab-pane" id="tab-rules-battle">
+          <div class="rule-block">
+            <h4 data-i18n="ruleHeaderCombat">⚔️ Resolución de Batalla y Cálculo de Daño</h4>
+            <ul class="rule-steps-list">
+              <li><b>Ataque vs Ataque:</b> El Pokémon con mayor ATK destruye al rival. La diferencia de daño se resta directamente de los <b>LP del perdedor</b>. Si empatan en ATK, ambos son destruidos sin daño de LP.</li>
+              <li><b>Ataque vs Defensa:</b> Si tu ATK supera la DEF del defensor, es destruido sin que el rival pierda LP. Pero si la DEF del rival supera tu ATK, sufres la diferencia como <b>daño de rebote a tus LP</b>.</li>
+              <li><b>Ataque Directo:</b> Si el rival no controla ningún Pokémon en su campo, puedes atacar directamente sus Puntos de Vida infligiendo daño igual a tu ATK.</li>
+            </ul>
+          </div>
+          <div class="rule-block">
+            <h4 data-i18n="ruleHeaderTypeBonus">✨ Ventaja y Desventaja Elemental (±300)</h4>
+            <p>Antes de comparar estadísticas en combate, se evalúa la <b>Tabla de Tipos</b>:</p>
+            <ul>
+              <li>Si tu atacante tiene <b>ventaja de tipo</b> (ej. Agua contra Fuego): suma temporalmente <b>+300 ATK/DEF</b> para ese cálculo.</li>
+              <li>Si tu atacante tiene <b>desventaja de tipo</b> (ej. Fuego contra Agua): resta <b>-300 ATK/DEF</b>.</li>
+              <li>Al finalizar el cálculo de combate, las cartas regresan a sus valores originales.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Pestaña 4: Magias, Equipos & Trampas -->
+        <div class="rules-tab-pane" id="tab-rules-spells">
+          <div class="rule-block">
+            <h4 data-i18n="ruleHeaderItems">🪄 Cartas de Soporte e Ítems Multigeneración</h4>
+            <ul class="rule-steps-list">
+              <li><b>Cartas Mágicas:</b> Pociones, Caramelo Raro, Poké Balls y Elixires. Aplican curaciones inmediatas a tus LP, robos de cartas o aumentos de ataque a tu equipo.</li>
+              <li><b>Cartas de Equipo:</b> Objetos como Cinta Fuerte, Cinta Focus, Restos o Casco Dentado. Deben equiparse a un Pokémon específico en tu campo para otorgarle mejoras permanentes de ATK o DEF.</li>
+              <li><b>Cartas Trampa:</b> Protección, Manto Espejo, Contador y Paralizador. Se colocan boca abajo en tu zona M/T y se disparan automáticamente cuando el rival ataca para cancelar golpes o reflejar daño.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Pestaña 5: Boca Abajo & Secretos -->
+        <div class="rules-tab-pane" id="tab-rules-secrets">
+          <div class="rule-block">
+            <h4 data-i18n="ruleHeaderSecrets">🃏 Regla Secreta de Cartas Boca Abajo</h4>
+            <p>Al jugar una carta mágica o de equipo, puedes elegir la opción <b>"🃏 Colocar Boca Abajo"</b> para reservarla en tu zona M/T sin activarla de inmediato.</p>
+            <ul>
+              <li><b>Tus Cartas Boca Abajo:</b> Puedes pasar el cursor sobre ellas en cualquier momento para inspeccionar su efecto y recordar tu estrategia. Durante tu Fase Principal, puedes hacer clic en ellas para activarlas.</li>
+              <li><b>Cartas Boca Abajo del Rival:</b> Ni tú puedes ver el contenido de las cartas del rival, ni el rival puede ver las tuyas. En el inspector aparecen como <b>"SECRETO"</b> hasta que son activadas.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="phase-btn btn-confirm" id="btn-close-rules" type="button" data-i18n="btnUnderstood">¡Entendido! Listo para el Duelo ✔️</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Límite de Mano Excedido (Descarte Forzado a 5 cartas) -->
+  <div class="modal-overlay hidden" id="discard-modal">
+    <div class="modal-box discard-box">
+      <div class="modal-header-with-close">
+        <h3 class="modal-title" id="discard-modal-title">🗑️ Límite de Mano Excedido (Máx 5 cartas)</h3>
+      </div>
+      <p class="discard-instruction" id="discard-instruction">
+        Tienes <b id="discard-current-count">6</b> cartas en tu mano. Debes descartar <b id="discard-needed-count">1</b> carta(s) al cementerio antes de finalizar tu turno.
+      </p>
+      
+      <div class="discard-cards-grid" id="discard-cards-grid">
+        <!-- Renderizado dinámico de las cartas de la mano del jugador -->
+      </div>
+
+      <div class="discard-status-bar">
+        <span class="discard-status-text" id="discard-status-text">Selecciona una carta para enviarla al cementerio 🪦</span>
+      </div>
+
+      <div class="modal-actions">
+        <button class="phase-btn btn-confirm" id="btn-confirm-discard" type="button" disabled>
+          ✔️ Finalizar Turno y Pasar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Gestión de Usuarios & Perfil -->
+  <div class="modal-overlay hidden" id="user-modal">
+    <div class="modal-box user-box">
+      <div class="modal-header-with-close">
+        <h3 class="modal-title" id="user-modal-title">👤 Cuenta de Duelista & Perfil</h3>
+        <button class="modal-close-x" id="btn-close-user-x" type="button" title="Cerrar">&times;</button>
+      </div>
+
+      <!-- Pestañas de Usuario -->
+      <div class="rules-nav-tabs user-nav-tabs" id="user-tabs">
+        <button type="button" class="rules-tab-btn active" data-tab="tab-user-profile" id="btn-tab-profile">👤 Mi Perfil</button>
+        <button type="button" class="rules-tab-btn" data-tab="tab-user-login" id="btn-tab-login">🔑 Iniciar Sesión</button>
+        <button type="button" class="rules-tab-btn" data-tab="tab-user-register" id="btn-tab-register">✨ Registrarse</button>
+        <button type="button" class="rules-tab-btn" data-tab="tab-user-admin" id="btn-tab-admin" style="display: none;">👑 Panel Admin</button>
+      </div>
+
+      <div class="rules-content-area user-content-area">
+        <!-- Pestaña 1: Mi Perfil -->
+        <div class="rules-tab-pane active" id="tab-user-profile">
+          <div class="user-profile-card">
+            <div class="profile-header-card">
+              <span class="profile-big-avatar" id="profile-display-avatar">👤</span>
+              <div class="profile-header-info">
+                <h4 id="profile-display-username">Invitado</h4>
+                <span class="user-role-badge" id="profile-display-role" style="background:#ff4757;color:#fff;">SIN SESIÓN</span>
+                <span class="profile-date" id="profile-display-date">Inicia sesión o regístrate para comenzar</span>
+              </div>
+            </div>
+
+            <div class="profile-stats-grid">
+              <div class="profile-stat-box">
+                <span class="p-stat-val" id="profile-stat-duels">0</span>
+                <span class="p-stat-lbl">Duelos Jugados</span>
+              </div>
+              <div class="profile-stat-box">
+                <span class="p-stat-val" id="profile-stat-wins">0</span>
+                <span class="p-stat-lbl">Victorias 🏆</span>
+              </div>
+              <div class="profile-stat-box">
+                <span class="p-stat-val" id="profile-stat-losses">0</span>
+                <span class="p-stat-lbl">Derrotas 💀</span>
+              </div>
+              <div class="profile-stat-box">
+                <span class="p-stat-val" id="profile-stat-rate">0%</span>
+                <span class="p-stat-lbl">% Victoria</span>
+              </div>
+              <div class="profile-stat-box">
+                <span class="p-stat-val" id="profile-stat-points">0</span>
+                <span class="p-stat-lbl">Puntos Totales</span>
+              </div>
+              <div class="profile-stat-box">
+                <span class="p-stat-val" id="profile-stat-rank">Aspirante</span>
+                <span class="p-stat-lbl">Rango Liga</span>
+              </div>
+            </div>
+
+            <div class="user-form-actions">
+              <button class="settings-btn" id="btn-user-logout" type="button">🚪 Cerrar Sesión</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pestaña 2: Iniciar Sesión -->
+        <div class="rules-tab-pane" id="tab-user-login">
+          <form class="user-form" id="form-user-login" onsubmit="return false;">
+            <p class="user-form-desc">Ingresa con tu usuario y contraseña para sincronizar tus estadísticas y barajas.</p>
+            <div class="user-form-group">
+              <label for="login-username">Nombre de Usuario:</label>
+              <input type="text" id="login-username" class="user-input" placeholder="Ej: admin o ash_ketchum" required autocomplete="username">
+            </div>
+            <div class="user-form-group">
+              <label for="login-password">Contraseña:</label>
+              <input type="password" id="login-password" class="user-input" placeholder="••••••••" required autocomplete="current-password">
+            </div>
+            <div class="user-msg-banner hidden" id="login-msg"></div>
+            <div class="user-form-actions">
+              <button class="phase-btn btn-confirm" id="btn-submit-login" type="button">🔑 Entrar al Juego</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Pestaña 3: Registrarse -->
+        <div class="rules-tab-pane" id="tab-user-register">
+          <form class="user-form" id="form-user-register" onsubmit="return false;">
+            <p class="user-form-desc">Crea una nueva cuenta de duelista para guardar tu historial, rango y mazos.</p>
+            <div class="user-form-group">
+              <label for="reg-username">Nombre de Usuario:</label>
+              <input type="text" id="reg-username" class="user-input" placeholder="Mínimo 3 caracteres" required autocomplete="username">
+            </div>
+            <div class="user-form-group">
+              <label for="reg-password">Contraseña:</label>
+              <input type="password" id="reg-password" class="user-input" placeholder="Mínimo 3 caracteres" required autocomplete="new-password">
+            </div>
+            <div class="user-form-group">
+              <label for="reg-password-confirm">Confirmar Contraseña:</label>
+              <input type="password" id="reg-password-confirm" class="user-input" placeholder="Repite la contraseña" required autocomplete="new-password">
+            </div>
+            <div class="user-msg-banner hidden" id="reg-msg"></div>
+            <div class="user-form-actions">
+              <button class="phase-btn btn-confirm" id="btn-submit-register" type="button">✨ Registrar Nueva Cuenta</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Pestaña 4: Panel Admin -->
+        <div class="rules-tab-pane" id="tab-user-admin">
+          <div class="admin-panel">
+            <div class="admin-header-row">
+              <h4>👑 Panel de Administración de Usuarios</h4>
+              <span class="admin-total-badge" id="admin-user-count">Total: 1 usuarios</span>
+            </div>
+            <p class="user-form-desc">Conectado en tiempo real con la base de datos en la nube de <b>Supabase (PostgreSQL)</b>.</p>
+            
+            <div class="admin-table-scroll">
+              <table class="admin-table" id="admin-users-table">
+                <thead>
+                  <tr>
+                    <th>Usuario</th>
+                    <th>Rol</th>
+                    <th>Duelos</th>
+                    <th>Victorias</th>
+                    <th>Puntos</th>
+                    <th>Fecha</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-users-tbody">
+                  <!-- Filas dinámicas -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="phase-btn" id="btn-close-user" type="button">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Multijugador Online (Colyseus) -->
+  <div class="modal-overlay hidden" id="pvp-online-modal">
+    <div class="modal-box pvp-box">
+      <div class="modal-header-with-close">
+        <h3 class="modal-title" id="pvp-modal-title">🌐 2 Jugadores Online (Servidor Colyseus)</h3>
+        <button class="modal-close-x" id="btn-close-pvp-x" type="button" title="Cerrar">&times;</button>
+      </div>
+
+      <!-- Barra de estado del servidor -->
+      <div class="pvp-server-status" id="pvp-server-status">
+        <span class="status-indicator-dot online" id="pvp-status-dot"></span>
+        <span class="status-indicator-text" id="pvp-status-text">Servidor Colyseus: Comprobando conexión...</span>
+      </div>
+
+      <!-- Vistas: 1) Opciones de Conexión, 2) Esperando Rival -->
+      <div class="pvp-views-container">
+        <!-- Vista 1: Opciones de Matchmaking -->
+        <div class="pvp-view active" id="pvp-view-options">
+          <div class="pvp-options-grid">
+            <!-- Partida Rápida -->
+            <div class="pvp-option-card">
+              <div class="pvp-opt-icon">⚡</div>
+              <h4>Partida Rápida</h4>
+              <p>Busca automáticamente una partida pública disponible o crea una nueva.</p>
+              <button class="phase-btn btn-confirm" id="btn-pvp-quick" type="button">🚀 Buscar Duelo</button>
+            </div>
+
+            <!-- Crear Sala Privada -->
+            <div class="pvp-option-card">
+              <div class="pvp-opt-icon">🏠</div>
+              <h4>Crear Sala Privada</h4>
+              <p>Genera un código de sala exclusivo para invitar a un amigo a jugar 1v1.</p>
+              <button class="phase-btn btn-confirm" id="btn-pvp-create-private" type="button">🔑 Generar Sala</button>
+            </div>
+
+            <!-- Unirse con Código -->
+            <div class="pvp-option-card">
+              <div class="pvp-opt-icon">🔑</div>
+              <h4>Unirse con Código</h4>
+              <p>Introduce el código de 4 caracteres de la sala creada por tu rival.</p>
+              <div class="pvp-code-input-row">
+                <input type="text" id="pvp-room-code-input" class="user-input pvp-code-input" placeholder="CÓDIGO" maxlength="8">
+                <button class="phase-btn btn-confirm" id="btn-pvp-join-code" type="button">Entrar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vista 2: Esperando Rival (Lobby de Sala) -->
+        <div class="pvp-view" id="pvp-view-waiting">
+          <div class="pvp-waiting-box">
+            <div class="pvp-spinner">🌀</div>
+            <h4>Esperando al Rival...</h4>
+            <p>Comparte este código de sala con tu amigo para que se una:</p>
+            <div class="pvp-code-display" id="pvp-waiting-code">POKE</div>
+            <p class="pvp-subnote">El duelo comenzará automáticamente cuando el rival ingrese.</p>
+            <button class="settings-btn" id="btn-pvp-cancel-wait" type="button">Cancelar Espera</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="phase-btn" id="btn-close-pvp" type="button">Volver al Menú</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SDK Cliente de Supabase (Base de Datos Cloud + Realtime) -->
+  <script src="lib/supabase.js"></script>
+  <!-- SDK Cliente de Colyseus para Multijugador Online -->
+  <script src="lib/colyseus.js"></script>
+  <!-- Base de Datos de Cartas (151 Pokémon + Ítems de todas las generaciones) -->
+  <script src="src/js/cartas.js"></script>
+  <!-- Lógica del Duelo -->
+  <script src="src/js/logica.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,214 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="110" height="154" viewBox="0 0 110 154">
+
+  <defs>
+
+    <!-- Background -->
+    <radialGradient id="bg" cx="50%" cy="45%" r="80%">
+      <stop offset="0%" stop-color="#101522"/>
+      <stop offset="60%" stop-color="#080B13"/>
+      <stop offset="100%" stop-color="#000000"/>
+    </radialGradient>
+
+    <!-- Gold frame -->
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF2A6"/>
+      <stop offset="35%" stop-color="#F5D962"/>
+      <stop offset="60%" stop-color="#D4AF37"/>
+      <stop offset="100%" stop-color="#8B6A19"/>
+    </linearGradient>
+
+    <!-- Blue energy -->
+    <radialGradient id="blueEnergy" cx="50%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#A7F0FF"/>
+      <stop offset="55%" stop-color="#49B8FF"/>
+      <stop offset="100%" stop-color="#165BB8"/>
+    </radialGradient>
+
+    <!-- Amber energy -->
+    <radialGradient id="amberEnergy" cx="50%" cy="65%" r="65%">
+      <stop offset="0%" stop-color="#FFD18A"/>
+      <stop offset="55%" stop-color="#E78D2B"/>
+      <stop offset="100%" stop-color="#6A3210"/>
+    </radialGradient>
+
+    <!-- Glow -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2.4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="1.2"/>
+    </filter>
+
+  </defs>
+
+  <!-- Background -->
+  <rect width="110" height="154" rx="8" fill="url(#bg)"/>
+
+  <!-- Outer frame -->
+  <rect x="2" y="2" width="106" height="150" rx="8"
+        fill="none"
+        stroke="url(#gold)"
+        stroke-width="3"/>
+
+  <!-- Inner frame -->
+  <rect x="7" y="7" width="96" height="140" rx="5"
+        fill="none"
+        stroke="#D4AF37"
+        stroke-opacity="0.45"
+        stroke-width="1"/>
+
+  <!-- Decorative corners -->
+  <g stroke="url(#gold)" fill="none" stroke-width="1.5">
+    <path d="M10 20 L10 10 L20 10"/>
+    <path d="M100 20 L100 10 L90 10"/>
+    <path d="M10 134 L10 144 L20 144"/>
+    <path d="M100 134 L100 144 L90 144"/>
+  </g>
+
+  <!-- Energy rings -->
+  <circle cx="55" cy="77" r="38"
+          fill="none"
+          stroke="#2AA6FF"
+          stroke-opacity="0.4"
+          stroke-width="2"/>
+
+  <circle cx="55" cy="77" r="30"
+          fill="none"
+          stroke="#FF9B3D"
+          stroke-opacity="0.45"
+          stroke-width="2"/>
+
+  <circle cx="55" cy="77" r="22"
+          fill="none"
+          stroke="#FFD15C"
+          stroke-opacity="0.65"
+          stroke-width="1.5"/>
+
+  <!-- Upper blue aura -->
+  <ellipse cx="55" cy="55" rx="28" ry="18"
+           fill="url(#blueEnergy)"
+           opacity="0.45"
+           filter="url(#softGlow)"/>
+
+  <!-- Lower amber aura -->
+  <ellipse cx="55" cy="99" rx="28" ry="18"
+           fill="url(#amberEnergy)"
+           opacity="0.45"
+           filter="url(#softGlow)"/>
+
+  <!-- Lightning -->
+  <g stroke="#7AE7FF" stroke-width="2" fill="none"
+     filter="url(#glow)" opacity="0.9">
+
+    <path d="M30 32 L40 46 L36 49 L46 63"/>
+    <path d="M80 32 L70 46 L74 49 L64 63"/>
+
+    <path d="M55 23
+             L50 36
+             L56 36
+             L49 51"/>
+
+    <path d="M23 53
+             L34 60
+             L28 67"/>
+
+    <path d="M87 53
+             L76 60
+             L82 67"/>
+  </g>
+
+  <!-- Amber swirls -->
+  <g stroke="#D27A24"
+     stroke-width="2"
+     fill="none"
+     opacity="0.9">
+
+    <path d="M28 116
+             C42 100 47 126 35 135
+             C31 137 28 133 31 128"/>
+
+    <path d="M82 116
+             C68 100 63 126 75 135
+             C79 137 82 133 79 128"/>
+
+    <path d="M55 108
+             C70 118 69 136 55 140
+             C41 136 40 118 55 108"/>
+  </g>
+
+  <!-- Central dual-energy sphere -->
+  <circle cx="55" cy="77"
+          r="19"
+          fill="#0D1118"
+          stroke="url(#gold)"
+          stroke-width="1.8"/>
+
+  <!-- Top hemisphere -->
+  <path d="M36 77
+           A19 19 0 0 1 74 77"
+        fill="url(#blueEnergy)"/>
+
+  <!-- Bottom hemisphere -->
+  <path d="M74 77
+           A19 19 0 0 1 36 77"
+        fill="url(#amberEnergy)"/>
+
+  <!-- Center divide -->
+  <rect x="36" y="76" width="38" height="2"
+        fill="#EDEDED"/>
+
+  <!-- Core -->
+  <circle cx="55" cy="77"
+          r="6.5"
+          fill="#FFFFFF"
+          stroke="#444"
+          stroke-width="1.3"/>
+
+  <!-- Spiral vortex -->
+  <path d="
+      M55 96
+      C70 96 79 88 79 77
+      C79 62 69 54 55 54
+      C43 54 34 62 34 71
+      C34 80 41 86 49 86
+      C56 86 61 81 61 75
+      C61 70 57 67 52 67"
+      stroke="#FFA540"
+      stroke-width="3"
+      fill="none"
+      filter="url(#glow)"
+      opacity="0.95"/>
+
+  <!-- Inner energy highlights -->
+  <circle cx="55" cy="77" r="10"
+          fill="none"
+          stroke="#FFFFFF"
+          stroke-opacity="0.3"
+          stroke-width="1"/>
+
+  <!-- Energy burst -->
+  <g filter="url(#glow)">
+
+    <polygon
+      points="55,20 58,28 66,31 58,34 55,42 52,34 44,31 52,28"
+      fill="#FFD748"/>
+
+    <polygon
+      points="18,77 21,82 27,84 21,86 18,91 15,86 9,84 15,82"
+      fill="#FFD748"/>
+
+    <polygon
+      points="92,77 95,82 101,84 95,86 92,91 89,86 83,84 89,82"
+      fill="#FFD748"/>
+
+    <polygon
+      points="55,134 58,140 64,143 58,146 55,151 52,146 46,143 52,140"
+      fill="#FFD748"/>
+  </g>
+
+</svg>
