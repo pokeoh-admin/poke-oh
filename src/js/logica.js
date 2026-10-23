@@ -1648,11 +1648,249 @@ function crearNumeroFlotante(texto, elementoOrigen, tipo = 'damage') {
   }, 1200);
 }
 
+let _ultimoMensajeLogBatalla = '';
+let _ultimoTiempoLogBatalla = 0;
+let _turnBannerTimeout = null;
+
+function actualizarContadoresMazoYCementerio() {
+  const deckSubPlayer = document.querySelector('#player-deck .slot-sub');
+  if (deckSubPlayer) {
+    deckSubPlayer.textContent = (estadoJugador && Array.isArray(estadoJugador.mazo)) ? estadoJugador.mazo.length : 0;
+  }
+
+  const deckSubOpp = document.querySelector('#opponent-deck .slot-sub');
+  if (deckSubOpp) {
+    if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline() && typeof estadoOponente.mazoCountOnline === 'number') {
+      deckSubOpp.textContent = Math.max(0, estadoOponente.mazoCountOnline);
+    } else {
+      deckSubOpp.textContent = (estadoOponente && Array.isArray(estadoOponente.mazo)) ? estadoOponente.mazo.length : 0;
+    }
+  }
+
+  const gySubPlayer = document.querySelector('#player-gy .slot-sub');
+  if (gySubPlayer) {
+    gySubPlayer.textContent = (estadoJugador && Array.isArray(estadoJugador.cementerio)) ? estadoJugador.cementerio.length : 0;
+  }
+
+  const gySubOpp = document.querySelector('#opponent-gy .slot-sub');
+  if (gySubOpp) {
+    gySubOpp.textContent = (estadoOponente && Array.isArray(estadoOponente.cementerio)) ? estadoOponente.cementerio.length : 0;
+  }
+}
+
+function mostrarBannerCambioTurno(esTurnoJugador, numeroTurno = 1, subtextoExtra = '') {
+  if (_turnBannerTimeout) {
+    clearTimeout(_turnBannerTimeout);
+    _turnBannerTimeout = null;
+  }
+  const prev = document.getElementById('turn-change-banner');
+  if (prev) prev.remove();
+
+  const isEn = configuracionJuego && configuracionJuego.idioma === 'en';
+  const nombreJugador = (typeof UserManager !== 'undefined' && UserManager.currentUser && UserManager.currentUser.username)
+    || (estadoJugador && estadoJugador.nombre)
+    || 'Jugador';
+  const nombreRival = (estadoOponente && estadoOponente.nombre) || 'Rival';
+
+  const banner = document.createElement('div');
+  banner.id = 'turn-change-banner';
+  banner.className = `turn-change-banner-overlay ${esTurnoJugador ? 'turn-banner-you' : 'turn-banner-rival'}`;
+
+  const icono = esTurnoJugador ? '⚡' : '⏳';
+  const titulo = esTurnoJugador
+    ? (isEn ? `YOUR TURN! — TURN ${numeroTurno}` : `¡TU TURNO! — TURNO ${numeroTurno}`)
+    : (isEn ? `OPPONENT'S TURN — TURN ${numeroTurno}` : `TURNO DEL RIVAL — TURNO ${numeroTurno}`);
+  const subtitulo = subtextoExtra || (esTurnoJugador
+    ? (isEn ? `Turn of ${nombreJugador} • Main Phase` : `Turno de ${nombreJugador} • Fase Principal`)
+    : (isEn ? `Turn of ${nombreRival}` : `Turno de ${nombreRival}`));
+
+  banner.innerHTML = `
+    <div class="turn-banner-icon">${icono}</div>
+    <div class="turn-banner-title">${titulo}</div>
+    <div class="turn-banner-subtitle">${subtitulo}</div>
+  `;
+  document.body.appendChild(banner);
+
+  const pillEl = document.getElementById('action-log-turn-pill');
+  if (pillEl) {
+    pillEl.textContent = `Turno ${numeroTurno} • ${esTurnoJugador ? 'Tu Turno' : `Turno de ${nombreRival}`}`;
+  }
+
+  _turnBannerTimeout = setTimeout(() => {
+    if (banner && banner.parentNode) {
+      banner.style.transition = 'opacity 0.28s ease, transform 0.28s ease';
+      banner.style.opacity = '0';
+      banner.style.transform = 'translate(-50%, -50%) scale(0.9)';
+      setTimeout(() => {
+        if (banner.parentNode) banner.remove();
+      }, 280);
+    }
+  }, 2100);
+}
+
+function limpiarRegistroAccionesBatalla() {
+  const list = document.getElementById('battle-action-log-list');
+  if (!list) return;
+  const turnoActual = (estadoJuego && estadoJuego.turno) || 1;
+  list.innerHTML = `
+    <div class="action-log-card log-actor-system">
+      <div class="action-log-card-top">
+        <span class="action-actor-badge badge-system">⚡ DUELO</span>
+        <span class="action-turn-badge">T${turnoActual}</span>
+      </div>
+      <div class="action-log-card-body">
+        <span class="action-icon-box">🏟️</span>
+        <div class="action-text-wrap">
+          <div class="action-main-text">¡Duelo iniciado!</div>
+          <div class="action-sub-text">Registro en vivo de las jugadas de ambos duelistas.</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function registrarAccionBatalla({ actor = 'auto', icono = '', texto = '', subtexto = '' }) {
+  if (!texto) return;
+  const list = document.getElementById('battle-action-log-list');
+  if (!list) return;
+
+  const now = Date.now();
+  if (texto === _ultimoMensajeLogBatalla && (now - _ultimoTiempoLogBatalla) < 400) {
+    return;
+  }
+  _ultimoMensajeLogBatalla = texto;
+  _ultimoTiempoLogBatalla = now;
+
+  const nombreJugador = (typeof UserManager !== 'undefined' && UserManager.currentUser && UserManager.currentUser.username)
+    || (estadoJugador && estadoJugador.nombre)
+    || 'Tú';
+  const nombreRival = (estadoOponente && estadoOponente.nombre) || 'Rival';
+  const lower = texto.toLowerCase();
+
+  let actorFinal = actor;
+  if (actorFinal === 'auto') {
+    const mentionsRivalAsSubject =
+      lower.includes('rival') ||
+      lower.includes('blue') ||
+      (nombreRival && lower.startsWith(nombreRival.toLowerCase()));
+
+    if (lower.includes('duelo reiniciado') || lower.includes('duelo online iniciado') || lower.includes('pasando turno') || lower.startsWith('turno ') || lower.startsWith('¡tu turno')) {
+      actorFinal = 'system';
+    } else if (lower.startsWith('¡tu trampa') || lower.startsWith('¡tu ') || lower.includes('cambiaste') || lower.includes('sacrificaste') || lower.includes('descartaste') || lower.includes('robaste')) {
+      actorFinal = 'you';
+    } else if (estadoJuego && estadoJuego.turnoDe === 'oponente') {
+      actorFinal = 'rival';
+    } else if (mentionsRivalAsSubject && (lower.includes('activó') || lower.includes('invocó') || lower.includes('colocó') || lower.includes('atacó') || lower.includes('descartó') || lower.includes('sacrificó'))) {
+      actorFinal = 'rival';
+    } else {
+      actorFinal = 'you';
+    }
+  }
+
+  let iconoFinal = icono;
+  if (!iconoFinal) {
+    if (lower.includes('trampa')) iconoFinal = '🪤';
+    else if (lower.includes('equipó') || lower.includes('equipado')) iconoFinal = '🗡️';
+    else if (lower.includes('poción') || lower.includes('restaura') || lower.includes('baya') || lower.includes('+')) iconoFinal = '💚';
+    else if (lower.includes('magia') || lower.includes('activad') || lower.includes('activó') || lower.includes('master ball') || lower.includes('oak') || lower.includes('flauta')) iconoFinal = '🪄';
+    else if (lower.includes('boca abajo') || lower.includes('set')) iconoFinal = '🃏';
+    else if (lower.includes('sacrific') || lower.includes('evolución')) iconoFinal = '🌟';
+    else if (lower.includes('invoc') || lower.includes('summon')) iconoFinal = '👾';
+    else if (lower.includes('ataque') || lower.includes('ataca') || lower.includes('atacó') || lower.includes('destruyó')) iconoFinal = '⚔️';
+    else if (lower.includes('defensa') || lower.includes('posición')) iconoFinal = '🛡️';
+    else if (lower.includes('descart') || lower.includes('cementerio')) iconoFinal = '🪦';
+    else if (lower.includes('turno')) iconoFinal = '🎲';
+    else iconoFinal = '⚡';
+  }
+
+  let claseActor = 'log-actor-you';
+  let claseBadge = 'badge-you';
+  let textoBadge = `🔵 TÚ (${nombreJugador})`;
+
+  if (actorFinal === 'rival') {
+    claseActor = 'log-actor-rival';
+    claseBadge = 'badge-rival';
+    textoBadge = `🔴 RIVAL (${nombreRival})`;
+  } else if (actorFinal === 'combat') {
+    claseActor = 'log-actor-combat';
+    claseBadge = 'badge-combat';
+    textoBadge = '⚔️ COMBATE';
+  } else if (actorFinal === 'system') {
+    claseActor = 'log-actor-system';
+    claseBadge = 'badge-system';
+    textoBadge = '⚡ TURNO / DUELO';
+  }
+
+  const turnoNum = (estadoJuego && estadoJuego.turno) || 1;
+  const card = document.createElement('div');
+  card.className = `action-log-card ${claseActor}`;
+  card.innerHTML = `
+    <div class="action-log-card-top">
+      <span class="action-actor-badge ${claseBadge}">${textoBadge}</span>
+      <span class="action-turn-badge">T${turnoNum}</span>
+    </div>
+    <div class="action-log-card-body">
+      <span class="action-icon-box">${iconoFinal}</span>
+      <div class="action-text-wrap">
+        <div class="action-main-text">${texto}</div>
+        ${subtexto ? `<div class="action-sub-text">${subtexto}</div>` : ''}
+      </div>
+    </div>
+  `;
+
+  list.insertBefore(card, list.firstChild);
+  while (list.children.length > 45) {
+    list.removeChild(list.lastChild);
+  }
+}
+
+function inicializarPanelRegistroAcciones() {
+  const panel = document.getElementById('duel-action-log-panel');
+  const btnCollapse = document.getElementById('btn-collapse-action-log');
+  const btnToggleFloat = document.getElementById('btn-toggle-action-log');
+
+  if (!panel) return;
+
+  const setColapsado = (colapsar) => {
+    panel.classList.toggle('log-panel-collapsed', colapsar);
+    document.body.classList.toggle('action-log-is-hidden', colapsar);
+    ajustarEscalaResponsiva();
+  };
+
+  if (btnCollapse) {
+    btnCollapse.onclick = () => setColapsado(true);
+  }
+  if (btnToggleFloat) {
+    btnToggleFloat.onclick = () => setColapsado(false);
+  }
+}
+
 function mostrarMensajeToast(mensaje) {
   const toast = document.getElementById('battle-toast');
   if (toast) {
     toast.textContent = mensaje;
     toast.title = mensaje;
+  }
+
+  // Registrar automáticamente en el panel lateral derecho las acciones relevantes del duelo
+  if (mensaje && typeof mensaje === 'string') {
+    const m = mensaje.trim();
+    const ignorarEnHistorial =
+      m.includes('Solo puedes') ||
+      m.includes('están ocupadas') ||
+      m.includes('ya está ocupada') ||
+      m.includes('listo para atacar') ||
+      m.includes('Modo Sacrificio:') ||
+      m.includes('cancelado') ||
+      m.includes('Buscando oponente') ||
+      m.includes('Conectando a la sala') ||
+      m.includes('guardada') ||
+      m.includes('vaciado') ||
+      m.includes('autocompletado');
+
+    if (!ignorarEnHistorial) {
+      registrarAccionBatalla({ actor: 'auto', texto: m });
+    }
   }
 }
 
@@ -1865,17 +2103,13 @@ function robarCartas(jugador, cantidad) {
     }
   }
 
-  // Actualizar contadores visuales del mazo
-  const deckSubPlayer = document.querySelector('#player-deck .slot-sub');
-  if (deckSubPlayer) {
-    deckSubPlayer.textContent = (estadoJugador && estadoJugador.mazo) ? estadoJugador.mazo.length : 0;
-  }
-  const deckSubOpp = document.querySelector('#opponent-deck .slot-sub');
-  if (deckSubOpp) {
-    deckSubOpp.textContent = (estadoOponente && estadoOponente.mazo) ? estadoOponente.mazo.length : 0;
-  }
+  // Actualizar contadores visuales del mazo y cementerio
+  actualizarContadoresMazoYCementerio();
+
   if (jugador === estadoOponente) {
     renderizarManoOponente();
+  } else if (jugador === estadoJugador && typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline()) {
+    MultiplayerManager.sincronizarEstadoCampo();
   }
   return true;
 }
@@ -3097,35 +3331,43 @@ function activarCartaMagica(datosCarta, cartaId, slotIndex, slotElem) {
   }
 
   document.getElementById('player-lp-val').textContent = estadoJugador.lp;
+  actualizarContadoresMazoYCementerio();
   actualizarMarcadorLateral();
 
   setTimeout(() => {
+    if (!Array.isArray(estadoJugador.cementerio)) estadoJugador.cementerio = [];
     estadoJugador.cementerio.push(cartaId);
     estadoJugador.zonaMagiasTrampas[slotIndex] = null;
-    slotElem.classList.remove('occupied');
-    slotElem.innerHTML = `<span class="slot-badge">M / T</span><span class="slot-num">${slotIndex + 1}</span>`;
+    if (slotElem) {
+      slotElem.classList.remove('occupied');
+      slotElem.innerHTML = `<span class="slot-badge">M / T</span><span class="slot-num">${slotIndex + 1}</span>`;
+      slotElem.onclick = null;
+    }
 
-    const gySub = document.querySelector('#player-gy .slot-sub');
-    if (gySub) gySub.textContent = estadoJugador.cementerio.length;
+    renderizarCampoJugador();
+    actualizarContadoresMazoYCementerio();
+    if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline()) {
+      MultiplayerManager.sincronizarEstadoCampo();
+    }
   }, 1300);
 }
 
 function colocarCartaTrampa(datosCarta, cartaId, slotIndex, slotElem) {
-  estadoJugador.zonaMagiasTrampas[slotIndex] = { id: cartaId, bocaAbajo: true };
+  estadoJugador.zonaMagiasTrampas[slotIndex] = {
+    id: cartaId,
+    bocaAbajo: true,
+    activa: false,
+    dueno: 'jugador'
+  };
 
   const idxEnMano = estadoJugador.mano.indexOf(cartaId);
   if (idxEnMano !== -1) estadoJugador.mano.splice(idxEnMano, 1);
   renderizarMano(estadoJugador);
 
-  slotElem.classList.add('occupied');
-  slotElem.innerHTML = `
-    <div class="card-face-down" title="Trampa Colocada Boca Abajo: ${datosCarta.nombre}">
-      <span>POKÉ-OH</span>
-    </div>
-  `;
+  renderizarCampoJugador();
 
   AudioManager.reproducirSFX('enter');
-  crearNumeroFlotante("TRAMPA LISTA", slotElem, 'buff');
+  if (slotElem) crearNumeroFlotante("TRAMPA LISTA", slotElem, 'buff');
   sumarPuntosDuelo(100, `Trampa colocada: ${datosCarta.nombre}`);
   mostrarMensajeToast(`¡${datosCarta.nombre} colocada boca abajo como trampa!`);
 
@@ -3326,6 +3568,42 @@ function renderizarCampoJugador() {
       slot.innerHTML = `<span class="slot-badge">MONSTRUO</span><span class="slot-num">${index + 1}</span>`;
     }
   });
+
+  // Sincronizar también visualmente las Zonas de Magia / Trampa del Jugador
+  const slotsMTJugador = document.querySelectorAll('#player-side .spells-row .spell-trap-slot');
+  slotsMTJugador.forEach((slot, index) => {
+    slot.setAttribute('data-slot-index', index);
+    const mtData = estadoJugador.zonaMagiasTrampas[index];
+    if (mtData && mtData.bocaAbajo) {
+      const datosCarta = bdCartas[mtData.id];
+      slot.classList.add('occupied');
+      slot.innerHTML = `
+        <div class="card-on-field preview-card card-back face-down-card" title="Carta Colocada Boca Abajo: ${datosCarta ? datosCarta.nombre : 'Secreta'}">
+          <span class="card-name-mini">POKÉ-OH</span>
+          <div class="card-art-container face-down-art">
+            <span class="face-down-icon">🃏</span>
+          </div>
+          <span class="card-stat-mini set-badge">SET</span>
+        </div>
+      `;
+      const cardEl = slot.querySelector('.card-on-field');
+      if (datosCarta) {
+        configurarInspectorHover(cardEl, datosCarta, true, false);
+      }
+      slot.onclick = () => {
+        if (estadoJuego.turnoDe === 'jugador' && estadoJuego.faseActual === 'PRINCIPAL' && datosCarta) {
+          abrirModalActivarCartaColocada(datosCarta, mtData.id, index, slot);
+        }
+      };
+    } else if (!mtData) {
+      slot.classList.remove('occupied');
+      slot.innerHTML = `<span class="slot-badge">M / T</span><span class="slot-num">${index + 1}</span>`;
+      slot.onclick = null;
+      configurarInspectorHover(slot, null);
+    }
+  });
+
+  actualizarContadoresMazoYCementerio();
 }
 
 // ==========================================
@@ -3400,7 +3678,7 @@ function renderizarCampoOponente() {
   slotsMTRival.forEach((slot, index) => {
     slot.setAttribute('data-slot-index', index);
     const mtData = estadoOponente.zonaMagiasTrampas[index];
-    if (mtData) {
+    if (mtData && mtData.bocaAbajo) {
       slot.classList.add('occupied');
       slot.innerHTML = `
         <div class="card-on-field preview-card card-back face-down-card">
@@ -3423,6 +3701,7 @@ function renderizarCampoOponente() {
 
   const lpVal = document.getElementById('opponent-lp-val');
   if (lpVal) lpVal.textContent = estadoOponente.lp;
+  actualizarContadoresMazoYCementerio();
   actualizarMarcadorLateral();
 }
 
@@ -3567,8 +3846,93 @@ function obtenerEfectoVisualAtaque(datosCarta) {
   return 'corte';
 }
 
-function ejecutarAtaqueDirecto(slotIndexAtacante) {
+let _pvpTrapWaitTimeout = null;
+let _pvpPendingAttackResolver = null;
+
+function resolverEfectoTrampaRivalSobreMiAtaque(slotIndexAtacante, slotIndexObjetivo, esDirecto, trampaOponenteIndex, trampaData, danoOAtkAtacante) {
   const atacanteData = estadoJugador.zonaMonstruos[slotIndexAtacante];
+  const datosAtacante = atacanteData ? bdCartas[atacanteData.id] : { nombre: 'Pokémon' };
+  const dTrampa = bdCartas[trampaData.id] || { nombre: 'Trampa' };
+  const slotTrampaElem = document.querySelector(`#opponent-side .spells-row .spell-trap-slot[data-slot-index="${trampaOponenteIndex}"]`);
+  const slotAtacanteElem = document.querySelector(`#player-side .monsters-row .monster-slot[data-slot-index="${slotIndexAtacante}"]`);
+
+  if (slotTrampaElem) {
+    lanzarEfectoVisual('escudo', slotTrampaElem);
+    crearNumeroFlotante("¡TRAMPA!", slotTrampaElem, 'buff');
+  }
+  AudioManager.reproducirSFX('hit-super');
+
+  let danoARed = 0;
+  let destruirAtacantePorTrampa = false;
+
+  if (trampaData.id === 240) { // Protección
+    mostrarMensajeToast(`¡El rival activó "${dTrampa.nombre}" cancelando el ataque de tu ${datosAtacante.nombre}!`);
+  } else if (trampaData.id === 241) { // Manto Espejo: Refleja daño y destruye al atacante
+    danoARed = danoOAtkAtacante;
+    destruirAtacantePorTrampa = true;
+    estadoJugador.lp = Math.max(0, estadoJugador.lp - danoARed);
+    document.getElementById('player-lp-val').textContent = estadoJugador.lp;
+    crearNumeroFlotante(`-${danoARed} LP`, document.getElementById('player-lp-val'), 'damage');
+
+    if (atacanteData) {
+      if (!Array.isArray(estadoJugador.cementerio)) estadoJugador.cementerio = [];
+      estadoJugador.cementerio.push(atacanteData.id);
+      estadoJugador.zonaMonstruos[slotIndexAtacante] = null;
+    }
+    if (slotAtacanteElem) {
+      crearNumeroFlotante("DESTRUIDO", slotAtacanteElem, 'damage');
+      lanzarEfectoVisual('corte', slotAtacanteElem);
+    }
+    AudioManager.reproducirSFX('faint');
+    mostrarMensajeToast(`¡El rival activó "${dTrampa.nombre}"! Reflejó ${danoARed} LP de daño y destruyó a tu ${datosAtacante.nombre}.`);
+  } else if (trampaData.id === 242) { // Contador
+    danoARed = 800;
+    estadoJugador.lp = Math.max(0, estadoJugador.lp - danoARed);
+    document.getElementById('player-lp-val').textContent = estadoJugador.lp;
+    crearNumeroFlotante("-800 LP", document.getElementById('player-lp-val'), 'damage');
+    mostrarMensajeToast(`¡El rival activó "${dTrampa.nombre}" infligiendo 800 LP de daño a tus puntos de vida!`);
+  } else if (trampaData.id === 243) { // Paralizador
+    mostrarMensajeToast(`¡El rival activó "${dTrampa.nombre}" inmovilizando a tu ${datosAtacante.nombre}!`);
+  } else {
+    mostrarMensajeToast(`¡El rival activó su trampa "${dTrampa.nombre}" bloqueando el ataque!`);
+  }
+
+  // Eliminar la trampa de la zona del oponente y enviarla a su cementerio
+  if (!Array.isArray(estadoOponente.cementerio)) estadoOponente.cementerio = [];
+  estadoOponente.cementerio.push(trampaData.id);
+  estadoOponente.zonaMagiasTrampas[trampaOponenteIndex] = null;
+
+  actualizarContadoresMazoYCementerio();
+  actualizarMarcadorLateral();
+  renderizarCampoJugador();
+  renderizarCampoOponente();
+
+  if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline()) {
+    MultiplayerManager.enviarAccion({
+      tipo: 'RESOLVER_COMBATE',
+      resultado: {
+        atacanteSlot: slotIndexAtacante,
+        targetSlot: esDirecto ? null : slotIndexObjetivo,
+        esDirecto: !!esDirecto,
+        destruirAtacante: destruirAtacantePorTrampa,
+        destruirObjetivo: false,
+        danoAtacante: danoARed,
+        danoObjetivo: 0,
+        lpAtacanteFinal: estadoJugador.lp,
+        lpObjetivoFinal: estadoOponente.lp,
+        trampaActivada: trampaData.id,
+        trampaSlotIndex: trampaOponenteIndex
+      }
+    });
+    MultiplayerManager.sincronizarEstadoCampo();
+  }
+
+  comprobarFinDelDuelo();
+}
+
+function ejecutarAtaqueDirecto(slotIndexAtacante, ignorarTrampas = false) {
+  const atacanteData = estadoJugador.zonaMonstruos[slotIndexAtacante];
+  if (!atacanteData) return;
   const datosAtacante = bdCartas[atacanteData.id];
 
   const dano = obtenerAtkActual(atacanteData);
@@ -3583,97 +3947,52 @@ function ejecutarAtaqueDirecto(slotIndexAtacante) {
     atkAtacante: dano,
     esDirecto: true,
     etiquetaDirecto: 'LP del Rival',
-    autoClearMs: 1500
+    autoClearMs: 1600
   });
 
-  // Comprobar trampas del oponente ante ataque directo
-  const trampaOponenteIndex = Array.isArray(estadoOponente.zonaMagiasTrampas)
-    ? estadoOponente.zonaMagiasTrampas.findIndex(t => t !== null && t.bocaAbajo && bdCartas[t.id] && bdCartas[t.id].tipoCarta === 'trampa')
+  // Comprobar trampas del oponente ante ataque directo (estrictamente en estadoOponente)
+  const trampaOponenteIndex = (!ignorarTrampas && Array.isArray(estadoOponente.zonaMagiasTrampas))
+    ? estadoOponente.zonaMagiasTrampas.findIndex(t => t !== null && t.bocaAbajo === true && bdCartas[t.id] && bdCartas[t.id].tipoCarta === 'trampa')
     : -1;
 
   if (trampaOponenteIndex !== -1) {
     const trampaData = estadoOponente.zonaMagiasTrampas[trampaOponenteIndex];
-    const dTrampa = bdCartas[trampaData.id];
-    const slotTrampaElem = document.querySelector(`#opponent-side .spells-row .spell-trap-slot[data-slot-index="${trampaOponenteIndex}"]`);
-    const slotAtacanteElem = document.querySelector(`#player-side .monsters-row .monster-slot[data-slot-index="${slotIndexAtacante}"]`);
 
-    if (slotTrampaElem) {
-      lanzarEfectoVisual('escudo', slotTrampaElem);
-      crearNumeroFlotante("¡TRAMPA!", slotTrampaElem, 'buff');
-    }
-    AudioManager.reproducirSFX('hit-super');
-
-    let danoARed = 0;
-    let destruirAtacantePorTrampa = false;
-
-    if (trampaData.id === 240) { // Protección
-      mostrarMensajeToast(`¡El rival activó "${dTrampa.nombre}" cancelando tu ataque directo!`);
-    } else if (trampaData.id === 241) { // Manto Espejo: Refleja daño directo y destruye al atacante
-      danoARed = dano;
-      destruirAtacantePorTrampa = true;
-      estadoJugador.lp = Math.max(0, estadoJugador.lp - danoARed);
-      document.getElementById('player-lp-val').textContent = estadoJugador.lp;
-      crearNumeroFlotante(`-${danoARed} LP`, document.getElementById('player-lp-val'), 'damage');
-
-      // Destruir el monstruo atacante del jugador
-      if (!Array.isArray(estadoJugador.cementerio)) estadoJugador.cementerio = [];
-      estadoJugador.cementerio.push(atacanteData.id);
-      estadoJugador.zonaMonstruos[slotIndexAtacante] = null;
-      if (slotAtacanteElem) {
-        crearNumeroFlotante("DESTRUIDO", slotAtacanteElem, 'damage');
-        lanzarEfectoVisual('corte', slotAtacanteElem);
-      }
-      AudioManager.reproducirSFX('faint');
-
-      mostrarMensajeToast(`¡El rival activó "${dTrampa.nombre}"! Reflejó ${danoARed} LP de daño directo y destruyó a tu ${datosAtacante.nombre}.`);
-    } else if (trampaData.id === 242) { // Contador
-      danoARed = 800;
-      estadoJugador.lp = Math.max(0, estadoJugador.lp - danoARed);
-      document.getElementById('player-lp-val').textContent = estadoJugador.lp;
-      crearNumeroFlotante("-800 LP", document.getElementById('player-lp-val'), 'damage');
-      mostrarMensajeToast(`¡El rival activó "${dTrampa.nombre}" infligiendo 800 LP de daño a tus puntos de vida!`);
-    } else if (trampaData.id === 243) { // Paralizador
-      mostrarMensajeToast(`¡El rival activó "${dTrampa.nombre}" inmovilizando a tu ${datosAtacante.nombre}!`);
-    } else {
-      mostrarMensajeToast(`¡El rival activó su trampa "${dTrampa.nombre}" bloqueando el ataque!`);
-    }
-
-    if (!Array.isArray(estadoOponente.cementerio)) estadoOponente.cementerio = [];
-    estadoOponente.cementerio.push(trampaData.id);
-    estadoOponente.zonaMagiasTrampas[trampaOponenteIndex] = null;
-    if (slotTrampaElem) {
-      slotTrampaElem.classList.remove('occupied');
-      slotTrampaElem.innerHTML = `<span class="slot-badge">M / T</span><span class="slot-num">${trampaOponenteIndex + 1}</span>`;
-    }
-    const gySubOpp = document.querySelector('#opponent-gy .slot-sub');
-    if (gySubOpp) gySubOpp.textContent = estadoOponente.cementerio.length;
-    const gyPlayer = document.querySelector('#player-gy .slot-sub');
-    if (gyPlayer) gyPlayer.textContent = estadoJugador.cementerio.length;
-
-    actualizarMarcadorLateral();
-    renderizarCampoJugador();
-    renderizarCampoOponente();
-
+    // En 2 Jugadores Online: preguntar primero al jugador defensor si desea activar su trampa
     if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline()) {
-      MultiplayerManager.enviarAccion({
-        tipo: 'RESOLVER_COMBATE',
-        resultado: {
-          atacanteSlot: slotIndexAtacante,
-          targetSlot: null,
-          esDirecto: true,
-          destruirAtacante: destruirAtacantePorTrampa,
-          destruirObjetivo: false,
-          danoAtacante: danoARed,
-          danoObjetivo: 0,
-          lpAtacanteFinal: estadoJugador.lp,
-          lpObjetivoFinal: estadoOponente.lp,
-          trampaActivada: trampaData.id
+      mostrarMensajeToast(`⏳ Ataque declarado con ${datosAtacante.nombre}. Esperando respuesta del rival...`);
+      if (_pvpTrapWaitTimeout) clearTimeout(_pvpTrapWaitTimeout);
+      _pvpPendingAttackResolver = (activarTrampa) => {
+        if (_pvpTrapWaitTimeout) {
+          clearTimeout(_pvpTrapWaitTimeout);
+          _pvpTrapWaitTimeout = null;
         }
+        _pvpPendingAttackResolver = null;
+        if (activarTrampa) {
+          resolverEfectoTrampaRivalSobreMiAtaque(slotIndexAtacante, null, true, trampaOponenteIndex, trampaData, dano);
+        } else {
+          ejecutarAtaqueDirecto(slotIndexAtacante, true);
+        }
+      };
+      MultiplayerManager.enviarAccion({
+        tipo: 'PREGUNTAR_TRAMPA_RIVAL',
+        atacanteSlot: slotIndexAtacante,
+        targetSlot: null,
+        esDirecto: true,
+        atkAtacante: dano,
+        trampaSlotIndex: trampaOponenteIndex,
+        trampaId: trampaData.id
       });
-      MultiplayerManager.sincronizarEstadoCampo();
+      _pvpTrapWaitTimeout = setTimeout(() => {
+        if (_pvpPendingAttackResolver) {
+          _pvpPendingAttackResolver(false);
+        }
+      }, 14000);
+      return;
     }
 
-    comprobarFinDelDuelo();
+    // Contra la IA: el rival IA activa su trampa
+    resolverEfectoTrampaRivalSobreMiAtaque(slotIndexAtacante, null, true, trampaOponenteIndex, trampaData, dano);
     return;
   }
 
@@ -3718,7 +4037,7 @@ function ejecutarAtaqueDirecto(slotIndexAtacante) {
   }
 }
 
-function resolverCombate(slotIndexAtacante, slotIndexObjetivo) {
+function resolverCombate(slotIndexAtacante, slotIndexObjetivo, ignorarTrampas = false) {
   limpiarTargetingRivales();
 
   const atacanteData = estadoJugador.zonaMonstruos[slotIndexAtacante];
@@ -3758,94 +4077,49 @@ function resolverCombate(slotIndexAtacante, slotIndexObjetivo) {
     autoClearMs: 1600
   });
 
-  // Comprobar trampas del oponente antes de resolver el combate
-  const trampaOponenteIndex = Array.isArray(estadoOponente.zonaMagiasTrampas)
-    ? estadoOponente.zonaMagiasTrampas.findIndex(t => t !== null && t.bocaAbajo && bdCartas[t.id] && bdCartas[t.id].tipoCarta === 'trampa')
+  // Comprobar trampas del oponente antes de resolver el combate (estrictamente en estadoOponente)
+  const trampaOponenteIndex = (!ignorarTrampas && Array.isArray(estadoOponente.zonaMagiasTrampas))
+    ? estadoOponente.zonaMagiasTrampas.findIndex(t => t !== null && t.bocaAbajo === true && bdCartas[t.id] && bdCartas[t.id].tipoCarta === 'trampa')
     : -1;
 
   if (trampaOponenteIndex !== -1) {
     const trampaData = estadoOponente.zonaMagiasTrampas[trampaOponenteIndex];
-    const dTrampa = bdCartas[trampaData.id];
-    const slotTrampaElem = document.querySelector(`#opponent-side .spells-row .spell-trap-slot[data-slot-index="${trampaOponenteIndex}"]`);
 
-    if (slotTrampaElem) {
-      lanzarEfectoVisual('escudo', slotTrampaElem);
-      crearNumeroFlotante("¡TRAMPA!", slotTrampaElem, 'buff');
-    }
-    AudioManager.reproducirSFX('hit-super');
-
-    let danoARed = 0;
-    let destruirAtacantePorTrampa = false;
-
-    if (trampaData.id === 240) { // Protección
-      mostrarMensajeToast(`¡El rival activó "${dTrampa.nombre}" y canceló el ataque de tu ${datosAtacante.nombre}!`);
-    } else if (trampaData.id === 241) { // Manto Espejo: Refleja daño y destruye al atacante
-      danoARed = atkAtacante;
-      destruirAtacantePorTrampa = true;
-      estadoJugador.lp = Math.max(0, estadoJugador.lp - danoARed);
-      document.getElementById('player-lp-val').textContent = estadoJugador.lp;
-      crearNumeroFlotante(`-${danoARed} LP`, document.getElementById('player-lp-val'), 'damage');
-
-      // Destruir el monstruo atacante del jugador
-      if (!Array.isArray(estadoJugador.cementerio)) estadoJugador.cementerio = [];
-      estadoJugador.cementerio.push(atacanteData.id);
-      estadoJugador.zonaMonstruos[slotIndexAtacante] = null;
-      if (slotAtacanteElem) {
-        crearNumeroFlotante("DESTRUIDO", slotAtacanteElem, 'damage');
-        lanzarEfectoVisual('corte', slotAtacanteElem);
-      }
-      AudioManager.reproducirSFX('faint');
-
-      mostrarMensajeToast(`¡El rival activó "${dTrampa.nombre}"! Reflejó ${danoARed} LP de daño y destruyó a tu ${datosAtacante.nombre}.`);
-    } else if (trampaData.id === 242) { // Contador
-      danoARed = 800;
-      estadoJugador.lp = Math.max(0, estadoJugador.lp - danoARed);
-      document.getElementById('player-lp-val').textContent = estadoJugador.lp;
-      crearNumeroFlotante("-800 LP", document.getElementById('player-lp-val'), 'damage');
-      mostrarMensajeToast(`¡El rival activó "${dTrampa.nombre}" contraatacando con 800 LP de daño a tus puntos de vida!`);
-    } else if (trampaData.id === 243) { // Paralizador
-      mostrarMensajeToast(`¡El rival activó "${dTrampa.nombre}" inmovilizando a tu ${datosAtacante.nombre}!`);
-    } else {
-      mostrarMensajeToast(`¡El rival activó su trampa "${dTrampa.nombre}" absorbiendo el ataque!`);
-    }
-
-    // Mover trampa del rival al cementerio
-    if (!Array.isArray(estadoOponente.cementerio)) estadoOponente.cementerio = [];
-    estadoOponente.cementerio.push(trampaData.id);
-    estadoOponente.zonaMagiasTrampas[trampaOponenteIndex] = null;
-    if (slotTrampaElem) {
-      slotTrampaElem.classList.remove('occupied');
-      slotTrampaElem.innerHTML = `<span class="slot-badge">M / T</span><span class="slot-num">${trampaOponenteIndex + 1}</span>`;
-    }
-    const gySubOpp = document.querySelector('#opponent-gy .slot-sub');
-    if (gySubOpp) gySubOpp.textContent = estadoOponente.cementerio.length;
-    const gyPlayer = document.querySelector('#player-gy .slot-sub');
-    if (gyPlayer) gyPlayer.textContent = estadoJugador.cementerio.length;
-
-    actualizarMarcadorLateral();
-    renderizarCampoJugador();
-    renderizarCampoOponente();
-
+    // En 2 Jugadores Online: preguntar primero al jugador defensor si desea activar su trampa
     if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline()) {
-      MultiplayerManager.enviarAccion({
-        tipo: 'RESOLVER_COMBATE',
-        resultado: {
-          atacanteSlot: slotIndexAtacante,
-          targetSlot: slotIndexObjetivo,
-          esDirecto: false,
-          destruirAtacante: destruirAtacantePorTrampa,
-          destruirObjetivo: false,
-          danoAtacante: danoARed,
-          danoObjetivo: 0,
-          lpAtacanteFinal: estadoJugador.lp,
-          lpObjetivoFinal: estadoOponente.lp,
-          trampaActivada: trampaData.id
+      mostrarMensajeToast(`⏳ ${datosAtacante.nombre} ataca a ${datosObjetivo.nombre}. Esperando respuesta del rival...`);
+      if (_pvpTrapWaitTimeout) clearTimeout(_pvpTrapWaitTimeout);
+      _pvpPendingAttackResolver = (activarTrampa) => {
+        if (_pvpTrapWaitTimeout) {
+          clearTimeout(_pvpTrapWaitTimeout);
+          _pvpTrapWaitTimeout = null;
         }
+        _pvpPendingAttackResolver = null;
+        if (activarTrampa) {
+          resolverEfectoTrampaRivalSobreMiAtaque(slotIndexAtacante, slotIndexObjetivo, false, trampaOponenteIndex, trampaData, atkAtacante);
+        } else {
+          resolverCombate(slotIndexAtacante, slotIndexObjetivo, true);
+        }
+      };
+      MultiplayerManager.enviarAccion({
+        tipo: 'PREGUNTAR_TRAMPA_RIVAL',
+        atacanteSlot: slotIndexAtacante,
+        targetSlot: slotIndexObjetivo,
+        esDirecto: false,
+        atkAtacante: atkAtacante,
+        trampaSlotIndex: trampaOponenteIndex,
+        trampaId: trampaData.id
       });
-      MultiplayerManager.sincronizarEstadoCampo();
+      _pvpTrapWaitTimeout = setTimeout(() => {
+        if (_pvpPendingAttackResolver) {
+          _pvpPendingAttackResolver(false);
+        }
+      }, 14000);
+      return;
     }
 
-    comprobarFinDelDuelo();
+    // Contra la IA: el rival IA activa su trampa
+    resolverEfectoTrampaRivalSobreMiAtaque(slotIndexAtacante, slotIndexObjetivo, false, trampaOponenteIndex, trampaData, atkAtacante);
     return;
   }
 
@@ -4032,6 +4306,7 @@ function ejecutarTurnoIA() {
     if (!roboOk) return; // Deck Out sufrido por Blue
   }
 
+  mostrarBannerCambioTurno(false, estadoJuego.turno, isEn ? "Rival Blue is analyzing the field..." : "El Rival Blue analiza el campo de batalla...");
   mostrarMensajeToast(isEn ? "Rival Blue's Turn: Analyzing the battlefield..." : "Turno del Rival Blue: Analizando el campo de batalla...");
 
   // Paso 1: Fase Principal de la IA (600ms)
@@ -4113,6 +4388,7 @@ function ejecutarTurnoIA() {
         renderizarManoOponente();
       } else if (origen === 'mazo' && idxOrigen !== -1) {
         estadoOponente.mazo.splice(idxOrigen, 1);
+        actualizarContadoresMazoYCementerio();
       }
 
       // Fallback legal si no se extrajo del mazo (solo básicos si hay slots libres)
@@ -4906,10 +5182,13 @@ function finalizarTurnoIA() {
     renderizarMano(estadoJugador);
     renderizarCampoJugador();
     renderizarCampoOponente();
+    actualizarContadoresMazoYCementerio();
     actualizarMarcadorLateral();
   } catch (errRender) {
     console.error("Error al actualizar UI tras turno IA:", errRender);
   }
+
+  mostrarBannerCambioTurno(true, estadoJuego.turno, isEn ? "You drew 1 card • Main Phase" : "Robaste 1 carta • Fase Principal");
 
   const msgTurno = estadoJuego.turno >= 2
     ? (isEn ? `Turn ${estadoJuego.turno}! You drew 1 card. Battle Phase enabled!` : `¡Turno ${estadoJuego.turno}! Robaste 1 carta. ¡Fase de Combate habilitada!`)
@@ -5032,14 +5311,20 @@ function avanzarFase() {
   } else if (estadoJuego.faseActual === 'FIN') {
     verificarLimiteManoYPasar(() => {
       if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline()) {
-        MultiplayerManager.enviarAccion({ tipo: 'PASAR_FASE', fase: 'FIN' });
+        estadoJuego.turno = (estadoJuego.turno || 1) + 1;
+        MultiplayerManager.enviarAccion({ tipo: 'PASAR_FASE', fase: 'FIN', nuevoTurno: estadoJuego.turno });
         estadoJuego.turnoDe = 'oponente';
         if (estadoOponente.mano) {
           estadoOponente.mano.push(null);
           renderizarManoOponente();
         }
+        if (typeof estadoOponente.mazoCountOnline === 'number') {
+          estadoOponente.mazoCountOnline = Math.max(0, estadoOponente.mazoCountOnline - 1);
+        }
+        actualizarContadoresMazoYCementerio();
         actualizarUIFases();
-        mostrarMensajeToast("Turno del rival online...");
+        mostrarBannerCambioTurno(false, estadoJuego.turno, `Turno de ${estadoOponente.nombre || 'Rival'}`);
+        mostrarMensajeToast(`Turno ${estadoJuego.turno}: Turno de ${estadoOponente.nombre || 'Rival'}...`);
       } else {
         ejecutarTurnoIA();
       }
@@ -5063,14 +5348,20 @@ function pasarAutomaticamenteAFin(mensajeToast) {
   setTimeout(() => {
     if (estadoJuego.faseActual === 'FIN' && estadoJuego.turnoDe === 'jugador') {
       if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline()) {
-        MultiplayerManager.enviarAccion({ tipo: 'PASAR_FASE', fase: 'FIN' });
+        estadoJuego.turno = (estadoJuego.turno || 1) + 1;
+        MultiplayerManager.enviarAccion({ tipo: 'PASAR_FASE', fase: 'FIN', nuevoTurno: estadoJuego.turno });
         estadoJuego.turnoDe = 'oponente';
         if (estadoOponente.mano) {
           estadoOponente.mano.push(null);
           renderizarManoOponente();
         }
+        if (typeof estadoOponente.mazoCountOnline === 'number') {
+          estadoOponente.mazoCountOnline = Math.max(0, estadoOponente.mazoCountOnline - 1);
+        }
+        actualizarContadoresMazoYCementerio();
         actualizarUIFases();
-        mostrarMensajeToast("Turno del rival online...");
+        mostrarBannerCambioTurno(false, estadoJuego.turno, `Turno de ${estadoOponente.nombre || 'Rival'}`);
+        mostrarMensajeToast(`Turno ${estadoJuego.turno}: Turno de ${estadoOponente.nombre || 'Rival'}...`);
       } else {
         ejecutarTurnoIA();
       }
@@ -5291,8 +5582,14 @@ function reiniciarDuelo() {
   document.getElementById('player-lp-val').textContent = lpConfig;
   document.getElementById('opponent-lp-val').textContent = lpConfig;
 
+  estadoOponente.mazoCountOnline = 35;
+
   const gySub = document.querySelector('#player-gy .slot-sub');
   if (gySub) gySub.textContent = 0;
+  const gySubOpp = document.querySelector('#opponent-gy .slot-sub');
+  if (gySubOpp) gySubOpp.textContent = 0;
+
+  limpiarRegistroAccionesBatalla();
 
   const slotsMT = document.querySelectorAll('#player-side .spells-row .spell-trap-slot');
   slotsMT.forEach((s, i) => {
@@ -5447,9 +5744,44 @@ function inicializarMenuPrincipal() {
     };
   }
 
-  // Regresar al Menú Principal en todo momento
+  // Regresar al Menú Principal en todo momento (con advertencia de rendición si está en duelo PvP Online)
+  const surrenderModal = document.getElementById('surrender-confirm-modal');
+  const btnConfirmSurrenderYes = document.getElementById('btn-confirm-surrender-yes');
+  const btnConfirmSurrenderNo = document.getElementById('btn-confirm-surrender-no');
+  const surrenderDescEl = document.getElementById('surrender-confirm-desc');
+
+  if (btnConfirmSurrenderNo && surrenderModal) {
+    btnConfirmSurrenderNo.onclick = () => {
+      surrenderModal.classList.add('hidden');
+      AudioManager.reproducirSFX('enter');
+    };
+  }
+
+  if (btnConfirmSurrenderYes && surrenderModal) {
+    btnConfirmSurrenderYes.onclick = async () => {
+      surrenderModal.classList.add('hidden');
+      if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline()) {
+        await MultiplayerManager.rendirseYSalirAlMenu();
+      } else {
+        if (overlay) overlay.classList.remove('hidden');
+        AudioManager.reproducirMusicaTema('menu');
+      }
+    };
+  }
+
   if (btnReturnMenu) {
     btnReturnMenu.onclick = () => {
+      if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline() && !MultiplayerManager.dueloTerminado) {
+        if (surrenderModal) {
+          if (surrenderDescEl) {
+            const rivalNombre = escapeHtml(estadoOponente.nombre || 'tu rival');
+            surrenderDescEl.innerHTML = `Estás en medio de una partida de <b>2 Jugadores</b> contra <b>${rivalNombre}</b>.<br>Si sales al menú principal ahora, se registrará como <b style="color:#ff4757;">DERROTA 💀</b> para ti y <b>${rivalNombre}</b> recibirá automáticamente la <b style="color:#2ed573;">VICTORIA 🏆</b>.`;
+          }
+          surrenderModal.classList.remove('hidden');
+          AudioManager.reproducirSFX('hit');
+          return;
+        }
+      }
       if (overlay) overlay.classList.remove('hidden');
       AudioManager.reproducirMusicaTema('menu');
       AudioManager.reproducirSFX('enter');
@@ -5553,6 +5885,7 @@ function inicializarModalPrePartida() {
       modal.classList.add('hidden');
       if (menuOverlay) menuOverlay.classList.add('hidden');
       iniciarDuelo();
+      mostrarBannerCambioTurno(true, 1, "Fase Principal • 1 invocación de Pokémon por turno");
       AudioManager.reproducirSFX('hit-super');
     };
   }
@@ -6294,54 +6627,59 @@ function guardarMazoActual() {
 }
 
 function renderizarSelectorMazosPrePartida() {
-  const container = document.getElementById('setup-deck-options');
-  if (!container) return;
-  container.innerHTML = '';
+  const contenedores = [
+    document.getElementById('setup-deck-options'),
+    document.getElementById('pvp-deck-options')
+  ].filter(Boolean);
 
-  const isEn = configuracionJuego.idioma === 'en';
+  if (contenedores.length === 0) return;
 
-  mazosJugador.forEach((m, idx) => {
-    const card = document.createElement('div');
-    const isSelected = (idx === (configuracionJuego.mazoSeleccionadoIdx || 0));
-    const isValid = m.cartas && m.cartas.length === 40;
+  contenedores.forEach(container => {
+    container.innerHTML = '';
 
-    card.className = `deck-select-card ${isSelected ? 'active' : ''} ${!isValid ? 'incomplete' : ''}`;
-    card.setAttribute('data-deck-idx', idx);
+    mazosJugador.forEach((m, idx) => {
+      const card = document.createElement('div');
+      const isSelected = (idx === (configuracionJuego.mazoSeleccionadoIdx || 0));
+      const isValid = m.cartas && m.cartas.length === 40;
 
-    let mCount = 0;
-    let sCount = 0;
-    let tCount = 0;
-    if (m.cartas) {
-      m.cartas.forEach(id => {
-        const c = bdCartas[id];
-        if (c) {
-          if (c.tipoCarta === 'monstruo') mCount++;
-          else if (c.tipoCarta === 'magia') sCount++;
-          else if (c.tipoCarta === 'trampa') tCount++;
-        }
-      });
-    }
+      card.className = `deck-select-card ${isSelected ? 'active' : ''} ${!isValid ? 'incomplete' : ''}`;
+      card.setAttribute('data-deck-idx', idx);
 
-    card.innerHTML = `
-      <div class="deck-select-header">
-        <span class="deck-select-num">Mazo #${idx + 1}</span>
-        <span class="deck-select-status ${isValid ? 'status-ok' : 'status-warn'}">
-          ${isValid ? '40 / 40 ✔️' : `⚠️ ${m.cartas ? m.cartas.length : 0}/40`}
-        </span>
-      </div>
-      <div class="deck-select-name">${escapeHtml(m.nombre || `Mazo ${idx + 1}`)}</div>
-      <div class="deck-select-breakdown">
-        <span>👾 ${mCount}</span> • <span>🪄 ${sCount}</span> • <span>🪤 ${tCount}</span>
-      </div>
-    `;
+      let mCount = 0;
+      let sCount = 0;
+      let tCount = 0;
+      if (m.cartas) {
+        m.cartas.forEach(id => {
+          const c = bdCartas[id];
+          if (c) {
+            if (c.tipoCarta === 'monstruo') mCount++;
+            else if (c.tipoCarta === 'magia') sCount++;
+            else if (c.tipoCarta === 'trampa') tCount++;
+          }
+        });
+      }
 
-    card.onclick = () => {
-      configuracionJuego.mazoSeleccionadoIdx = idx;
-      renderizarSelectorMazosPrePartida();
-      AudioManager.reproducirSFX('enter');
-    };
+      card.innerHTML = `
+        <div class="deck-select-header">
+          <span class="deck-select-num">Mazo #${idx + 1}</span>
+          <span class="deck-select-status ${isValid ? 'status-ok' : 'status-warn'}">
+            ${isValid ? '40 / 40 ✔️' : `⚠️ ${m.cartas ? m.cartas.length : 0}/40`}
+          </span>
+        </div>
+        <div class="deck-select-name">${escapeHtml(m.nombre || `Mazo ${idx + 1}`)}</div>
+        <div class="deck-select-breakdown">
+          <span>👾 ${mCount}</span> • <span>🪄 ${sCount}</span> • <span>🪤 ${tCount}</span>
+        </div>
+      `;
 
-    container.appendChild(card);
+      card.onclick = () => {
+        configuracionJuego.mazoSeleccionadoIdx = idx;
+        renderizarSelectorMazosPrePartida();
+        AudioManager.reproducirSFX('enter');
+      };
+
+      container.appendChild(card);
+    });
   });
 }
 
@@ -7343,11 +7681,14 @@ class SupabaseRoomAdapter {
 
     if (data.msgType === 'guest_joined' && this.isHost && !this.gameStarted) {
       this.gameStarted = true;
+      // Sorteo aleatorio 50/50 para definir qué jugador comienza la partida
+      const randomStartingSeat = Math.random() < 0.5 ? 0 : 1;
+      this.turnSeat = randomStartingSeat;
       const matchData = {
         roomCode: this.roomCode,
         lpInicial: this.lpInicial,
         players: [this.myPlayer, data.guestPlayer],
-        startingSeat: 0,
+        startingSeat: randomStartingSeat,
         turno: 1,
         fase: 'PRINCIPAL'
       };
@@ -7362,6 +7703,9 @@ class SupabaseRoomAdapter {
       this.emitLocal('match_start', matchData);
     } else if (data.msgType === 'match_start' && !this.isHost && !this.gameStarted) {
       this.gameStarted = true;
+      if (data.matchData && typeof data.matchData.startingSeat === 'number') {
+        this.turnSeat = data.matchData.startingSeat;
+      }
       this.emitLocal('match_start', data.matchData);
     } else if (data.msgType === 'action') {
       this.emitLocal('action', data.payload);
@@ -7372,7 +7716,7 @@ class SupabaseRoomAdapter {
   }
 
   send(type, actionData) {
-    if (!this.channel) return;
+    if (!this.channel) return Promise.resolve();
 
     if (type === 'action') {
       const payload = {
@@ -7390,7 +7734,7 @@ class SupabaseRoomAdapter {
         actionData.nuevoTurno = this.turn;
       }
 
-      this.channel.send({
+      return this.channel.send({
         type: 'broadcast',
         event: 'room_msg',
         payload: {
@@ -7406,10 +7750,10 @@ class SupabaseRoomAdapter {
         surrenderedSeat: this.seat,
         winnerSeat: winnerSeat,
         mensaje: type === 'surrender'
-          ? `${this.myPlayer.username} se ha rendido.`
+          ? `🏳️ ${this.myPlayer.username} abandonó la partida. ¡Victoria otorgada a su rival!`
           : `¡${this.myPlayer.username} se quedó sin cartas en su baraja (Deck Out)!`
       };
-      this.channel.send({
+      const sendPromise = this.channel.send({
         type: 'broadcast',
         event: 'room_msg',
         payload: {
@@ -7418,7 +7762,9 @@ class SupabaseRoomAdapter {
         }
       });
       this.emitLocal('game_over', gameOverPayload);
+      return sendPromise;
     }
+    return Promise.resolve();
   }
 
   leave() {
@@ -7473,6 +7819,21 @@ const MultiplayerManager = {
     return this.enPartidaOnline && !!this.room;
   },
 
+  validarMazoAntesDePvp() {
+    const idxMazo = configuracionJuego.mazoSeleccionadoIdx || 0;
+    const mazoElegido = mazosJugador[idxMazo];
+    if (!mazoElegido || !mazoElegido.cartas || mazoElegido.cartas.length !== 40) {
+      const cant = mazoElegido && mazoElegido.cartas ? mazoElegido.cartas.length : 0;
+      const msg = configuracionJuego.idioma === 'en'
+        ? `The selected deck must have exactly 40 cards to duel online (currently ${cant}/40). Please complete it in the Deck Builder.`
+        : `El mazo seleccionado debe tener exactamente 40 cartas para jugar online (actualmente tiene ${cant}/40). Complétalo en el Constructor de Barajas.`;
+      mostrarMensajeToast(msg);
+      abrirDeckBuilder(idxMazo);
+      return false;
+    }
+    return true;
+  },
+
   abrirModalOnline() {
     if (typeof UserManager !== 'undefined' && !UserManager.currentUser) {
       UserManager.exigirAutenticacion("Debes iniciar sesión o registrar tu cuenta para jugar en línea.");
@@ -7481,6 +7842,7 @@ const MultiplayerManager = {
     const modal = document.getElementById('pvp-online-modal');
     if (!modal) return;
 
+    renderizarSelectorMazosPrePartida();
     this.cambiarVista('options');
     modal.classList.remove('hidden');
     this.comprobarEstadoServidor();
@@ -7534,6 +7896,7 @@ const MultiplayerManager = {
       UserManager.exigirAutenticacion("Debes iniciar sesión o registrar tu cuenta para jugar online.");
       return;
     }
+    if (!this.validarMazoAntesDePvp()) return;
 
     const user = UserManager.currentUser || { username: 'Entrenador Red', avatar: '🔴' };
 
@@ -7613,6 +7976,7 @@ const MultiplayerManager = {
       UserManager.exigirAutenticacion("Debes iniciar sesión o registrar tu cuenta para crear salas online.");
       return;
     }
+    if (!this.validarMazoAntesDePvp()) return;
 
     const code = Math.random().toString(36).substring(2, 6).toUpperCase();
     this.roomCode = code;
@@ -7669,6 +8033,7 @@ const MultiplayerManager = {
       UserManager.exigirAutenticacion("Debes iniciar sesión o registrar tu cuenta para unirte a salas online.");
       return;
     }
+    if (!this.validarMazoAntesDePvp()) return;
 
     if (!codigo || codigo.trim().length === 0) {
       alert("Por favor ingresa el código de sala.");
@@ -7744,16 +8109,28 @@ const MultiplayerManager = {
       const soyGanador = (data.winnerSeat === this.miAsiento);
       mostrarFinDelDuelo(soyGanador);
 
-      if (data.reason === 'disconnect') {
-        mostrarMensajeToast(soyGanador
+      const descEl = document.getElementById('game-over-desc');
+      if (data.reason === 'surrender') {
+        const msg = soyGanador
+          ? `¡${estadoOponente.nombre} abandonó la partida y salió al menú! Se te otorga la VICTORIA 🏆`
+          : "Abandonaste la partida. Se ha registrado como DERROTA.";
+        mostrarMensajeToast(msg);
+        if (descEl) descEl.textContent = msg;
+      } else if (data.reason === 'disconnect') {
+        const msg = soyGanador
           ? "¡Tu rival se desconectó de la partida! Se le cuenta como derrota y a ti se te otorga la victoria 🏆"
-          : "Te has desconectado de la partida. Derrota registrada.");
+          : "Te has desconectado de la partida. Derrota registrada.";
+        mostrarMensajeToast(msg);
+        if (descEl) descEl.textContent = msg;
       } else if (data.reason === 'deck_out') {
-        mostrarMensajeToast(soyGanador
+        const msg = soyGanador
           ? "¡Victoria! El rival se quedó sin cartas en su baraja (Deck Out)."
-          : "¡Derrota! Te has quedado sin cartas en tu baraja (Deck Out).");
+          : "¡Derrota! Te has quedado sin cartas en tu baraja (Deck Out).";
+        mostrarMensajeToast(msg);
+        if (descEl) descEl.textContent = msg;
       } else if (data.mensaje) {
         mostrarMensajeToast(data.mensaje);
+        if (descEl) descEl.textContent = data.mensaje;
       }
 
       this.desconectar(true);
@@ -7802,9 +8179,11 @@ const MultiplayerManager = {
       estadoOponente.nombre = p1?.username || "Rival Online";
     }
 
-    // Inicializar mano del oponente con 5 cartas cubiertas para ambos jugadores
+    // Inicializar mano del oponente con 5 cartas cubiertas y 35 en el mazo (40 - 5)
     estadoOponente.mano = new Array(5).fill(null);
+    estadoOponente.mazoCountOnline = 35;
     renderizarManoOponente();
+    actualizarContadoresMazoYCementerio();
 
     const hudP = document.querySelector('#player-side .player-name');
     if (hudP) hudP.textContent = estadoJugador.nombre;
@@ -7812,11 +8191,21 @@ const MultiplayerManager = {
     if (hudO) hudO.textContent = estadoOponente.nombre;
 
     AudioManager.reproducirMusicaTema('batalla');
-    mostrarMensajeToast(`¡Duelo Online iniciado contra ${estadoOponente.nombre}!`);
 
-    estadoJuego.turnoDe = (this.miAsiento === data.startingSeat) ? 'jugador' : 'oponente';
+    const empiezaJugador = (this.miAsiento === data.startingSeat);
+    estadoJuego.turnoDe = empiezaJugador ? 'jugador' : 'oponente';
     actualizarUIFases();
     this.sincronizarEstadoCampo();
+
+    const quienEmpiezaTexto = empiezaJugador
+      ? `🎲 Sorteo aleatorio: ¡Tú comienzas el Duelo (Turno 1)!`
+      : `🎲 Sorteo aleatorio: ${estadoOponente.nombre} comienza el Duelo (Turno 1).`;
+    mostrarMensajeToast(`¡Duelo Online contra ${estadoOponente.nombre}! ${quienEmpiezaTexto}`);
+    mostrarBannerCambioTurno(
+      empiezaJugador,
+      1,
+      empiezaJugador ? '🎲 Ganaste el sorteo inicial • Fase Principal' : `🎲 ${estadoOponente.nombre} ganó el sorteo inicial`
+    );
   },
 
   enviarAccion(accion) {
@@ -7837,10 +8226,11 @@ const MultiplayerManager = {
         defMod: m.defMod || 0,
         equipos: m.equipos ? m.equipos.slice() : []
       } : null),
-      zonaMagiasTrampas: estadoJugador.zonaMagiasTrampas.map(t => t ? {
+      // Solo sincronizar trampas colocadas boca abajo que sigan sin usarse
+      zonaMagiasTrampas: estadoJugador.zonaMagiasTrampas.map(t => (t && t.bocaAbajo) ? {
         id: t.id,
-        bocaAbajo: !!t.bocaAbajo,
-        activa: !!t.activa
+        bocaAbajo: true,
+        activa: false
       } : null),
       lp: estadoJugador.lp,
       cementerio: estadoJugador.cementerio.slice(),
@@ -7851,6 +8241,78 @@ const MultiplayerManager = {
 
   aplicarAccionRival(accion) {
     console.log("[Online] Aplicando acción rival:", accion);
+
+    // 0-A. El rival está atacando y nos pregunta si queremos activar nuestra trampa
+    if (accion.tipo === 'PREGUNTAR_TRAMPA_RIVAL') {
+      const mAtacante = estadoOponente.zonaMonstruos[accion.atacanteSlot];
+      const mTarget = (accion.targetSlot !== null && accion.targetSlot !== undefined)
+        ? estadoJugador.zonaMonstruos[accion.targetSlot]
+        : null;
+      const slotRivalElem = document.querySelector(`#opponent-side .monsters-row .monster-slot[data-slot-index="${accion.atacanteSlot}"]`);
+      const slotJugadorElem = (accion.targetSlot !== null && accion.targetSlot !== undefined)
+        ? document.querySelector(`#player-side .monsters-row .monster-slot[data-slot-index="${accion.targetSlot}"]`)
+        : document.getElementById('player-lp-val');
+
+      const datosAtacante = (mAtacante && bdCartas[mAtacante.id]) ? bdCartas[mAtacante.id] : {
+        nombre: accion.atacanteNombre || 'Pokémon Rival',
+        atk: accion.atacanteAtk || 0,
+        def: 0
+      };
+      const datosDefensor = (mTarget && bdCartas[mTarget.id]) ? bdCartas[mTarget.id] : null;
+
+      // Mostrar indicador visual de quién nos ataca
+      mostrarIndicadorAtaqueVisual({
+        slotOrigenElem: slotRivalElem,
+        slotDestinoElem: slotJugadorElem,
+        datosAtacante,
+        datosDefensor,
+        esDirecto: !!accion.esDirecto,
+        posicionDefensor: mTarget ? mTarget.posicion : 'ataque',
+        atkAtacante: accion.atacanteAtk,
+        statDefensor: mTarget ? obtenerStatEfectivo(mTarget, mTarget.posicion === 'ataque' ? 'atk' : 'def') : undefined
+      });
+
+      const indiceTrampa = estadoJugador.zonaMagiasTrampas.findIndex(c => c !== null && c.bocaAbajo);
+      if (indiceTrampa === -1) {
+        setTimeout(() => ocultarIndicadorAtaqueVisual(), 400);
+        this.enviarAccion({ tipo: 'RESPUESTA_TRAMPA_RIVAL', activar: false });
+        return;
+      }
+
+      const trampaSlot = estadoJugador.zonaMagiasTrampas[indiceTrampa];
+      const datosTrampa = bdCartas[trampaSlot.id];
+      const textoObjetivo = accion.esDirecto
+        ? 'tus Puntos de Vida directamente'
+        : (datosDefensor ? `tu ${datosDefensor.nombre}` : 'tu Pokémon');
+
+      abrirModalConfirmacionCarta({
+        datosCarta: datosTrampa,
+        icono: '🪤',
+        titulo: '¡Activar Carta de Trampa!',
+        pregunta: `¡${datosAtacante.nombre} (${accion.atacanteAtk} ATK) ataca a ${textoObjetivo}! ¿Quieres activar tu trampa "${datosTrampa.nombre}"?`,
+        textoConfirmar: '⚡ ¡Activar Trampa!',
+        textoCancelar: 'No activar',
+        onConfirm: () => {
+          ocultarIndicadorAtaqueVisual();
+          this.enviarAccion({ tipo: 'RESPUESTA_TRAMPA_RIVAL', activar: true, trampaSlotIndex: indiceTrampa });
+        },
+        onCancel: () => {
+          ocultarIndicadorAtaqueVisual();
+          this.enviarAccion({ tipo: 'RESPUESTA_TRAMPA_RIVAL', activar: false });
+        }
+      });
+      return;
+    }
+
+    // 0-B. Respuesta del defensor a nuestra pregunta de trampa
+    if (accion.tipo === 'RESPUESTA_TRAMPA_RIVAL') {
+      if (typeof _pvpPendingAttackResolver === 'function') {
+        const resolver = _pvpPendingAttackResolver;
+        _pvpPendingAttackResolver = null;
+        resolver(!!accion.activar);
+      }
+      return;
+    }
 
     // 1. Sincronización exacta de combate y destrucción de cartas
     if (accion.tipo === 'RESOLVER_COMBATE') {
@@ -7872,6 +8334,49 @@ const MultiplayerManager = {
       const slotJugadorElem = (targetSlot !== null && targetSlot !== undefined)
         ? document.querySelector(`#player-side .monsters-row .monster-slot[data-slot-index="${targetSlot}"]`)
         : null;
+
+      // Si se activó una trampa nuestra durante este ataque, consumirla de nuestra zona M/T y enviarla al cementerio
+      if (res.trampaActivada) {
+        let idxLocalTrampa = (typeof res.trampaSlotIndex === 'number' && estadoJugador.zonaMagiasTrampas[res.trampaSlotIndex])
+          ? res.trampaSlotIndex
+          : estadoJugador.zonaMagiasTrampas.findIndex(c => c !== null && c.id === res.trampaActivada);
+        if (idxLocalTrampa !== -1 && estadoJugador.zonaMagiasTrampas[idxLocalTrampa]) {
+          const trampaUsada = estadoJugador.zonaMagiasTrampas[idxLocalTrampa];
+          estadoJugador.cementerio.push(trampaUsada.id);
+          estadoJugador.zonaMagiasTrampas[idxLocalTrampa] = null;
+        }
+        const datosTrampaAct = bdCartas[res.trampaActivada];
+        const elemDef = slotJugadorElem || document.getElementById('player-lp-val');
+        if (elemDef) lanzarEfectoVisual('shield', elemDef);
+        AudioManager.reproducirSFX('trap');
+
+        if (res.ataqueDetenidoPorTrampa) {
+          if (res.destruirAtacante && mAtacante) {
+            estadoOponente.cementerio.push(mAtacante.id);
+            estadoOponente.zonaMonstruos[atacanteSlot] = null;
+            if (slotRivalElem) crearNumeroFlotante("DESTRUIDO", slotRivalElem, 'damage');
+          }
+          estadoJugador.lp = res.lpObjetivoFinal;
+          estadoOponente.lp = res.lpAtacanteFinal;
+          const pLpElem = document.getElementById('player-lp-val');
+          if (pLpElem) pLpElem.textContent = estadoJugador.lp;
+          const oLpElem = document.getElementById('opponent-lp-val');
+          if (oLpElem) oLpElem.textContent = estadoOponente.lp;
+
+          if (res.danoAtacante > 0 && oLpElem) {
+            crearNumeroFlotante(`-${res.danoAtacante} LP`, oLpElem, 'damage');
+          }
+          mostrarMensajeToast(`¡Tu trampa ${datosTrampaAct ? datosTrampaAct.nombre : ''} detuvo el ataque de ${estadoOponente.nombre}!`);
+
+          renderizarCampoJugador();
+          renderizarCampoOponente();
+          actualizarContadoresMazoYCementerio();
+          actualizarMarcadorLateral();
+          this.sincronizarEstadoCampo();
+          comprobarFinDelDuelo();
+          return;
+        }
+      }
 
       if (res.esDirecto) {
         estadoJugador.lp = res.lpObjetivoFinal;
@@ -7928,14 +8433,13 @@ const MultiplayerManager = {
         }
       }
 
-      const gyPlayer = document.querySelector('#player-gy .slot-sub');
-      if (gyPlayer) gyPlayer.textContent = estadoJugador.cementerio.length;
-      const gyOpp = document.querySelector('#opponent-gy .slot-sub');
-      if (gyOpp) gyOpp.textContent = estadoOponente.cementerio.length;
-
       renderizarCampoJugador();
       renderizarCampoOponente();
+      actualizarContadoresMazoYCementerio();
       actualizarMarcadorLateral();
+      if (res.trampaActivada) {
+        this.sincronizarEstadoCampo();
+      }
       comprobarFinDelDuelo();
       return;
     }
@@ -7951,25 +8455,22 @@ const MultiplayerManager = {
         equipos: m.equipos ? m.equipos.slice() : []
       } : null);
 
-      estadoOponente.zonaMagiasTrampas = accion.zonaMagiasTrampas.map(t => t ? {
+      estadoOponente.zonaMagiasTrampas = accion.zonaMagiasTrampas.map(t => (t && t.bocaAbajo) ? {
         id: t.id,
-        bocaAbajo: !!t.bocaAbajo,
-        activa: !!t.activa
+        bocaAbajo: true,
+        activa: false
       } : null);
 
       estadoOponente.lp = accion.lp;
-      if (accion.cementerio) {
+      if (Array.isArray(accion.cementerio)) {
         estadoOponente.cementerio = accion.cementerio.slice();
+      }
+      if (typeof accion.mazoCount === 'number') {
+        estadoOponente.mazoCountOnline = accion.mazoCount;
       }
 
       const oppLpVal = document.getElementById('opponent-lp-val');
       if (oppLpVal) oppLpVal.textContent = accion.lp;
-
-      const oppGySub = document.querySelector('#opponent-gy .slot-sub');
-      if (oppGySub) oppGySub.textContent = estadoOponente.cementerio.length;
-
-      const oppDeckSub = document.querySelector('#opponent-deck .slot-sub');
-      if (oppDeckSub && accion.mazoCount !== undefined) oppDeckSub.textContent = accion.mazoCount;
 
       if (typeof accion.manoCount === 'number') {
         estadoOponente.mano = new Array(Math.max(0, accion.manoCount)).fill(null);
@@ -7977,6 +8478,7 @@ const MultiplayerManager = {
 
       renderizarCampoOponente();
       renderizarManoOponente();
+      actualizarContadoresMazoYCementerio();
       actualizarMarcadorLateral();
       comprobarFinDelDuelo();
       return;
@@ -8001,8 +8503,6 @@ const MultiplayerManager = {
             estadoOponente.zonaMonstruos[sacIdx] = null;
           }
         });
-        const oppGySub = document.querySelector('#opponent-gy .slot-sub');
-        if (oppGySub) oppGySub.textContent = estadoOponente.cementerio.length;
       }
 
       const slotIndex = accion.slotIndex;
@@ -8013,8 +8513,8 @@ const MultiplayerManager = {
         id: carta.id,
         posicion: posicion,
         haAtacado: false,
-        modAtk: 0,
-        modDef: 0,
+        atkMod: 0,
+        defMod: 0,
         equipos: []
       };
 
@@ -8027,13 +8527,16 @@ const MultiplayerManager = {
       AudioManager.reproducirSFX('card-place');
       renderizarCampoOponente();
       renderizarManoOponente();
+      actualizarContadoresMazoYCementerio();
       mostrarMensajeToast(`${estadoOponente.nombre} invocó a ${carta.nombre} en modo ${posicion.toUpperCase()}.`);
     } else if (accion.tipo === 'CAMBIAR_POSICION') {
       const m = estadoOponente.zonaMonstruos[accion.slotIndex];
       if (m) {
+        const nombreCarta = bdCartas[m.id] ? bdCartas[m.id].nombre : 'Pokémon';
         m.posicion = accion.nuevaPosicion;
         AudioManager.reproducirSFX('card-place');
         renderizarCampoOponente();
+        mostrarMensajeToast(`${estadoOponente.nombre} cambió a ${nombreCarta} a modo ${accion.nuevaPosicion.toUpperCase()}.`);
       }
     } else if (accion.tipo === 'JUGAR_MAGIA_EQUIPO') {
       if (typeof accion.manoCount === 'number') {
@@ -8045,15 +8548,17 @@ const MultiplayerManager = {
       if (accion.bocaAbajo) {
         estadoOponente.zonaMagiasTrampas[accion.slotIndex] = {
           id: accion.carta.id,
-          bocaAbajo: true
+          bocaAbajo: true,
+          activa: false
         };
-        mostrarMensajeToast(`${estadoOponente.nombre} colocó una carta boca abajo en su zona M/T.`);
+        mostrarMensajeToast(`${estadoOponente.nombre} colocó una carta de Trampa boca abajo en su zona M/T.`);
       } else {
-        mostrarMensajeToast(`${estadoOponente.nombre} activó ${accion.carta.nombre}.`);
+        mostrarMensajeToast(`${estadoOponente.nombre} activó la carta mágica ${accion.carta.nombre}.`);
       }
       AudioManager.reproducirSFX('card-place');
       renderizarCampoOponente();
       renderizarManoOponente();
+      actualizarContadoresMazoYCementerio();
     } else if (accion.tipo === 'PASAR_FASE') {
       if (accion.fase === 'FIN') {
         estadoJuego.turnoDe = 'jugador';
@@ -8070,8 +8575,11 @@ const MultiplayerManager = {
         renderizarCampoJugador();
         renderizarCampoOponente();
         renderizarManoOponente();
+        actualizarContadoresMazoYCementerio();
+        this.sincronizarEstadoCampo();
         if (roboOk) {
           mostrarMensajeToast(`¡Tu turno (Turno ${estadoJuego.turno})! Robaste 1 carta.`);
+          mostrarBannerCambioTurno(true, estadoJuego.turno, 'Robaste 1 carta • Fase Principal');
         }
       }
     } else if (accion.tipo === 'DESCARTAR_EXCESO') {
@@ -8084,17 +8592,50 @@ const MultiplayerManager = {
         }
       }
       renderizarManoOponente();
+      actualizarContadoresMazoYCementerio();
       mostrarMensajeToast(`${estadoOponente.nombre} descartó ${count} carta(s) al cementerio por límite de mano.`);
     }
   },
 
-  desconectar(esTerminacionNormal = false) {
-    if (this.enPartidaOnline && !esTerminacionNormal && !this.dueloTerminado) {
+  async rendirseYSalirAlMenu() {
+    if (this.enPartidaOnline && !this.dueloTerminado) {
+      this.dueloTerminado = true;
+      localStorage.removeItem('pokeoh_active_online_match');
       if (typeof UserManager !== 'undefined') {
         UserManager.registrarResultadoDuelo(false, 0);
       }
       if (this.room) {
-        try { this.room.send('surrender'); } catch (e) {}
+        try {
+          await this.room.send('surrender');
+          await new Promise(r => setTimeout(r, 350));
+        } catch (e) {}
+      }
+      mostrarMensajeToast("Has abandonado la partida online. Se registró como DERROTA y el rival obtuvo la victoria.");
+    }
+    this.desconectar(true);
+    const menuOverlay = document.getElementById('main-menu-overlay');
+    if (menuOverlay) menuOverlay.classList.remove('hidden');
+    AudioManager.reproducirMusicaTema('menu');
+  },
+
+  desconectar(esTerminacionNormal = false) {
+    if (this.enPartidaOnline && !esTerminacionNormal && !this.dueloTerminado) {
+      this.dueloTerminado = true;
+      if (typeof UserManager !== 'undefined') {
+        UserManager.registrarResultadoDuelo(false, 0);
+      }
+      const roomRef = this.room;
+      this.room = null;
+      if (roomRef) {
+        try {
+          Promise.resolve(roomRef.send('surrender')).finally(() => {
+            setTimeout(() => {
+              try { roomRef.leave(); } catch (e) {}
+            }, 350);
+          });
+        } catch (e) {
+          try { roomRef.leave(); } catch (err) {}
+        }
       }
       localStorage.removeItem('pokeoh_active_online_match');
       mostrarMensajeToast("Has abandonado la partida online. Se registró como derrota.");
@@ -8125,6 +8666,7 @@ const MultiplayerManager = {
     const btnCancelWait = document.getElementById('btn-pvp-cancel-wait');
     const btnCloseX = document.getElementById('btn-close-pvp-x');
     const btnClose = document.getElementById('btn-close-pvp');
+    const btnEditDeckPvp = document.getElementById('btn-edit-deck-from-pvp');
     const modal = document.getElementById('pvp-online-modal');
 
     const cerrar = () => {
@@ -8144,6 +8686,12 @@ const MultiplayerManager = {
       btnCancelWait.onclick = () => {
         this.desconectar();
         this.cambiarVista('options');
+      };
+    }
+    if (btnEditDeckPvp) {
+      btnEditDeckPvp.onclick = () => {
+        if (modal) modal.classList.add('hidden');
+        abrirDeckBuilder(configuracionJuego.mazoSeleccionadoIdx || 0);
       };
     }
     if (btnCloseX) btnCloseX.onclick = cerrar;
@@ -8210,9 +8758,12 @@ function ajustarEscalaResponsiva() {
 
   const sidebar = document.getElementById('duel-sidebar');
   const sidebarColapsado = sidebar && sidebar.classList.contains('sidebar-collapsed');
+  const logPanel = document.getElementById('duel-action-log-panel');
+  const logColapsado = !logPanel || logPanel.classList.contains('action-log-collapsed');
 
-  // Dimensiones base cómodas en horizontal para que el tablero y las cartas se vean completos sin recortes
-  const minW = sidebarColapsado ? 760 : 1050;
+  // Dimensiones base cómodas en horizontal para que el tablero y los paneles laterales se vean completos
+  let minW = sidebarColapsado ? 760 : 1040;
+  if (!logColapsado) minW += 210;
   const minH = 625;
 
   if (vh < minH || vw < minW) {
@@ -8354,8 +8905,33 @@ function configurarTouchDragCarta(cartaDiv, cartaId, datosCarta, indexMano) {
   cartaDiv.addEventListener('touchcancel', finalizarTouch);
 }
 
+const SVG_FS_ENTER = `<svg class="fs-icon-svg" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>`;
+const SVG_FS_EXIT = `<svg class="fs-icon-svg" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><path d="M4 14h6m0 0v6m0-6L3 21m17-11h-6m0 0V4m0 6l7-7"/></svg>`;
+
 function estaEnPantallaCompleta() {
-  return !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+  const domFull = !!(
+    document.fullscreenElement ||
+    document.webkitFullscreenElement ||
+    document.mozFullScreenElement ||
+    document.msFullscreenElement ||
+    document.fullscreen ||
+    (window.fullScreen !== undefined && window.fullScreen)
+  );
+  if (domFull) return true;
+
+  try {
+    if (window.parent && window.parent !== window && window.parent.document && window.parent.document.fullscreenElement) {
+      return true;
+    }
+  } catch (e) {}
+
+  try {
+    if (window.matchMedia && window.matchMedia('(display-mode: fullscreen)').matches) {
+      return true;
+    }
+  } catch (e) {}
+
+  return false;
 }
 
 function actualizarBotonesFullscreenUI() {
@@ -8364,47 +8940,72 @@ function actualizarBotonesFullscreenUI() {
 
   const menuFsIcon = document.getElementById('menu-fs-icon');
   const menuFsText = document.getElementById('menu-fs-text');
-  if (menuFsIcon) menuFsIcon.textContent = isFull ? '↩️' : '⛶';
+  if (menuFsIcon) menuFsIcon.innerHTML = isFull ? SVG_FS_EXIT : SVG_FS_ENTER;
   if (menuFsText) menuFsText.textContent = isFull ? (isEn ? 'Exit Full' : 'Salir Full') : (isEn ? 'Fullscreen' : 'Pantalla Full');
 
   const sideFsIcon = document.getElementById('sidebar-fs-icon');
   const sideFsText = document.getElementById('sidebar-fs-text');
-  if (sideFsIcon) sideFsIcon.textContent = isFull ? '↩️' : '⛶';
+  if (sideFsIcon) sideFsIcon.innerHTML = isFull ? SVG_FS_EXIT : SVG_FS_ENTER;
   if (sideFsText) sideFsText.textContent = isFull ? (isEn ? 'EXIT FULL' : 'SALIR FULL') : (isEn ? 'FULLSCREEN' : 'PANTALLA FULL');
 
   const btnArenaFs = document.getElementById('btn-arena-fullscreen');
   if (btnArenaFs) {
-    btnArenaFs.innerHTML = isFull ? '↩️ <span>Salir Full</span>' : '⛶ <span>Full</span>';
+    btnArenaFs.innerHTML = isFull ? `${SVG_FS_EXIT} <span>Salir Full</span>` : `${SVG_FS_ENTER} <span>Full</span>`;
   }
 }
 
 async function toggleFullscreenJuego() {
+  const isFull = estaEnPantallaCompleta();
   try {
-    if (!estaEnPantallaCompleta()) {
+    if (!isFull) {
       const el = document.documentElement;
       if (el.requestFullscreen) {
         await el.requestFullscreen();
       } else if (el.webkitRequestFullscreen) {
-        el.webkitRequestFullscreen();
+        await el.webkitRequestFullscreen();
+      } else if (el.mozRequestFullScreen) {
+        await el.mozRequestFullScreen();
       } else if (el.msRequestFullscreen) {
-        el.msRequestFullscreen();
+        await el.msRequestFullscreen();
       }
       if (window.screen && window.screen.orientation && typeof window.screen.orientation.lock === 'function') {
         window.screen.orientation.lock('landscape').catch(() => {});
       }
     } else {
+      let salio = false;
       if (document.exitFullscreen) {
-        await document.exitFullscreen();
-      } else if (document.webkitExitFullscreen) {
-        document.webkitExitFullscreen();
-      } else if (document.msExitFullscreen) {
-        document.msExitFullscreen();
+        try { await document.exitFullscreen(); salio = true; } catch (err1) {}
+      }
+      if (!salio && document.webkitExitFullscreen) {
+        try { document.webkitExitFullscreen(); salio = true; } catch (err2) {}
+      }
+      if (!salio && document.mozCancelFullScreen) {
+        try { document.mozCancelFullScreen(); salio = true; } catch (err3) {}
+      }
+      if (!salio && document.msExitFullscreen) {
+        try { document.msExitFullscreen(); salio = true; } catch (err4) {}
+      }
+      if (!salio && window.parent && window.parent !== window) {
+        try {
+          if (window.parent.document && window.parent.document.exitFullscreen) {
+            await window.parent.document.exitFullscreen();
+            salio = true;
+          }
+        } catch (eParent) {}
+      }
+      if (window.screen && window.screen.orientation && typeof window.screen.orientation.unlock === 'function') {
+        try { window.screen.orientation.unlock(); } catch (e) {}
+      }
+      if (!salio && window.innerHeight === screen.height) {
+        mostrarMensajeToast("En PC, pulsa la tecla F11 o Esc para salir del modo de pantalla completa.");
       }
     }
   } catch (e) {
     console.warn("No se pudo alternar pantalla completa:", e);
+    mostrarMensajeToast("En PC, pulsa la tecla F11 o Esc para salir de pantalla completa.");
   }
   actualizarBotonesFullscreenUI();
+  setTimeout(actualizarBotonesFullscreenUI, 120);
   setTimeout(ajustarEscalaResponsiva, 100);
 }
 
@@ -8453,6 +9054,22 @@ function inicializarAdaptacionMovilYRotacion() {
     actualizarBotonesFullscreenUI();
     setTimeout(ajustarEscalaResponsiva, 100);
   });
+  document.addEventListener('mozfullscreenchange', () => {
+    actualizarBotonesFullscreenUI();
+    setTimeout(ajustarEscalaResponsiva, 100);
+  });
+  document.addEventListener('MSFullscreenChange', () => {
+    actualizarBotonesFullscreenUI();
+    setTimeout(ajustarEscalaResponsiva, 100);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' || e.key === 'F11') {
+      setTimeout(() => {
+        actualizarBotonesFullscreenUI();
+        ajustarEscalaResponsiva();
+      }, 150);
+    }
+  });
 
   // Ocultar el inspector al tocar fuera de una carta en pantallas táctiles
   document.addEventListener('touchstart', (e) => {
@@ -8491,6 +9108,7 @@ function inicializarAdaptacionMovilYRotacion() {
 // Inicialización de la aplicación completa
 function inicializarJuegoCompleto() {
   inicializarAdaptacionMovilYRotacion();
+  inicializarPanelRegistroAcciones();
   configurarZonasMonstruo();
   configurarZonasMagiaTrampa();
   configurarBotonesAudio();

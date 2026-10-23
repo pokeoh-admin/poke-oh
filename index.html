@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="src/css/style.css?v=20261023_6">
+  <link rel="stylesheet" href="src/css/style.css?v=20261023_7">
 </head>
 <body>
   <!-- ============================================== -->
@@ -392,6 +392,48 @@
       </footer>
     </section>
   </div> <!-- Fin de .duel-arena -->
+
+    <!-- ============================================== -->
+    <!-- PANEL LATERAL DERECHO: REGISTRO DE ACCIONES    -->
+    <!-- ============================================== -->
+    <button class="action-log-floating-toggle" id="btn-toggle-action-log" type="button" title="Mostrar / Ocultar Registro de Batalla">
+      📜 <span class="toggle-log-label">ACCIONES</span>
+    </button>
+
+    <aside class="duel-action-log-panel" id="duel-action-log-panel">
+      <div class="action-log-header">
+        <div class="action-log-title-wrap">
+          <span class="action-log-icon">📜</span>
+          <div>
+            <h3 class="action-log-title">REGISTRO DE ACCIONES</h3>
+            <span class="action-log-subtitle" id="action-log-turn-pill">Turno 1 • Historial en vivo</span>
+          </div>
+        </div>
+        <button class="action-log-collapse-btn" id="btn-collapse-action-log" type="button" title="Contraer panel">❯</button>
+      </div>
+
+      <div class="action-log-legend">
+        <span class="legend-pill legend-you">🔵 Tú</span>
+        <span class="legend-pill legend-rival">🔴 Rival</span>
+        <span class="legend-pill legend-turn">⚡ Turno / Combate</span>
+      </div>
+
+      <div class="battle-action-log-list" id="battle-action-log-list">
+        <div class="action-log-card log-actor-system">
+          <div class="action-log-card-top">
+            <span class="action-actor-badge badge-system">⚡ DUELO</span>
+            <span class="action-turn-badge">T1</span>
+          </div>
+          <div class="action-log-card-body">
+            <span class="action-icon-box">🏟️</span>
+            <div class="action-text-wrap">
+              <div class="action-main-text">¡Duelo iniciado!</div>
+              <div class="action-sub-text">Aquí verás cada carta jugada, ataque y efecto tuyo y de tu rival.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
   </div> <!-- Fin de .game-container -->
 
   <!-- Overlay para Animaciones de Combate y Efectos Visuales (Rayos, Fuego, Cortes, Vórtice) -->
@@ -1065,6 +1107,20 @@
       <div class="pvp-views-container">
         <!-- Vista 1: Opciones de Matchmaking -->
         <div class="pvp-view active" id="pvp-view-options">
+          <!-- Selección de Baraja para 2 Jugadores -->
+          <div class="setup-section pvp-deck-setup-section">
+            <div class="setup-section-title">
+              <span>🎴 SELECCIONA TU BARAJA PARA EL DUELO (40 CARTAS)</span>
+              <button type="button" class="btn-deck-edit-shortcut" id="btn-edit-deck-from-pvp">🛠️ Editar en Deck Builder</button>
+            </div>
+            <div class="deck-selector-grid" id="pvp-deck-options">
+              <!-- Renderizado dinámico con los mazos del jugador -->
+            </div>
+            <div class="pvp-random-turn-note">
+              🎲 <b>Sorteo Aleatorio de Turno:</b> Al iniciar la partida se sorteará al azar (50% / 50%) qué jugador comienza el Turno 1.
+            </div>
+          </div>
+
           <div class="pvp-options-grid">
             <!-- Partida Rápida -->
             <div class="pvp-option-card">
@@ -1114,14 +1170,33 @@
     </div>
   </div>
 
+  <!-- Modal de Advertencia al Abandonar Partida Online (2 Jugadores) -->
+  <div class="modal-overlay hidden" id="surrender-confirm-modal">
+    <div class="modal-box surrender-confirm-box">
+      <div class="game-over-badge">⚠️</div>
+      <h3 class="modal-title" style="color: #ff6b81;">¿Abandonar Duelo Online?</h3>
+      <p class="modal-desc" id="surrender-confirm-desc" style="margin: 12px 0 18px; line-height: 1.5; font-size: 0.95rem;">
+        Estás en medio de una partida de <b>2 Jugadores</b>. Si sales al menú principal ahora, se registrará como <b style="color:#ff4757;">DERROTA 💀</b> para ti y tu rival recibirá automáticamente la <b style="color:#2ed573;">VICTORIA 🏆</b>.
+      </p>
+      <div class="modal-actions" style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <button class="phase-btn btn-cancel" id="btn-confirm-surrender-yes" type="button" style="background: linear-gradient(135deg, #ff4757, #c0392b); color: #fff; border-color: #ff6b81;">
+          🏳️ Sí, Salir y Rendirse (Derrota)
+        </button>
+        <button class="phase-btn btn-confirm" id="btn-confirm-surrender-no" type="button">
+          ⚔️ Continuar en el Duelo
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- SDK Cliente de Supabase (Base de Datos Cloud + Realtime) -->
   <script src="lib/supabase.js"></script>
   <!-- SDK Cliente de Colyseus para Multijugador Online -->
   <script src="lib/colyseus.js"></script>
   <!-- Base de Datos de Cartas (151 Pokémon + Ítems de todas las generaciones) -->
-  <script src="src/js/cartas.js?v=20261023_6"></script>
+  <script src="src/js/cartas.js?v=20261023_7"></script>
   <!-- Lógica del Duelo -->
-  <script src="src/js/logica.js?v=20261023_6"></script>
+  <script src="src/js/logica.js?v=20261023_7"></script>
 </body>
 </html>
 
