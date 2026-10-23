@@ -843,26 +843,13 @@ body {
 /* Posición de Ataque (vertical normal) */
 .card-on-field.attack-position {
   transform: rotate(0deg) scale(1) !important;
-  animation: summon-appear 0.25s ease-out;
 }
 
 /* Posición de Defensa (girada 90° horizontalmente y con stats completamente visibles) */
 .card-on-field.defense-position {
   transform: rotate(-90deg) scale(0.84) !important;
-  animation: defense-rotate-appear 0.28s ease-out;
   box-shadow: 0 0 12px rgba(0, 210, 211, 0.55), 0 4px 14px rgba(0, 0, 0, 0.85);
   border-color: #00d2d3 !important;
-}
-
-@keyframes defense-rotate-appear {
-  0% {
-    transform: rotate(0deg) scale(0.84);
-    opacity: 0.75;
-  }
-  100% {
-    transform: rotate(-90deg) scale(0.84);
-    opacity: 1;
-  }
 }
 
 .card-on-field.defense-position .stat-def {

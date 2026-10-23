@@ -2970,23 +2970,17 @@ function alternarPosicionMonstruo(slotIndex) {
   const isEn = configuracionJuego.idioma === 'en';
   const slotElement = document.querySelector(`#player-side .monsters-row .monster-slot[data-slot-index="${slotIndex}"]`);
 
-  // Bloquear cambio de posición durante el turno del rival o al estar pasando el turno
-  if (estadoJuego.turnoDe !== 'jugador' || estadoJuego.faseActual === 'FIN') {
-    const msgRival = isEn
-      ? "You cannot change monster position while waiting for the opponent's turn."
-      : "No puedes cambiar la posición de tus Pokémon mientras esperas el turno del rival.";
-    mostrarMensajeToast(msgRival);
-    mostrarAlertaRegla(msgRival, slotElement, isEn ? "RIVAL'S TURN!" : "¡TURNO RIVAL!");
-    return;
-  }
-
-  // Bloquear cambio de posición durante la Fase de Batalla
-  if (estadoJuego.faseActual !== 'PRINCIPAL') {
-    const msgBatalla = isEn
-      ? "You cannot switch between Attack and Defense during the Battle Phase (only in Main Phase)."
-      : "No puedes cambiar de Ataque a Defensa durante la Fase de Batalla (solo en Fase Principal).";
-    mostrarMensajeToast(msgBatalla);
-    mostrarAlertaRegla(msgBatalla, slotElement, isEn ? "MAIN PHASE ONLY!" : "¡SOLO FASE PRINCIPAL!");
+  // Solo se permite cambiar entre Ataque y Defensa en la Fase PRINCIPAL del turno del jugador
+  if (estadoJuego.turnoDe !== 'jugador' || estadoJuego.faseActual !== 'PRINCIPAL') {
+    const msgBloqueo = (estadoJuego.turnoDe !== 'jugador' || estadoJuego.faseActual === 'FIN')
+      ? (isEn
+          ? "Monster positions are locked while waiting for the opponent's turn."
+          : "Las cartas están bloqueadas en su última posición mientras esperas el turno del rival.")
+      : (isEn
+          ? "Monster positions are locked in Battle Phase (you can only switch Attack/Defense in Main Phase)."
+          : "Las cartas están bloqueadas en Fase de Batalla (solo puedes cambiar entre Ataque y Defensa en Fase Principal).");
+    mostrarMensajeToast(msgBloqueo);
+    mostrarAlertaRegla(msgBloqueo, slotElement, isEn ? "POSITION LOCKED!" : "¡POSICIÓN BLOQUEADA!");
     return;
   }
 
@@ -2996,7 +2990,13 @@ function alternarPosicionMonstruo(slotIndex) {
   const datosCarta = bdCartas[slotData.id];
 
   if (slotElement) {
-    renderizarMonstruoEnCampo(slotElement, datosCarta, nuevaPosicion, slotIndex);
+    const cardEl = slotElement.querySelector('.card-on-field');
+    if (cardEl) {
+      cardEl.classList.toggle('defense-position', nuevaPosicion === 'defensa');
+      cardEl.classList.toggle('attack-position', nuevaPosicion === 'ataque');
+    } else {
+      renderizarMonstruoEnCampo(slotElement, datosCarta, nuevaPosicion, slotIndex);
+    }
   }
 
   AudioManager.reproducirSFX('enter');
