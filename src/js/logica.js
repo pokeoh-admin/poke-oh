@@ -1588,6 +1588,50 @@ function mostrarMensajeToast(mensaje) {
   }
 }
 
+let alertaReglaTimeout = null;
+
+function mostrarAlertaRegla(mensajeHtml, elementoOrigen = null, textoFlotante = null) {
+  let banner = document.getElementById('floating-rule-alert');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'floating-rule-alert';
+    banner.className = 'floating-rule-alert';
+    banner.addEventListener('click', () => {
+      banner.classList.remove('visible');
+    });
+    document.body.appendChild(banner);
+  }
+
+  banner.innerHTML = `<span class="alert-icon">⚠️</span><span class="alert-text">${mensajeHtml}</span>`;
+  banner.classList.add('visible');
+
+  if (alertaReglaTimeout) clearTimeout(alertaReglaTimeout);
+  alertaReglaTimeout = setTimeout(() => {
+    if (banner) banner.classList.remove('visible');
+  }, 3000);
+
+  if (elementoOrigen && textoFlotante) {
+    crearNumeroFlotante(textoFlotante, elementoOrigen, 'damage');
+  }
+}
+
+function mostrarAvisoYaInvocoEsteTurno(datosCarta = null, elementoOrigen = null) {
+  const isEn = configuracionJuego.idioma === 'en';
+  const nombre = datosCarta && datosCarta.nombre ? datosCarta.nombre : 'Pokémon';
+  const msgPlano = isEn
+    ? `Cannot summon ${nombre}: You already summoned a Pokémon this turn (max 1 per turn).`
+    : `¡No puedes invocar a ${nombre}! Ya invocaste un Pokémon en este turno (máximo 1 por turno).`;
+  const msgHtml = isEn
+    ? `Cannot summon <b>${nombre}</b>: You already summoned a Pokémon this turn (max 1 per turn).`
+    : `No puedes invocar a <b>${nombre}</b>: ya realizaste tu única invocación de Pokémon en este turno.`;
+
+  mostrarMensajeToast(msgPlano);
+  mostrarAlertaRegla(msgHtml, elementoOrigen, isEn ? "1 SUMMON/TURN!" : "¡YA INVOCASTE!");
+  if (typeof AudioManager !== 'undefined' && typeof AudioManager.reproducirSFX === 'function') {
+    AudioManager.reproducirSFX('hit');
+  }
+}
+
 // ==========================================
 // 6. INSPECTOR DE CARTAS (HOVER Y TOUCH DETALLADO)
 // ==========================================
@@ -2052,8 +2096,9 @@ function manejarClickCartaMano(cartaId, datosCarta, indexMano) {
 
   // 1. Si es un monstruo: verificar regla de 1 invocación por turno
   if (datosCarta.tipoCarta === 'monstruo') {
+    const cartaElemMano = document.querySelector(`#player-hand [data-index-mano="${indexMano}"]`);
     if (estadoJuego.haInvocadoMonstruoEsteTurno) {
-      mostrarMensajeToast("Ya has invocado un Pokémon este turno. Solo se permite 1 invocación por turno (puedes seguir usando cartas mágicas y de equipo).");
+      mostrarAvisoYaInvocoEsteTurno(datosCarta, cartaElemMano);
       return;
     }
 
@@ -2067,9 +2112,13 @@ function manejarClickCartaMano(cartaId, datosCarta, indexMano) {
       if (monstruosEnCampo.length < minReq) {
         if (preEvoId) {
           const nombrePre = bdCartas[preEvoId].nombre;
-          mostrarMensajeToast(`¡${datosCarta.nombre} requiere ${datosCarta.sacrificios} sacrificios (o solo 1 si sacrificas a ${nombrePre})! Solo tienes ${monstruosEnCampo.length} Pokémon en el campo.`);
+          const msg = `¡${datosCarta.nombre} requiere ${datosCarta.sacrificios} sacrificios (o solo 1 si sacrificas a ${nombrePre})! Solo tienes ${monstruosEnCampo.length} Pokémon en el campo.`;
+          mostrarMensajeToast(msg);
+          mostrarAlertaRegla(msg, cartaElemMano, `¡FALTAN SACRIFICIOS!`);
         } else {
-          mostrarMensajeToast(`¡${datosCarta.nombre} requiere ${datosCarta.sacrificios} sacrificio(s)! Solo tienes ${monstruosEnCampo.length} Pokémon en el campo.`);
+          const msg = `¡${datosCarta.nombre} requiere ${datosCarta.sacrificios} sacrificio(s)! Solo tienes ${monstruosEnCampo.length} Pokémon en el campo.`;
+          mostrarMensajeToast(msg);
+          mostrarAlertaRegla(msg, cartaElemMano, `¡FALTAN SACRIFICIOS!`);
         }
         return;
       }
@@ -2191,9 +2240,15 @@ function manejarDragStart(e) {
   e.dataTransfer.effectAllowed = 'move';
   this.classList.add('dragging');
 
-  if (datosCarta && datosCarta.sacrificios > 0) {
-    resaltarMonstruosSacrificables(true);
-    mostrarMensajeToast(`⭐ ${datosCarta.nombre} (${datosCarta.etapa}) requiere ${datosCarta.sacrificios} sacrificio(s). ¡Suéltalo sobre un Pokémon en campo!`);
+  if (datosCarta && datosCarta.tipoCarta === 'monstruo') {
+    if (estadoJuego.haInvocadoMonstruoEsteTurno) {
+      mostrarAvisoYaInvocoEsteTurno(datosCarta, this);
+      return;
+    }
+    if (datosCarta.sacrificios > 0) {
+      resaltarMonstruosSacrificables(true);
+      mostrarMensajeToast(`⭐ ${datosCarta.nombre} (${datosCarta.etapa}) requiere ${datosCarta.sacrificios} sacrificio(s). ¡Suéltalo sobre un Pokémon en campo!`);
+    }
   }
 }
 
@@ -2291,7 +2346,7 @@ function manejarDropMonstruo(e) {
 
   // Regla: Solo 1 invocación de monstruo por turno (magias y equipos libres)
   if (estadoJuego.haInvocadoMonstruoEsteTurno) {
-    mostrarMensajeToast("Ya has invocado un Pokémon este turno. Solo se permite 1 invocación por turno (puedes seguir usando cartas mágicas y de equipo).");
+    mostrarAvisoYaInvocoEsteTurno(datosCarta, this);
     return;
   }
 
@@ -2307,9 +2362,13 @@ function manejarDropMonstruo(e) {
     if (monstruosEnCampo.length < minReq) {
       if (preEvoId) {
         const nombrePre = bdCartas[preEvoId].nombre;
-        mostrarMensajeToast(`¡${datosCarta.nombre} (${datosCarta.etapa}) requiere ${datosCarta.sacrificios} sacrificios (o solo 1 si sacrificas a ${nombrePre})! Tienes ${monstruosEnCampo.length} Pokémon.`);
+        const msg = `¡${datosCarta.nombre} (${datosCarta.etapa}) requiere ${datosCarta.sacrificios} sacrificios (o solo 1 si sacrificas a ${nombrePre})! Tienes ${monstruosEnCampo.length} Pokémon.`;
+        mostrarMensajeToast(msg);
+        mostrarAlertaRegla(msg, this, `¡FALTAN SACRIFICIOS!`);
       } else {
-        mostrarMensajeToast(`¡${datosCarta.nombre} (${datosCarta.etapa}) requiere ${datosCarta.sacrificios} sacrificio(s)! Tienes ${monstruosEnCampo.length} Pokémon.`);
+        const msg = `¡${datosCarta.nombre} (${datosCarta.etapa}) requiere ${datosCarta.sacrificios} sacrificio(s)! Tienes ${monstruosEnCampo.length} Pokémon.`;
+        mostrarMensajeToast(msg);
+        mostrarAlertaRegla(msg, this, `¡FALTAN SACRIFICIOS!`);
       }
       return;
     }
@@ -7664,8 +7723,8 @@ function ajustarEscalaResponsiva() {
   const sidebarColapsado = sidebar && sidebar.classList.contains('sidebar-collapsed');
 
   // Dimensiones base cómodas en horizontal para que el tablero y las cartas se vean completos sin recortes
-  const minW = sidebarColapsado ? 740 : 1030;
-  const minH = 600;
+  const minW = sidebarColapsado ? 760 : 1050;
+  const minH = 625;
 
   if (vh < minH || vw < minW) {
     const scaleX = (vw - 8) / minW;
@@ -7684,7 +7743,7 @@ function ajustarEscalaResponsiva() {
     gameContainer.style.maxHeight = 'none';
     gameContainer.style.transformOrigin = 'center center';
     gameContainer.style.transform = `translate(-50%, -50%) scale(${scale})`;
-    document.documentElement.style.setProperty('--card-width', '60px');
+    document.documentElement.style.setProperty('--card-width', '68px');
   } else {
     gameContainer.style.position = '';
     gameContainer.style.top = '';
@@ -7726,15 +7785,18 @@ function configurarTouchDragCarta(cartaDiv, cartaId, datosCarta, indexMano) {
     const dy = touch.clientY - startY;
 
     if (!draggingTouch && Math.hypot(dx, dy) > 14) {
+      if (datosCarta && datosCarta.tipoCarta === 'monstruo' && estadoJuego.haInvocadoMonstruoEsteTurno) {
+        mostrarAvisoYaInvocoEsteTurno(datosCarta, cartaDiv);
+      }
       draggingTouch = true;
       cartaDiv.classList.add('dragging');
-      if (datosCarta && datosCarta.sacrificios > 0) {
+      if (datosCarta && datosCarta.sacrificios > 0 && !estadoJuego.haInvocadoMonstruoEsteTurno) {
         resaltarMonstruosSacrificables(true);
       }
       ghostEl = cartaDiv.cloneNode(true);
       ghostEl.style.position = 'fixed';
-      ghostEl.style.width = '64px';
-      ghostEl.style.height = '90px';
+      ghostEl.style.width = '68px';
+      ghostEl.style.height = '95px';
       ghostEl.style.pointerEvents = 'none';
       ghostEl.style.opacity = '0.88';
       ghostEl.style.zIndex = '90000';
@@ -7794,6 +7856,8 @@ function configurarTouchDragCarta(cartaDiv, cartaId, datosCarta, indexMano) {
       manejarDropMonstruo.call(monsterSlot, fakeEvent);
     } else if (spellSlot) {
       manejarDropMagiaTrampa.call(spellSlot, fakeEvent);
+    } else if (datosCarta && datosCarta.tipoCarta === 'monstruo' && estadoJuego.haInvocadoMonstruoEsteTurno) {
+      mostrarAvisoYaInvocoEsteTurno(datosCarta, cartaDiv);
     }
   };
 

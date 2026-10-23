@@ -35,7 +35,7 @@
   --color-text-dim: #7f8fa6;
 
   /* Dimensiones de cartas (Adaptables a ancho y alto de pantalla) */
-  --card-width: clamp(60px, min(8.2vw, 11.2vh), 104px);
+  --card-width: clamp(68px, min(8.6vw, 12vh), 106px);
   --card-ratio: 1.4;
   --card-height: calc(var(--card-width) * var(--card-ratio));
   --border-radius-card: 6px;
@@ -523,7 +523,7 @@ body {
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  padding: 5px;
+  padding: 3px 2px;
   text-transform: none;
   border-width: 2px;
   border-style: solid;
@@ -550,7 +550,7 @@ body {
 }
 
 .card-on-field.defense-position:hover {
-  transform: rotate(90deg) scale(0.88) !important;
+  transform: rotate(-90deg) scale(0.9) !important;
   z-index: 20;
 }
 
@@ -689,43 +689,55 @@ body {
 }
 
 .card-stat-mini {
-  font-size: 0.62rem;
+  font-size: 0.56rem;
   font-family: 'Chakra Petch', monospace;
-  background: rgba(0, 0, 0, 0.6);
-  padding: 1px 5px;
+  background: rgba(0, 0, 0, 0.78);
+  padding: 1px 2px;
   border-radius: 3px;
   align-self: center;
-  line-height: 1.1;
-  letter-spacing: 0.5px;
+  line-height: 1.15;
+  letter-spacing: -0.2px;
 }
 
 /* Fila de estadísticas ATK / DEF */
 .card-stats-row {
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: center;
   width: 100%;
-  gap: 3px;
+  gap: 2px;
   font-family: 'Chakra Petch', monospace;
-  font-size: 0.58rem;
-  font-weight: 700;
-  line-height: 1.1;
+  font-size: 0.56rem;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.card-stats-row .card-stat-mini {
+  width: 100%;
+  text-align: center;
+  padding: 1px 1px;
+  font-size: clamp(0.5rem, 0.68vw, 0.6rem);
+  letter-spacing: -0.35px;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .stat-atk {
   color: #feca57;
-  background: rgba(0, 0, 0, 0.65);
-  padding: 1px 3px;
+  background: rgba(0, 0, 0, 0.84);
+  padding: 1px 1px;
   border-radius: 2px;
-  border: 1px solid rgba(254, 202, 87, 0.3);
+  border: 1px solid rgba(254, 202, 87, 0.45);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.95);
 }
 
 .stat-def {
   color: #48dbfb;
-  background: rgba(0, 0, 0, 0.65);
-  padding: 1px 3px;
+  background: rgba(0, 0, 0, 0.84);
+  padding: 1px 1px;
   border-radius: 2px;
-  border: 1px solid rgba(72, 219, 251, 0.3);
+  border: 1px solid rgba(72, 219, 251, 0.45);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.95);
 }
 
 .badge-trib {
@@ -822,22 +834,35 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 5px;
+  padding: 3px 2px;
   box-sizing: border-box;
   cursor: pointer;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: summon-appear 0.25s ease-out forwards;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease;
 }
 
 /* Posición de Ataque (vertical normal) */
 .card-on-field.attack-position {
-  transform: rotate(0deg) scale(1);
+  transform: rotate(0deg) scale(1) !important;
+  animation: summon-appear 0.25s ease-out;
 }
 
 /* Posición de Defensa (girada 90° horizontalmente y con stats completamente visibles) */
 .card-on-field.defense-position {
-  transform: rotate(90deg) scale(0.85);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.85);
+  transform: rotate(-90deg) scale(0.84) !important;
+  animation: defense-rotate-appear 0.28s ease-out;
+  box-shadow: 0 0 12px rgba(0, 210, 211, 0.55), 0 4px 14px rgba(0, 0, 0, 0.85);
+  border-color: #00d2d3 !important;
+}
+
+@keyframes defense-rotate-appear {
+  0% {
+    transform: rotate(0deg) scale(0.84);
+    opacity: 0.75;
+  }
+  100% {
+    transform: rotate(-90deg) scale(0.84);
+    opacity: 1;
+  }
 }
 
 .card-on-field.defense-position .stat-def {
@@ -1546,7 +1571,7 @@ body {
    ========================================================== */
 @media (max-height: 860px) {
   :root {
-    --card-width: clamp(54px, min(6.8vw, 11.2vh), 80px);
+    --card-width: clamp(66px, min(7.6vw, 11.8vh), 88px);
   }
   .duel-arena {
     padding: 4px 10px;
@@ -4728,6 +4753,52 @@ body {
     font-size: 0.8rem;
   }
 }
+
+/* 6. Aviso flotante de reglas (ej. Límite de 1 invocación por turno) */
+.floating-rule-alert {
+  position: fixed;
+  top: 16%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-10px);
+  z-index: 88000;
+  background: linear-gradient(135deg, rgba(28, 14, 24, 0.97) 0%, rgba(18, 12, 28, 0.97) 100%);
+  border: 2px solid #ff6b81;
+  border-radius: 12px;
+  padding: 10px 18px;
+  color: #fff;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-align: center;
+  max-width: 90vw;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), 0 0 22px rgba(255, 71, 87, 0.55);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: auto;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.floating-rule-alert.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.floating-rule-alert .alert-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.floating-rule-alert .alert-text {
+  line-height: 1.25;
+}
+
+.floating-rule-alert .alert-text b {
+  color: #feca57;
+}
+
 
 
 
