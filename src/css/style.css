@@ -75,7 +75,7 @@ body {
   justify-content: center;
   gap: 14px;
   width: 98vw;
-  max-width: 1480px;
+  max-width: 1560px;
   height: 98vh;
   max-height: 960px;
 }
@@ -1565,7 +1565,8 @@ body {
    MARCADOR LATERAL DEL DUELO (SCOREBOARD SIDEBAR)
    ========================================================== */
 .duel-sidebar {
-  width: clamp(225px, 18.5vw, 275px);
+  width: clamp(295px, 23vw, 335px);
+  min-width: 295px;
   flex-shrink: 0;
   height: 100%;
   max-height: 960px;
@@ -1808,30 +1809,31 @@ body {
 /* CONTROLES DE AUDIO Y ACCIONES UNIFICADAS */
 .audio-controls-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 5px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
 }
 
 .system-actions-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 5px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
 }
 
 .audio-btn {
+  min-width: 0;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 6px;
-  padding: 5px 4px;
+  padding: 6px 6px;
   color: #f5f6fa;
   font-family: 'Rajdhani', sans-serif;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 4px;
   transition: all 0.2s ease;
   white-space: nowrap;
 }
@@ -1855,14 +1857,15 @@ body {
 
 .sidebar-action-btn {
   width: 100%;
+  min-width: 0;
   background: linear-gradient(135deg, rgba(44, 62, 80, 0.9) 0%, rgba(26, 37, 47, 0.9) 100%);
   border: 1px solid rgba(84, 160, 255, 0.4);
   color: #f5f6fa;
-  padding: 5px 6px;
+  padding: 6px 6px;
   border-radius: 6px;
   font-family: 'Rajdhani', sans-serif;
   font-weight: 700;
-  font-size: 0.72rem;
+  font-size: 0.76rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -2278,8 +2281,10 @@ body {
    CONFIGURACIÓN PRE-PARTIDA Y MODAL DE DIFICULTADES
    ========================================================== */
 .pre-game-box {
-  max-width: 600px;
+  max-width: 620px;
   width: 92%;
+  padding: 16px 20px;
+  gap: 10px;
   border-color: #feca57;
 }
 
@@ -2287,9 +2292,9 @@ body {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   background: rgba(0, 0, 0, 0.35);
-  padding: 12px 14px;
+  padding: 10px 12px;
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -3554,17 +3559,17 @@ body {
 .sidebar-user-pill {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 3px 8px;
+  padding: 4px 10px;
   border-radius: 14px;
   color: #f1f2f6;
-  font-size: 0.7rem;
+  font-size: 0.74rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
-  max-width: 115px;
+  max-width: 165px;
   overflow: hidden;
   flex-shrink: 1;
 }
@@ -4463,58 +4468,105 @@ body {
     font-size: 0.78rem;
   }
 
-  /* Pre-Game Setup Modal */
+  /* Pre-Game Setup Modal compacto en horizontal para móviles */
   .pre-game-box {
     max-width: 780px;
     width: 96%;
+    max-height: 96vh;
+    max-height: 96dvh;
+    padding: 8px 14px;
+    gap: 5px;
+  }
+
+  .pre-game-box .modal-header-with-close {
+    margin-bottom: 0;
+  }
+
+  .pre-game-box .modal-title {
+    font-size: 0.98rem;
   }
 
   .setup-section {
-    padding: 6px 10px;
-    gap: 4px;
+    padding: 5px 10px;
+    gap: 3px;
+    border-radius: 8px;
   }
 
   .setup-section-title {
-    font-size: 0.8rem;
+    font-size: 0.74rem;
   }
 
   .setup-lp-display {
-    font-size: 1rem;
+    font-size: 0.92rem;
+  }
+
+  .setup-slider {
+    height: 6px;
+  }
+
+  .preset-btn {
+    padding: 3px 5px;
+    font-size: 0.68rem;
   }
 
   .diff-cards-grid {
-    gap: 6px;
+    gap: 5px;
   }
 
   .diff-card {
-    padding: 6px;
-    gap: 3px;
+    padding: 4px 6px;
+    gap: 2px;
+    border-radius: 7px;
+  }
+
+  .diff-icon {
+    font-size: 0.92rem;
   }
 
   .diff-name {
-    font-size: 0.8rem;
+    font-size: 0.76rem;
   }
 
   .diff-desc {
-    font-size: 0.6rem;
+    font-size: 0.56rem;
+    line-height: 1.1;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
 
   .deck-selector-grid {
-    grid-template-columns: repeat(5, minmax(95px, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 5px;
-    margin-top: 4px;
+    margin-top: 2px;
   }
 
   .deck-select-card {
-    padding: 5px 7px;
+    padding: 4px 6px;
+    gap: 1px;
+  }
+
+  .deck-select-num {
+    font-size: 0.58rem;
   }
 
   .deck-select-name {
-    font-size: 0.74rem;
+    font-size: 0.7rem;
+  }
+
+  .deck-select-count {
+    font-size: 0.62rem;
+  }
+
+  .pre-game-box .modal-actions {
+    margin-top: 2px;
+    gap: 8px;
+  }
+
+  .pre-game-box .modal-actions .phase-btn {
+    padding: 6px 16px;
+    font-size: 0.84rem;
   }
 
   /* Deck Builder en Horizontal */
@@ -4646,6 +4698,37 @@ body {
     padding: 4px;
   }
 }
+
+/* 5. Ajuste extra para móviles en horizontal con barra de navegador abierta (max-height: 460px) */
+@media screen and (max-height: 460px) and (orientation: landscape) {
+  .pre-game-box {
+    padding: 6px 12px;
+    gap: 4px;
+  }
+
+  .pre-game-box .setup-section {
+    padding: 4px 8px;
+    gap: 2px;
+  }
+
+  .pre-game-box .diff-desc {
+    display: none;
+  }
+
+  .pre-game-box .diff-card {
+    padding: 4px 6px;
+  }
+
+  .pre-game-box .deck-select-card {
+    padding: 3px 5px;
+  }
+
+  .pre-game-box .modal-actions .phase-btn {
+    padding: 5px 14px;
+    font-size: 0.8rem;
+  }
+}
+
 
 
 

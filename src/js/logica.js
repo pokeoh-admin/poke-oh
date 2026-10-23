@@ -7664,7 +7664,7 @@ function ajustarEscalaResponsiva() {
   const sidebarColapsado = sidebar && sidebar.classList.contains('sidebar-collapsed');
 
   // Dimensiones base cómodas en horizontal para que el tablero y las cartas se vean completos sin recortes
-  const minW = sidebarColapsado ? 740 : 960;
+  const minW = sidebarColapsado ? 740 : 1030;
   const minH = 600;
 
   if (vh < minH || vw < minW) {
@@ -7811,17 +7811,17 @@ function actualizarBotonesFullscreenUI() {
 
   const menuFsIcon = document.getElementById('menu-fs-icon');
   const menuFsText = document.getElementById('menu-fs-text');
-  if (menuFsIcon) menuFsIcon.textContent = isFull ? '🗗' : '⛶';
+  if (menuFsIcon) menuFsIcon.textContent = isFull ? '↩️' : '⛶';
   if (menuFsText) menuFsText.textContent = isFull ? (isEn ? 'Exit Full' : 'Salir Full') : (isEn ? 'Fullscreen' : 'Pantalla Full');
 
   const sideFsIcon = document.getElementById('sidebar-fs-icon');
   const sideFsText = document.getElementById('sidebar-fs-text');
-  if (sideFsIcon) sideFsIcon.textContent = isFull ? '🗗' : '⛶';
+  if (sideFsIcon) sideFsIcon.textContent = isFull ? '↩️' : '⛶';
   if (sideFsText) sideFsText.textContent = isFull ? (isEn ? 'EXIT FULL' : 'SALIR FULL') : (isEn ? 'FULLSCREEN' : 'PANTALLA FULL');
 
   const btnArenaFs = document.getElementById('btn-arena-fullscreen');
   if (btnArenaFs) {
-    btnArenaFs.innerHTML = isFull ? '🗗 <span>Salir Full</span>' : '⛶ <span>Full</span>';
+    btnArenaFs.innerHTML = isFull ? '↩️ <span>Salir Full</span>' : '⛶ <span>Full</span>';
   }
 }
 
