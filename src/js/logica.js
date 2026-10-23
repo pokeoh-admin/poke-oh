@@ -129,7 +129,10 @@ const I18N = {
     deckMaxCopies: "Límite alcanzado: Máximo 3 copias de esta carta en el mazo.",
     deckFull: "La baraja ya tiene 40 cartas (máximo alcanzado).",
     btnPlayAgain: "Jugar Otra Partida ⚔️",
-    btnReturnMainMenu: "Volver al Menú Principal 🏠"
+    btnReturnMainMenu: "Volver al Menú Principal 🏠",
+    rotateTitle: "¡Gira tu Dispositivo!",
+    rotateDesc: "Para disfrutar del tablero de duelo completo de Poké-Oh! en celulares y tabletas, por favor coloca tu pantalla en posición horizontal (Landscape).",
+    rotateBadge: "📱 ↔️ Modo Horizontal Requerido"
   },
   en: {
     menuSubtitle: "STRATEGIC CARD DUEL (POKÉMON x YU-GI-OH!)",
@@ -233,7 +236,10 @@ const I18N = {
     deckMaxCopies: "Limit reached: Maximum 3 copies of this card in the deck.",
     deckFull: "The deck already has 40 cards (maximum reached).",
     btnPlayAgain: "Play Again ⚔️",
-    btnReturnMainMenu: "Main Menu 🏠"
+    btnReturnMainMenu: "Main Menu 🏠",
+    rotateTitle: "Rotate Your Device!",
+    rotateDesc: "To enjoy the full Poké-Oh! duel board on mobile phones and tablets, please rotate your screen to horizontal (Landscape) mode.",
+    rotateBadge: "📱 ↔️ Landscape Mode Required"
   }
 };
 
@@ -1566,8 +1572,10 @@ function mostrarMensajeToast(mensaje) {
 }
 
 // ==========================================
-// 6. INSPECTOR DE CARTAS (HOVER DETALLADO)
+// 6. INSPECTOR DE CARTAS (HOVER Y TOUCH DETALLADO)
 // ==========================================
+let inspectorTouchTimeout = null;
+
 function configurarInspectorHover(elemento, datosCarta, esPropiaBocaAbajo = false, esOponenteBocaAbajo = false) {
   const inspector = document.getElementById('card-inspector');
   const imgElem = document.getElementById('inspector-img');
@@ -1578,7 +1586,12 @@ function configurarInspectorHover(elemento, datosCarta, esPropiaBocaAbajo = fals
 
   if (!inspector || (!datosCarta && !esOponenteBocaAbajo)) return;
 
-  elemento.addEventListener('mouseenter', () => {
+  const mostrarInspector = (esTouch = false) => {
+    if (inspectorTouchTimeout) {
+      clearTimeout(inspectorTouchTimeout);
+      inspectorTouchTimeout = null;
+    }
+
     const isEn = configuracionJuego.idioma === 'en';
 
     // REGLA: Si es una carta boca abajo del rival, NO revelar información
@@ -1593,6 +1606,9 @@ function configurarInspectorHover(elemento, datosCarta, esPropiaBocaAbajo = fals
         ? "This card is placed face-down. Its identity and effects remain secret until activated."
         : "Esta carta está colocada boca abajo. Su contenido y efectos son secretos hasta que sea activada.";
       inspector.classList.remove('hidden');
+      if (esTouch) {
+        inspectorTouchTimeout = setTimeout(ocultarInspector, 3200);
+      }
       return;
     }
 
@@ -1633,14 +1649,22 @@ function configurarInspectorHover(elemento, datosCarta, esPropiaBocaAbajo = fals
 
     descElem.textContent = datosCarta.descripcion || '';
     inspector.classList.remove('hidden');
-  });
 
-  elemento.addEventListener('mouseleave', () => {
+    if (esTouch) {
+      inspectorTouchTimeout = setTimeout(ocultarInspector, 3200);
+    }
+  };
+
+  const ocultarInspector = () => {
     inspector.classList.add('hidden');
     imgElem.style.display = 'none';
     imgElem.removeAttribute('src');
     imgElem.alt = '';
-  });
+  };
+
+  elemento.addEventListener('mouseenter', () => mostrarInspector(false));
+  elemento.addEventListener('mouseleave', ocultarInspector);
+  elemento.addEventListener('touchstart', () => mostrarInspector(true), { passive: true });
 }
 
 // ==========================================
@@ -1730,10 +1754,17 @@ function renderizarMano(jugador) {
     cartaDiv.addEventListener('dragstart', manejarDragStart);
     cartaDiv.addEventListener('dragend', manejarDragEnd);
 
-    cartaDiv.addEventListener('click', () => {
+    cartaDiv.addEventListener('click', (e) => {
+      if (cartaDiv._touchDraggedReciente) {
+        cartaDiv._touchDraggedReciente = false;
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
       manejarClickCartaMano(cartaId, datosCarta, index);
     });
 
+    configurarTouchDragCarta(cartaDiv, cartaId, datosCarta, index);
     configurarInspectorHover(cartaDiv, datosCarta);
 
     let pieCartaHtml = "";
@@ -7397,8 +7428,261 @@ const MultiplayerManager = {
   }
 };
 
+// ==========================================
+// ADAPTACIÓN A CELULARES Y TABLETAS (HORIZONTAL + DETECCIÓN DE ROTACIÓN + TOUCH DRAG)
+// ==========================================
+function esDispositivoMovilOTablet() {
+  const ua = navigator.userAgent || '';
+  const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) ||
+                  (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+  const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Tablet/i.test(ua);
+  const isIPadOS = (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+                   (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1);
+  const minDim = Math.min(window.innerWidth || 0, window.innerHeight || 0);
+  const maxDim = Math.max(window.innerWidth || 0, window.innerHeight || 0);
+  return isMobileUA || isIPadOS || (isTouch && maxDim <= 1366) || minDim <= 1024;
+}
+
+function verificarOrientacionDispositivo() {
+  const overlay = document.getElementById('rotate-device-overlay');
+  if (!overlay) return;
+
+  const vw = window.innerWidth || document.documentElement.clientWidth || 0;
+  const vh = window.innerHeight || document.documentElement.clientHeight || 0;
+  const esVertical = vh > vw;
+  const esMovilTablet = esDispositivoMovilOTablet();
+
+  if (esVertical && esMovilTablet) {
+    overlay.classList.remove('hidden');
+    document.body.classList.add('is-portrait-locked');
+  } else {
+    overlay.classList.add('hidden');
+    document.body.classList.remove('is-portrait-locked');
+  }
+
+  ajustarEscalaResponsiva();
+}
+
+function ajustarEscalaResponsiva() {
+  const gameContainer = document.querySelector('.game-container');
+  if (!gameContainer) return;
+
+  const vw = window.innerWidth || document.documentElement.clientWidth || 0;
+  const vh = window.innerHeight || document.documentElement.clientHeight || 0;
+  const esVertical = vh > vw;
+
+  if (esVertical) {
+    // Mientras está en vertical con el aviso activo, limpiar transformaciones
+    gameContainer.style.position = '';
+    gameContainer.style.top = '';
+    gameContainer.style.left = '';
+    gameContainer.style.width = '';
+    gameContainer.style.height = '';
+    gameContainer.style.maxWidth = '';
+    gameContainer.style.maxHeight = '';
+    gameContainer.style.transform = '';
+    document.documentElement.style.removeProperty('--card-width');
+    return;
+  }
+
+  const sidebar = document.getElementById('duel-sidebar');
+  const sidebarColapsado = sidebar && sidebar.classList.contains('sidebar-collapsed');
+
+  // Dimensiones base cómodas en horizontal para que el tablero y las cartas se vean completos sin recortes
+  const minW = sidebarColapsado ? 740 : 960;
+  const minH = 600;
+
+  if (vh < minH || vw < minW) {
+    const scaleX = (vw - 8) / minW;
+    const scaleY = (vh - 8) / minH;
+    const scale = Math.max(0.35, Math.min(1, scaleX, scaleY));
+
+    const targetW = Math.floor((vw - 8) / scale);
+    const targetH = Math.floor((vh - 8) / scale);
+
+    gameContainer.style.position = 'fixed';
+    gameContainer.style.top = '50%';
+    gameContainer.style.left = '50%';
+    gameContainer.style.width = `${targetW}px`;
+    gameContainer.style.height = `${targetH}px`;
+    gameContainer.style.maxWidth = 'none';
+    gameContainer.style.maxHeight = 'none';
+    gameContainer.style.transformOrigin = 'center center';
+    gameContainer.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    document.documentElement.style.setProperty('--card-width', '60px');
+  } else {
+    gameContainer.style.position = '';
+    gameContainer.style.top = '';
+    gameContainer.style.left = '';
+    gameContainer.style.width = '';
+    gameContainer.style.height = '';
+    gameContainer.style.maxWidth = '';
+    gameContainer.style.maxHeight = '';
+    gameContainer.style.transform = '';
+    document.documentElement.style.removeProperty('--card-width');
+  }
+}
+
+function configurarTouchDragCarta(cartaDiv, cartaId, datosCarta, indexMano) {
+  let startX = 0;
+  let startY = 0;
+  let draggingTouch = false;
+  let ghostEl = null;
+  let ultimoSlotResaltado = null;
+
+  const limpiarSlotResaltado = () => {
+    if (ultimoSlotResaltado) {
+      ultimoSlotResaltado.classList.remove('slot-drag-over');
+      ultimoSlotResaltado = null;
+    }
+  };
+
+  cartaDiv.addEventListener('touchstart', (e) => {
+    if (!e.touches || e.touches.length !== 1) return;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    draggingTouch = false;
+  }, { passive: true });
+
+  cartaDiv.addEventListener('touchmove', (e) => {
+    if (!e.touches || e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    const dx = touch.clientX - startX;
+    const dy = touch.clientY - startY;
+
+    if (!draggingTouch && Math.hypot(dx, dy) > 14) {
+      draggingTouch = true;
+      cartaDiv.classList.add('dragging');
+      if (datosCarta && datosCarta.sacrificios > 0) {
+        resaltarMonstruosSacrificables(true);
+      }
+      ghostEl = cartaDiv.cloneNode(true);
+      ghostEl.style.position = 'fixed';
+      ghostEl.style.width = '64px';
+      ghostEl.style.height = '90px';
+      ghostEl.style.pointerEvents = 'none';
+      ghostEl.style.opacity = '0.88';
+      ghostEl.style.zIndex = '90000';
+      ghostEl.style.transform = 'translate(-50%, -50%) scale(1.05)';
+      document.body.appendChild(ghostEl);
+    }
+
+    if (draggingTouch) {
+      if (e.cancelable) e.preventDefault();
+      if (ghostEl) {
+        ghostEl.style.left = `${touch.clientX}px`;
+        ghostEl.style.top = `${touch.clientY}px`;
+      }
+
+      const elemBajoDedo = document.elementFromPoint(touch.clientX, touch.clientY);
+      const slotDestino = elemBajoDedo ? elemBajoDedo.closest('#player-side .monster-slot, #player-side .spell-trap-slot') : null;
+      if (slotDestino !== ultimoSlotResaltado) {
+        limpiarSlotResaltado();
+        if (slotDestino) {
+          slotDestino.classList.add('slot-drag-over');
+          ultimoSlotResaltado = slotDestino;
+        }
+      }
+    }
+  }, { passive: false });
+
+  const finalizarTouch = (e) => {
+    if (!draggingTouch) return;
+    draggingTouch = false;
+    cartaDiv._touchDraggedReciente = true;
+    setTimeout(() => { cartaDiv._touchDraggedReciente = false; }, 350);
+
+    cartaDiv.classList.remove('dragging');
+    resaltarMonstruosSacrificables(false);
+    limpiarSlotResaltado();
+
+    if (ghostEl && ghostEl.parentNode) {
+      ghostEl.parentNode.removeChild(ghostEl);
+    }
+    ghostEl = null;
+
+    const touch = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0] : null;
+    if (!touch) return;
+
+    const elemBajoDedo = document.elementFromPoint(touch.clientX, touch.clientY);
+    const monsterSlot = elemBajoDedo ? elemBajoDedo.closest('#player-side .monster-slot') : null;
+    const spellSlot = elemBajoDedo ? elemBajoDedo.closest('#player-side .spell-trap-slot') : null;
+
+    const fakeEvent = {
+      preventDefault: () => {},
+      dataTransfer: {
+        getData: () => JSON.stringify({ cartaId, indexMano })
+      }
+    };
+
+    if (monsterSlot) {
+      manejarDropMonstruo.call(monsterSlot, fakeEvent);
+    } else if (spellSlot) {
+      manejarDropMagiaTrampa.call(spellSlot, fakeEvent);
+    }
+  };
+
+  cartaDiv.addEventListener('touchend', finalizarTouch);
+  cartaDiv.addEventListener('touchcancel', finalizarTouch);
+}
+
+function inicializarAdaptacionMovilYRotacion() {
+  // Crear botón rápido en la esquina de la arena para ocultar/mostrar el marcador lateral en móviles/tablets
+  const arena = document.querySelector('.duel-arena');
+  const sidebar = document.getElementById('duel-sidebar');
+  if (arena && sidebar && !document.getElementById('btn-toggle-sidebar-mobile')) {
+    const btnToggle = document.createElement('button');
+    btnToggle.type = 'button';
+    btnToggle.id = 'btn-toggle-sidebar-mobile';
+    btnToggle.className = 'btn-toggle-sidebar-mobile';
+    btnToggle.innerHTML = '📊 <span>Panel</span>';
+    btnToggle.title = 'Mostrar / Ocultar Panel Lateral';
+    btnToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('sidebar-collapsed');
+      const oculto = sidebar.classList.contains('sidebar-collapsed');
+      btnToggle.innerHTML = oculto ? '📊 <span>Mostrar Panel</span>' : '📊 <span>Panel</span>';
+      ajustarEscalaResponsiva();
+    });
+    arena.appendChild(btnToggle);
+  }
+
+  // Ocultar el inspector al tocar fuera de una carta en pantallas táctiles
+  document.addEventListener('touchstart', (e) => {
+    const inspector = document.getElementById('card-inspector');
+    if (!inspector || inspector.classList.contains('hidden')) return;
+    if (!e.target.closest('.card-slot, .deck-visual-card')) {
+      inspector.classList.add('hidden');
+    }
+  }, { passive: true });
+
+  const dispararVerificacion = () => {
+    verificarOrientacionDispositivo();
+    setTimeout(verificarOrientacionDispositivo, 120);
+    setTimeout(verificarOrientacionDispositivo, 320);
+  };
+
+  window.addEventListener('resize', dispararVerificacion);
+  window.addEventListener('orientationchange', dispararVerificacion);
+  if (window.screen && window.screen.orientation && typeof window.screen.orientation.addEventListener === 'function') {
+    window.screen.orientation.addEventListener('change', dispararVerificacion);
+  }
+  if (window.matchMedia) {
+    try {
+      const mql = window.matchMedia('(orientation: portrait)');
+      if (typeof mql.addEventListener === 'function') {
+        mql.addEventListener('change', dispararVerificacion);
+      } else if (typeof mql.addListener === 'function') {
+        mql.addListener(dispararVerificacion);
+      }
+    } catch (e) {}
+  }
+
+  dispararVerificacion();
+}
+
 // Inicialización de la aplicación completa
 function inicializarJuegoCompleto() {
+  inicializarAdaptacionMovilYRotacion();
   configurarZonasMonstruo();
   configurarZonasMagiaTrampa();
   configurarBotonesAudio();

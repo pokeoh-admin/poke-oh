@@ -34,8 +34,8 @@
   --color-text-main: #f5f6fa;
   --color-text-dim: #7f8fa6;
 
-  /* Dimensiones de cartas (Más grandes y legibles) */
-  --card-width: clamp(76px, 8.2vw, 110px);
+  /* Dimensiones de cartas (Adaptables a ancho y alto de pantalla) */
+  --card-width: clamp(60px, min(8.2vw, 11.2vh), 104px);
   --card-ratio: 1.4;
   --card-height: calc(var(--card-width) * var(--card-ratio));
   --border-radius-card: 6px;
@@ -1541,17 +1541,17 @@ body {
 /* ==========================================================
    RESPONSIVIDAD Y AJUSTES DE PANTALLA
    ========================================================== */
-@media (max-height: 800px) {
+@media (max-height: 860px) {
   :root {
-    --card-width: clamp(55px, 5.8vw, 80px);
+    --card-width: clamp(54px, min(6.8vw, 11.2vh), 80px);
   }
   .duel-arena {
     padding: 4px 10px;
-    height: 99vh;
+    height: 100%;
   }
   .playmat-grid {
-    padding: 6px;
-    gap: 6px;
+    padding: 5px 6px;
+    gap: 5px;
   }
   .board-row {
     gap: 8px;
@@ -2047,16 +2047,15 @@ body {
   100% { transform: translate(-50%, -50%) scale(1.3); opacity: 0; }
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1100px) and (orientation: landscape) {
   .game-container {
-    flex-direction: column;
-    height: auto;
-    max-height: none;
+    flex-direction: row;
+    gap: 8px;
   }
   .duel-sidebar {
-    width: 100%;
-    height: auto;
-    max-height: 220px;
+    width: clamp(175px, 18vw, 225px);
+    padding: 8px 10px;
+    gap: 6px;
   }
 }
 
@@ -3435,10 +3434,11 @@ body {
   margin-top: 8px !important;
 }
 
-@media (max-width: 850px) {
+@media (max-width: 900px) and (orientation: landscape) {
   .deck-builder-workspace {
-    grid-template-columns: 1fr;
-    grid-template-rows: 240px 1fr;
+    grid-template-columns: minmax(210px, 38%) 1fr;
+    grid-template-rows: 1fr;
+    gap: 8px;
   }
 }
 
@@ -3989,6 +3989,571 @@ body {
   color: #a4b0be;
   margin: 0;
 }
+
+/* ============================================================== */
+/* ADAPTACIÓN MÓVIL Y TABLET (HORIZONTAL / LANDSCAPE + ROTACIÓN)  */
+/* ============================================================== */
+
+/* 1. Modal / Aviso de Rotación a Modo Horizontal (Vertical -> Horizontal) */
+.rotate-device-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  background: radial-gradient(circle at 50% 45%, rgba(20, 29, 48, 0.98) 0%, rgba(6, 9, 16, 0.99) 100%);
+  backdrop-filter: blur(12px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  text-align: center;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.rotate-device-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  display: none !important;
+}
+
+/* Mostrar automáticamente por CSS cuando un dispositivo móvil/tablet está en vertical */
+@media screen and (orientation: portrait) and (max-width: 1024px) {
+  .rotate-device-overlay {
+    opacity: 1 !important;
+    pointer-events: all !important;
+    visibility: visible !important;
+    display: flex !important;
+  }
+}
+
+/* Ocultar inmediatamente cuando el dispositivo está en horizontal */
+@media screen and (orientation: landscape) {
+  .rotate-device-overlay {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+    display: none !important;
+  }
+}
+
+.rotate-device-box {
+  max-width: 400px;
+  width: 92%;
+  background: rgba(14, 20, 34, 0.95);
+  border: 2px solid #feca57;
+  border-radius: 20px;
+  padding: 28px 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95), 0 0 35px rgba(254, 202, 87, 0.3);
+  animation: modal-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.rotate-device-anim {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rotate-phone-graphic {
+  width: 52px;
+  height: 88px;
+  border: 3px solid #54a0ff;
+  border-radius: 10px;
+  background: linear-gradient(160deg, #1b2845 0%, #0b132b 100%);
+  box-shadow: 0 0 20px rgba(84, 160, 255, 0.55), inset 0 0 12px rgba(84, 160, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  animation: rotate-phone-to-landscape 2.2s ease-in-out infinite;
+}
+
+.rotate-phone-graphic::before {
+  content: '';
+  position: absolute;
+  top: 5px;
+  width: 14px;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.rotate-phone-graphic::after {
+  content: '';
+  position: absolute;
+  bottom: 5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+}
+
+.rotate-phone-bolt {
+  font-size: 1.5rem;
+  filter: drop-shadow(0 0 8px #feca57);
+}
+
+.rotate-arrows-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  font-size: 1.5rem;
+  background: rgba(10, 14, 22, 0.9);
+  border: 1px solid rgba(254, 202, 87, 0.6);
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+}
+
+@keyframes rotate-phone-to-landscape {
+  0%, 15% {
+    transform: rotate(0deg);
+    border-color: #ff6b81;
+    box-shadow: 0 0 18px rgba(255, 107, 129, 0.5);
+  }
+  50%, 80% {
+    transform: rotate(-90deg);
+    border-color: #2ed573;
+    box-shadow: 0 0 24px rgba(46, 213, 115, 0.7);
+  }
+  100% {
+    transform: rotate(0deg);
+    border-color: #ff6b81;
+  }
+}
+
+.rotate-device-title {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #feca57;
+  letter-spacing: 1.5px;
+  text-shadow: 0 0 15px rgba(254, 202, 87, 0.5);
+  margin: 0;
+}
+
+.rotate-device-desc {
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: #dfe4ea;
+  margin: 0;
+}
+
+.rotate-device-desc b {
+  color: #54a0ff;
+}
+
+.rotate-device-pill {
+  background: rgba(46, 213, 115, 0.15);
+  border: 1px solid #2ed573;
+  color: #2ed573;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 6px 16px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 0 14px rgba(46, 213, 115, 0.25);
+}
+
+/* 2. Garantizar que todos los modales sean desplazables en pantallas bajas */
+.modal-overlay {
+  padding: 8px;
+  overflow-y: auto;
+}
+
+.modal-box {
+  max-height: 94vh;
+  max-height: 94dvh;
+  overflow-y: auto;
+}
+
+.main-menu-overlay {
+  padding: 10px;
+  overflow-y: auto;
+}
+
+.main-menu-container {
+  max-height: 95vh;
+  max-height: 95dvh;
+  overflow-y: auto;
+}
+
+/* Botón flotante para ocultar/mostrar el panel lateral en móviles/tablets */
+.btn-toggle-sidebar-mobile {
+  display: none;
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 500;
+  background: rgba(14, 20, 32, 0.92);
+  border: 1px solid rgba(84, 160, 255, 0.6);
+  color: #feca57;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 0.72rem;
+  padding: 4px 9px;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.75);
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.btn-toggle-sidebar-mobile:hover,
+.btn-toggle-sidebar-mobile:active {
+  background: rgba(84, 160, 255, 0.25);
+  border-color: #feca57;
+}
+
+.duel-sidebar.sidebar-collapsed {
+  display: none !important;
+}
+
+/* 3. Ajustes generales para Tabletas y Móviles en Horizontal (max-height: 860px) */
+@media screen and (max-height: 860px) and (orientation: landscape) {
+  body {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: hidden;
+    padding: 4px;
+  }
+
+  /* Mano del rival compacta para liberar espacio vertical en el tablero */
+  .opponent-hand {
+    min-height: calc(var(--card-height) * 0.44);
+  }
+
+  .opponent-hand .card-slot {
+    width: calc(var(--card-width) * 0.62);
+    height: calc(var(--card-height) * 0.44);
+  }
+
+  .player-hud {
+    padding: 4px 10px;
+  }
+
+  .player-half {
+    gap: 4px;
+  }
+
+  .playmat-grid {
+    padding: 5px 8px;
+    gap: 5px;
+  }
+
+  .board-row {
+    gap: 8px;
+  }
+
+  .arena-center-divider {
+    margin: 2px 0;
+    padding: 3px 12px;
+  }
+
+  .monster-action-btn {
+    font-size: 0.62rem;
+    padding: 3px 6px;
+  }
+}
+
+/* Mostrar botón de colapsar sidebar en pantallas táctiles o menores a 1180px en horizontal */
+@media screen and (max-width: 1180px) and (orientation: landscape),
+       screen and (max-height: 680px) and (orientation: landscape) {
+  .btn-toggle-sidebar-mobile {
+    display: inline-flex;
+  }
+}
+
+/* 4. Adaptación de Menú Principal y Modales en Horizontal para Celulares y Tabletas (max-height: 680px) */
+@media screen and (max-height: 680px) and (orientation: landscape) {
+  /* Menú Principal en cuadrícula de 2 columnas para que quepa completo sin scroll */
+  .main-menu-container {
+    max-width: 780px;
+    width: 96%;
+    padding: 12px 18px;
+    gap: 10px;
+    border-radius: 14px;
+  }
+
+  .menu-user-bar {
+    margin-bottom: 2px;
+  }
+
+  .menu-user-pill {
+    padding: 4px 10px;
+    font-size: 0.8rem;
+  }
+
+  .menu-brand-icon {
+    font-size: 1.6rem;
+  }
+
+  .main-menu-title {
+    font-size: 1.85rem;
+    letter-spacing: 3px;
+    margin-top: 0;
+  }
+
+  .main-menu-subtitle {
+    font-size: 0.68rem;
+    margin-top: 0;
+  }
+
+  .main-menu-tag {
+    font-size: 0.6rem;
+    padding: 2px 8px;
+    margin-top: 3px;
+  }
+
+  .main-menu-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    width: 100%;
+  }
+
+  .menu-btn {
+    padding: 8px 11px;
+    gap: 9px;
+    border-radius: 9px;
+  }
+
+  .menu-btn-icon {
+    font-size: 1.25rem;
+  }
+
+  .menu-btn-title {
+    font-size: 0.88rem;
+  }
+
+  .menu-btn-desc {
+    font-size: 0.64rem;
+    line-height: 1.15;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .menu-btn-arrow {
+    font-size: 1.1rem;
+  }
+
+  .main-menu-footer {
+    font-size: 0.64rem;
+  }
+
+  /* Modales compactos en horizontal */
+  .modal-box {
+    padding: 12px 16px;
+    gap: 8px;
+    border-radius: 12px;
+  }
+
+  .modal-title {
+    font-size: 1.1rem;
+  }
+
+  .modal-desc {
+    font-size: 0.78rem;
+  }
+
+  /* Pre-Game Setup Modal */
+  .pre-game-box {
+    max-width: 780px;
+    width: 96%;
+  }
+
+  .setup-section {
+    padding: 6px 10px;
+    gap: 4px;
+  }
+
+  .setup-section-title {
+    font-size: 0.8rem;
+  }
+
+  .setup-lp-display {
+    font-size: 1rem;
+  }
+
+  .diff-cards-grid {
+    gap: 6px;
+  }
+
+  .diff-card {
+    padding: 6px;
+    gap: 3px;
+  }
+
+  .diff-name {
+    font-size: 0.8rem;
+  }
+
+  .diff-desc {
+    font-size: 0.6rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .deck-selector-grid {
+    grid-template-columns: repeat(5, minmax(95px, 1fr));
+    gap: 5px;
+    margin-top: 4px;
+  }
+
+  .deck-select-card {
+    padding: 5px 7px;
+  }
+
+  .deck-select-name {
+    font-size: 0.74rem;
+  }
+
+  /* Deck Builder en Horizontal */
+  .deck-builder-box {
+    width: 98vw;
+    max-width: none;
+    height: 96vh;
+    height: 96dvh;
+    max-height: 96dvh;
+    padding: 8px 12px;
+    gap: 4px;
+  }
+
+  .deck-builder-box .modal-subtitle {
+    display: none;
+  }
+
+  .deck-builder-top-bar {
+    padding: 4px 8px;
+    margin: 2px 0;
+    gap: 6px;
+  }
+
+  .deck-tab-btn {
+    padding: 3px 8px;
+    font-size: 0.7rem;
+  }
+
+  .deck-name-input {
+    width: 130px;
+    padding: 3px 7px;
+    font-size: 0.75rem;
+  }
+
+  .deck-builder-workspace {
+    grid-template-columns: 40% 60%;
+    grid-template-rows: 1fr;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .deck-side-panel {
+    padding: 6px 8px;
+  }
+
+  .deck-current-scroll,
+  .deck-collection-scroll {
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+    gap: 6px;
+  }
+
+  .deck-visual-card {
+    min-height: 122px;
+    padding: 4px;
+  }
+
+  .card-visual-art-wrap {
+    height: 44px;
+  }
+
+  /* Reglas, Usuarios, PvP y Descarte en Horizontal */
+  .rules-box,
+  .type-chart-box,
+  .user-box,
+  .pvp-box,
+  .discard-box {
+    max-width: 780px;
+    width: 96%;
+    max-height: 94dvh;
+    padding: 10px 14px;
+  }
+
+  .rules-box {
+    height: 92dvh;
+  }
+
+  .user-input {
+    padding: 7px 10px;
+    font-size: 0.85rem;
+  }
+
+  .profile-header-card {
+    padding: 8px 12px;
+  }
+
+  .profile-big-avatar {
+    font-size: 2rem;
+    padding: 6px;
+  }
+
+  .profile-stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .profile-stat-box {
+    padding: 6px;
+  }
+
+  .p-stat-val {
+    font-size: 1.05rem;
+  }
+
+  .discard-cards-grid {
+    max-height: 185px;
+    padding: 6px;
+  }
+
+  /* Inspector de carta compacto en esquina inferior izquierda */
+  .card-detail-inspector {
+    bottom: 8px;
+    left: 8px;
+    width: 195px;
+    padding: 8px;
+    gap: 4px;
+    z-index: 55000;
+  }
+
+  .inspector-art-box {
+    height: 75px;
+  }
+
+  .inspector-info h3 {
+    font-size: 0.88rem;
+  }
+
+  .inspector-desc {
+    font-size: 0.65rem;
+    padding: 4px;
+  }
+}
+
 
 
 

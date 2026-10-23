@@ -2,7 +2,10 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>PokéOh! - Duelo de Cartas (Pokémon x Yu-Gi-Oh!)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -10,6 +13,27 @@
   <link rel="stylesheet" href="src/css/style.css">
 </head>
 <body>
+  <!-- ============================================== -->
+  <!-- AVISO DE ROTACIÓN A HORIZONTAL (MÓVIL/TABLET)  -->
+  <!-- ============================================== -->
+  <div class="rotate-device-overlay hidden" id="rotate-device-overlay" role="dialog" aria-modal="true" aria-labelledby="rotate-device-title">
+    <div class="rotate-device-box">
+      <div class="rotate-device-anim" aria-hidden="true">
+        <div class="rotate-phone-graphic">
+          <span class="rotate-phone-bolt">⚡</span>
+        </div>
+        <div class="rotate-arrows-badge">🔄</div>
+      </div>
+      <h2 class="rotate-device-title" id="rotate-device-title" data-i18n="rotateTitle">¡Gira tu Dispositivo!</h2>
+      <p class="rotate-device-desc" id="rotate-device-desc" data-i18n="rotateDesc">
+        Para disfrutar del tablero de duelo completo de <b>Poké-Oh!</b> en celulares y tabletas, por favor coloca tu pantalla en posición <b>horizontal (Landscape)</b>.
+      </p>
+      <div class="rotate-device-pill" data-i18n="rotateBadge">
+        📱 ↔️ Modo Horizontal Requerido
+      </div>
+    </div>
+  </div>
+
   <!-- ============================================== -->
   <!-- MENÚ PRINCIPAL DEL JUEGO (MAIN MENU)          -->
   <!-- ============================================== -->
