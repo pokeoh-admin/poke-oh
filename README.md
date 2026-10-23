@@ -25,20 +25,10 @@
 
 ## 🚀 Cómo Jugar
 
-### Opción 1: Directamente en el navegador (Cloud / GitHub Pages)
-1. Abre [`index.html`](./index.html) en tu navegador o accede mediante la URL de **GitHub Pages**.
+1. Abre la página oficial del juego en tu navegador: **[PokéOh! - Duelo de Cartas (Pokémon x Yu-Gi-Oh!)](https://pokeoh-admin.github.io/poke-oh/)**
 2. Registra tu cuenta de duelista o inicia sesión.
 3. Personaliza tus barajas en el **Constructor de Barajas** o elige uno de los 5 mazos temáticos preconstruidos.
 4. Selecciona **Jugar vs IA** o **2 Jugadores Online**.
-
-### Opción 2: Servidor Local con Node.js
-```bash
-# 1. Instalar dependencias
-npm install
-
-# 2. Iniciar el servidor local (http://localhost:2567)
-npm start
-```
 
 ---
 
@@ -62,3 +52,4 @@ npm start
 - **Frontend:** HTML5, CSS3, JavaScript ES6+, gráficos SVG dinámicos y Web Audio API + PokeAPI Sprites/Cries.
 - **Base de Datos y Autenticación:** Supabase (PostgreSQL + REST API + `localStorage` caché).
 - **Multijugador en Tiempo Real:** Supabase Realtime (Broadcast & Presence) / Node.js + Express + Colyseus WebSockets.
+
