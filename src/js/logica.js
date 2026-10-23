@@ -898,15 +898,22 @@ function inicializarModalTablaTipos() {
   });
 }
 
-// Modal de confirmación para uso de cartas (con opciones de Activar, Colocar Boca Abajo o Cancelar)
+// Modal de confirmación para uso de cartas (Invocación de Pokémon, Activar Magia, Colocar Boca Abajo o Respuesta de Trampa)
 function abrirModalConfirmacionCarta({
   titulo = "✨ Usar Carta",
   datosCarta,
   cartaId,
   infoTarget = null,
   slotMTIndex = null,
+  preguntaCustom = null,
+  textoBtnConfirm = null,
+  textoBtnSet = null,
+  ocultarBtnSet = false,
+  textoBtnCancel = null,
+  resumenAtaqueHtml = null,
   onConfirm = () => {},
-  onSet = null
+  onSet = null,
+  onCancel = null
 }) {
   const modal = document.getElementById('spell-confirm-modal');
   const titleElem = document.getElementById('spell-confirm-title');
@@ -916,6 +923,7 @@ function abrirModalConfirmacionCarta({
   const descElem = document.getElementById('spell-confirm-desc');
   const targetInfoElem = document.getElementById('spell-confirm-target-info');
   const targetNameElem = document.getElementById('spell-confirm-target-name');
+  const questionElem = modal ? modal.querySelector('.spell-confirm-question') : null;
   const btnYes = document.getElementById('btn-spell-confirm-yes');
   const btnSet = document.getElementById('btn-spell-confirm-set');
   const btnNo = document.getElementById('btn-spell-confirm-no');
@@ -925,10 +933,36 @@ function abrirModalConfirmacionCarta({
     return;
   }
 
+  const isEn = configuracionJuego.idioma === 'en';
   titleElem.textContent = titulo;
   nameElem.textContent = datosCarta.nombre;
-  tagElem.textContent = `${datosCarta.tipoCarta.toUpperCase()} - ${datosCarta.subtipo || 'Soporte'}`;
+
+  if (datosCarta.tipoCarta === 'monstruo') {
+    const infoT = datosCarta.elemento ? obtenerInfoTipo(datosCarta.elemento) : null;
+    const elemStr = infoT ? ` • ${infoT.icono} ${infoT.nombre}` : '';
+    tagElem.textContent = `POKÉMON (${datosCarta.etapa || 'Básico'})${elemStr} • ATK ${datosCarta.atk} / DEF ${datosCarta.def}`;
+  } else {
+    tagElem.textContent = `${datosCarta.tipoCarta.toUpperCase()} - ${datosCarta.subtipo || 'Soporte'}`;
+  }
+
   descElem.textContent = datosCarta.descripcion || datosCarta.descripcionCorta || '';
+
+  let bannerAtaquePrevio = modal.querySelector('#modal-trap-attack-summary');
+  if (resumenAtaqueHtml) {
+    if (!bannerAtaquePrevio) {
+      bannerAtaquePrevio = document.createElement('div');
+      bannerAtaquePrevio.id = 'modal-trap-attack-summary';
+      bannerAtaquePrevio.className = 'trap-attack-summary';
+      const bodyElem = modal.querySelector('.spell-confirm-body');
+      if (bodyElem && bodyElem.parentNode) {
+        bodyElem.parentNode.insertBefore(bannerAtaquePrevio, bodyElem);
+      }
+    }
+    bannerAtaquePrevio.innerHTML = resumenAtaqueHtml;
+    bannerAtaquePrevio.style.display = 'flex';
+  } else if (bannerAtaquePrevio) {
+    bannerAtaquePrevio.style.display = 'none';
+  }
 
   if (infoTarget) {
     targetInfoElem.style.display = 'block';
@@ -937,16 +971,46 @@ function abrirModalConfirmacionCarta({
     targetInfoElem.style.display = 'none';
   }
 
+  if (questionElem) {
+    questionElem.textContent = preguntaCustom || (isEn ? "How do you want to play this card?" : "¿Cómo deseas jugar esta carta?");
+  }
+
+  if (btnYes) {
+    btnYes.textContent = textoBtnConfirm || (isEn ? "✨ Activate Now" : "✨ Activar Ahora");
+  }
+  if (btnSet) {
+    btnSet.style.display = ocultarBtnSet ? 'none' : '';
+    btnSet.textContent = textoBtnSet || (isEn ? "🃏 Set Face-Down" : "🃏 Colocar Boca Abajo");
+  }
+  if (btnNo) {
+    btnNo.textContent = textoBtnCancel || (isEn ? "❌ Keep in Hand" : "❌ Mantener en Mano");
+  }
+
   const fallbackSrc = datosCarta.spriteEstatico || datosCarta.imagenOficial;
-  previewElem.innerHTML = `
-    <div class="card-slot preview-card ${datosCarta.claseCss}" style="width: 100%; height: 100%; pointer-events: none;">
-      <span class="card-name-mini">${datosCarta.nombre}</span>
-      <div class="card-art-container">
-        <img class="card-art-img item-art-enlarged" src="${datosCarta.imagenOficial || fallbackSrc}" alt="${datosCarta.nombre}" onerror="this.onerror=null; this.src='${fallbackSrc}';" draggable="false">
+  if (datosCarta.tipoCarta === 'monstruo') {
+    previewElem.innerHTML = `
+      <div class="card-slot preview-card ${datosCarta.claseCss} ${obtenerClaseFrontCarta(datosCarta)}" style="width: 100%; height: 100%; pointer-events: none;">
+        <span class="card-name-mini">${datosCarta.nombre}</span>
+        <div class="card-art-container">
+          <img class="card-art-img" src="${datosCarta.imagenOficial || fallbackSrc}" alt="${datosCarta.nombre}" onerror="this.onerror=null; this.src='${fallbackSrc}';" draggable="false">
+        </div>
+        <div class="card-stats-row">
+          <span class="card-stat-mini stat-atk">A:${datosCarta.atk}</span>
+          <span class="card-stat-mini stat-def">D:${datosCarta.def}</span>
+        </div>
       </div>
-      <span class="card-stat-mini">${datosCarta.subtipo || 'M/T'}</span>
-    </div>
-  `;
+    `;
+  } else {
+    previewElem.innerHTML = `
+      <div class="card-slot preview-card ${datosCarta.claseCss}" style="width: 100%; height: 100%; pointer-events: none;">
+        <span class="card-name-mini">${datosCarta.nombre}</span>
+        <div class="card-art-container">
+          <img class="card-art-img item-art-enlarged" src="${datosCarta.imagenOficial || fallbackSrc}" alt="${datosCarta.nombre}" onerror="this.onerror=null; this.src='${fallbackSrc}';" draggable="false">
+        </div>
+        <span class="card-stat-mini">${datosCarta.subtipo || 'M/T'}</span>
+      </div>
+    `;
+  }
 
   btnYes.onclick = () => {
     modal.classList.add('hidden');
@@ -966,9 +1030,13 @@ function abrirModalConfirmacionCarta({
 
   btnNo.onclick = () => {
     modal.classList.add('hidden');
-    const msg = configuracionJuego.idioma === 'en'
+    if (onCancel) {
+      onCancel();
+      return;
+    }
+    const msg = isEn
       ? `Cancelled. ${datosCarta.nombre} remains in your hand.`
-      : `Uso cancelado. ${datosCarta.nombre} permanece en tu mano.`;
+      : `Acción cancelada. ${datosCarta.nombre} permanece en tu mano.`;
     mostrarMensajeToast(msg);
   };
 
@@ -2094,13 +2162,15 @@ function manejarClickCartaMano(cartaId, datosCarta, indexMano) {
     return;
   }
 
-  // 1. Si es un monstruo: verificar regla de 1 invocación por turno
+  // 1. Si es un monstruo: verificar regla de 1 invocación por turno y preguntar confirmación antes de invocar
   if (datosCarta.tipoCarta === 'monstruo') {
     const cartaElemMano = document.querySelector(`#player-hand [data-index-mano="${indexMano}"]`);
     if (estadoJuego.haInvocadoMonstruoEsteTurno) {
       mostrarAvisoYaInvocoEsteTurno(datosCarta, cartaElemMano);
       return;
     }
+
+    const isEn = configuracionJuego.idioma === 'en';
 
     if (datosCarta.sacrificios > 0) {
       const monstruosEnCampo = contarMonstruosEnCampoJugador();
@@ -2123,23 +2193,65 @@ function manejarClickCartaMano(cartaId, datosCarta, indexMano) {
         return;
       }
 
-      mostrarMensajeToast(`⭐ Modo Sacrificio: Selecciona los Pokémon de tributo para ${datosCarta.nombre}.`);
       const primerSlotLibre = estadoJugador.zonaMonstruos.findIndex(m => m === null);
       const targetSlot = primerSlotLibre !== -1 ? primerSlotLibre : (tienePreEvo ? slotsPreEvo[0] : monstruosEnCampo[0]);
-      abrirModalSacrificios(datosCarta, cartaId, targetSlot, datosCarta.sacrificios);
+
+      abrirModalConfirmacionCarta({
+        titulo: isEn ? "⭐ Summon Tribute Pokémon" : "⭐ Invocar Pokémon con Sacrificio",
+        datosCarta,
+        cartaId,
+        infoTarget: tienePreEvo
+          ? (isEn ? `Direct Evolution available (1 tribute)` : `Evolución Directa disponible (1 sacrificio)`)
+          : (isEn ? `Requires ${datosCarta.sacrificios} tribute(s)` : `Requiere ${datosCarta.sacrificios} sacrificio(s)`),
+        preguntaCustom: isEn
+          ? `Do you want to summon ${datosCarta.nombre} to the field?`
+          : `¿Deseas invocar a ${datosCarta.nombre} al campo?`,
+        textoBtnConfirm: isEn ? "⚔️ Summon in Attack" : "⚔️ Invocar en Ataque",
+        textoBtnSet: isEn ? "🛡️ Summon in Defense" : "🛡️ Invocar en Defensa",
+        textoBtnCancel: isEn ? "❌ Keep in Hand" : "❌ Mantener en Mano",
+        onConfirm: () => {
+          mostrarMensajeToast(`⭐ Modo Sacrificio: Selecciona los Pokémon de tributo para ${datosCarta.nombre}.`);
+          abrirModalSacrificios(datosCarta, cartaId, targetSlot, datosCarta.sacrificios, 'ataque');
+        },
+        onSet: () => {
+          mostrarMensajeToast(`⭐ Modo Sacrificio: Selecciona los Pokémon de tributo para ${datosCarta.nombre}.`);
+          abrirModalSacrificios(datosCarta, cartaId, targetSlot, datosCarta.sacrificios, 'defensa');
+        }
+      });
       return;
     }
 
-    // Monstruo básico sin sacrificios: buscar primer slot libre e invocar
+    // Monstruo básico sin sacrificios: verificar slot libre y preguntar antes de invocar
     const primerSlotLibre = estadoJugador.zonaMonstruos.findIndex(m => m === null);
     if (primerSlotLibre === -1) {
       mostrarMensajeToast("Todas tus Zonas de Monstruos están ocupadas.");
       return;
     }
-    ejecutarInvocacionMonstruo(datosCarta, cartaId, primerSlotLibre);
-    sumarPuntosDuelo(100, `Invocación de ${datosCarta.nombre}`);
-    marcadorDuelo.invocaciones++;
-    actualizarMarcadorLateral();
+
+    abrirModalConfirmacionCarta({
+      titulo: isEn ? "⚡ Summon Pokémon" : "⚡ Invocar Pokémon al Campo",
+      datosCarta,
+      cartaId,
+      infoTarget: isEn ? `Monster Zone #${primerSlotLibre + 1}` : `Zona de Monstruos #${primerSlotLibre + 1}`,
+      preguntaCustom: isEn
+        ? `Do you want to summon ${datosCarta.nombre} to the field?`
+        : `¿Deseas invocar a ${datosCarta.nombre} al campo?`,
+      textoBtnConfirm: isEn ? "⚔️ Summon in Attack" : "⚔️ Invocar en Ataque",
+      textoBtnSet: isEn ? "🛡️ Summon in Defense" : "🛡️ Invocar en Defensa",
+      textoBtnCancel: isEn ? "❌ Keep in Hand" : "❌ Mantener en Mano",
+      onConfirm: () => {
+        ejecutarInvocacionMonstruo(datosCarta, cartaId, primerSlotLibre, 'ataque');
+        sumarPuntosDuelo(100, `Invocación de ${datosCarta.nombre}`);
+        marcadorDuelo.invocaciones++;
+        actualizarMarcadorLateral();
+      },
+      onSet: () => {
+        ejecutarInvocacionMonstruo(datosCarta, cartaId, primerSlotLibre, 'defensa');
+        sumarPuntosDuelo(100, `Invocación de ${datosCarta.nombre}`);
+        marcadorDuelo.invocaciones++;
+        actualizarMarcadorLateral();
+      }
+    });
     return;
   }
 
@@ -2217,11 +2329,9 @@ function manejarClickCartaMano(cartaId, datosCarta, indexMano) {
       datosCarta,
       cartaId,
       slotMTIndex: primerSlotMT,
+      ocultarBtnSet: true,
       onConfirm: () => {
         colocarCartaTrampa(datosCarta, cartaId, primerSlotMT, slotElem);
-      },
-      onSet: () => {
-        colocarCartaBocaAbajo(datosCarta, cartaId, primerSlotMT);
       }
     });
     return;
@@ -2378,41 +2488,91 @@ function manejarDropMonstruo(e) {
       const sacrificadoDirectoId = estadoJugador.zonaMonstruos[slotIndex].id;
       const datosSacrificado = bdCartas[sacrificadoDirectoId];
 
+      const isEn = configuracionJuego.idioma === 'en';
+
       // ¿Es la pre-evolución directa de una línea de 3? (ej. Charizard soltado sobre Charmeleon)
       if (preEvoId && sacrificadoDirectoId === preEvoId) {
-        lanzarEfectoVisual('sacrificio', this);
-        AudioManager.reproducirSFX('faint');
-        sacrificarMonstruo(slotIndex, false);
-
-        ejecutarInvocacionMonstruo(datosCarta, cartaId, slotIndex);
-        sumarPuntosDuelo(400, `Evolución Directa de ${datosSacrificado.nombre} por ${datosCarta.nombre} (1 solo tributo)`);
-        marcadorDuelo.sacrificios++;
-        actualizarMarcadorLateral();
-        mostrarMensajeToast(`🌟 ¡Evolución Directa! Sacrificaste a ${datosSacrificado.nombre} (1 solo tributo) e invocaste a ${datosCarta.nombre}.`);
+        const slotTargetElem = this;
+        abrirModalConfirmacionCarta({
+          titulo: isEn ? "🌟 Direct Evolution Summon" : "🌟 Invocación por Evolución Directa",
+          datosCarta,
+          cartaId,
+          infoTarget: `${datosSacrificado.nombre} ➔ ${datosCarta.nombre} (Zona #${slotIndex + 1})`,
+          preguntaCustom: isEn
+            ? `Tribute ${datosSacrificado.nombre} (1 single tribute) to summon ${datosCarta.nombre}?`
+            : `¿Sacrificar a ${datosSacrificado.nombre} (1 solo tributo) para invocar a ${datosCarta.nombre}?`,
+          textoBtnConfirm: isEn ? "⚔️ Summon in Attack" : "⚔️ Invocar en Ataque",
+          textoBtnSet: isEn ? "🛡️ Summon in Defense" : "🛡️ Invocar en Defensa",
+          textoBtnCancel: isEn ? "❌ Keep in Hand" : "❌ Mantener en Mano",
+          onConfirm: () => {
+            lanzarEfectoVisual('sacrificio', slotTargetElem);
+            AudioManager.reproducirSFX('faint');
+            sacrificarMonstruo(slotIndex, false);
+            ejecutarInvocacionMonstruo(datosCarta, cartaId, slotIndex, 'ataque');
+            sumarPuntosDuelo(400, `Evolución Directa de ${datosSacrificado.nombre} por ${datosCarta.nombre} (1 solo tributo)`);
+            marcadorDuelo.sacrificios++;
+            actualizarMarcadorLateral();
+            mostrarMensajeToast(`🌟 ¡Evolución Directa! Sacrificaste a ${datosSacrificado.nombre} (1 solo tributo) e invocaste a ${datosCarta.nombre}.`);
+          },
+          onSet: () => {
+            lanzarEfectoVisual('sacrificio', slotTargetElem);
+            AudioManager.reproducirSFX('faint');
+            sacrificarMonstruo(slotIndex, false);
+            ejecutarInvocacionMonstruo(datosCarta, cartaId, slotIndex, 'defensa');
+            sumarPuntosDuelo(400, `Evolución Directa de ${datosSacrificado.nombre} por ${datosCarta.nombre} (1 solo tributo)`);
+            marcadorDuelo.sacrificios++;
+            actualizarMarcadorLateral();
+            mostrarMensajeToast(`🌟 ¡Evolución Directa! Sacrificaste a ${datosSacrificado.nombre} (1 solo tributo) e invocaste a ${datosCarta.nombre} en Defensa.`);
+          }
+        });
         return;
       }
 
       if (datosCarta.sacrificios === 1) {
-        lanzarEfectoVisual('sacrificio', this);
-        AudioManager.reproducirSFX('faint');
-        sacrificarMonstruo(slotIndex, false);
-
-        ejecutarInvocacionMonstruo(datosCarta, cartaId, slotIndex);
-        sumarPuntosDuelo(300, `Sacrificio de ${datosSacrificado.nombre} por ${datosCarta.nombre}`);
-        marcadorDuelo.sacrificios++;
-        actualizarMarcadorLateral();
-        mostrarMensajeToast(`¡Sacrificaste a ${datosSacrificado.nombre} e invocaste a ${datosCarta.nombre}!`);
+        const slotTargetElem = this;
+        abrirModalConfirmacionCarta({
+          titulo: isEn ? "⭐ Tribute Summon" : "⭐ Invocación por Sacrificio",
+          datosCarta,
+          cartaId,
+          infoTarget: `${datosSacrificado.nombre} ➔ ${datosCarta.nombre} (Zona #${slotIndex + 1})`,
+          preguntaCustom: isEn
+            ? `Tribute ${datosSacrificado.nombre} to summon ${datosCarta.nombre}?`
+            : `¿Sacrificar a ${datosSacrificado.nombre} para invocar a ${datosCarta.nombre}?`,
+          textoBtnConfirm: isEn ? "⚔️ Summon in Attack" : "⚔️ Invocar en Ataque",
+          textoBtnSet: isEn ? "🛡️ Summon in Defense" : "🛡️ Invocar en Defensa",
+          textoBtnCancel: isEn ? "❌ Keep in Hand" : "❌ Mantener en Mano",
+          onConfirm: () => {
+            lanzarEfectoVisual('sacrificio', slotTargetElem);
+            AudioManager.reproducirSFX('faint');
+            sacrificarMonstruo(slotIndex, false);
+            ejecutarInvocacionMonstruo(datosCarta, cartaId, slotIndex, 'ataque');
+            sumarPuntosDuelo(300, `Sacrificio de ${datosSacrificado.nombre} por ${datosCarta.nombre}`);
+            marcadorDuelo.sacrificios++;
+            actualizarMarcadorLateral();
+            mostrarMensajeToast(`¡Sacrificaste a ${datosSacrificado.nombre} e invocaste a ${datosCarta.nombre}!`);
+          },
+          onSet: () => {
+            lanzarEfectoVisual('sacrificio', slotTargetElem);
+            AudioManager.reproducirSFX('faint');
+            sacrificarMonstruo(slotIndex, false);
+            ejecutarInvocacionMonstruo(datosCarta, cartaId, slotIndex, 'defensa');
+            sumarPuntosDuelo(300, `Sacrificio de ${datosSacrificado.nombre} por ${datosCarta.nombre}`);
+            marcadorDuelo.sacrificios++;
+            actualizarMarcadorLateral();
+            mostrarMensajeToast(`¡Sacrificaste a ${datosSacrificado.nombre} e invocaste a ${datosCarta.nombre} en Defensa!`);
+          }
+        });
         return;
       }
 
       if (datosCarta.sacrificios === 2) {
-        abrirModalSacrificiosConPreseleccion(datosCarta, cartaId, slotIndex, [slotIndex]);
+        abrirModalSacrificiosConPreseleccion(datosCarta, cartaId, slotIndex, [slotIndex], 'ataque');
         return;
       }
     }
 
     // Subcaso A2: Se soltó en un slot vacío pero requiere sacrificios
-    abrirModalSacrificios(datosCarta, cartaId, slotIndex, datosCarta.sacrificios);
+    abrirModalSacrificios(datosCarta, cartaId, slotIndex, datosCarta.sacrificios, 'ataque');
     return;
   }
 
@@ -2422,16 +2582,38 @@ function manejarDropMonstruo(e) {
     return;
   }
 
-  ejecutarInvocacionMonstruo(datosCarta, cartaId, slotIndex);
-  sumarPuntosDuelo(100, `Invocación de ${datosCarta.nombre}`);
-  marcadorDuelo.invocaciones++;
-  actualizarMarcadorLateral();
+  const isEnBasic = configuracionJuego.idioma === 'en';
+  abrirModalConfirmacionCarta({
+    titulo: isEnBasic ? "⚡ Summon Pokémon" : "⚡ Invocar Pokémon al Campo",
+    datosCarta,
+    cartaId,
+    infoTarget: isEnBasic ? `Monster Zone #${slotIndex + 1}` : `Zona de Monstruos #${slotIndex + 1}`,
+    preguntaCustom: isEnBasic
+      ? `Do you want to summon ${datosCarta.nombre} to the field?`
+      : `¿Deseas invocar a ${datosCarta.nombre} al campo?`,
+    textoBtnConfirm: isEnBasic ? "⚔️ Summon in Attack" : "⚔️ Invocar en Ataque",
+    textoBtnSet: isEnBasic ? "🛡️ Summon in Defense" : "🛡️ Invocar en Defensa",
+    textoBtnCancel: isEnBasic ? "❌ Keep in Hand" : "❌ Mantener en Mano",
+    onConfirm: () => {
+      ejecutarInvocacionMonstruo(datosCarta, cartaId, slotIndex, 'ataque');
+      sumarPuntosDuelo(100, `Invocación de ${datosCarta.nombre}`);
+      marcadorDuelo.invocaciones++;
+      actualizarMarcadorLateral();
+    },
+    onSet: () => {
+      ejecutarInvocacionMonstruo(datosCarta, cartaId, slotIndex, 'defensa');
+      sumarPuntosDuelo(100, `Invocación de ${datosCarta.nombre}`);
+      marcadorDuelo.invocaciones++;
+      actualizarMarcadorLateral();
+    }
+  });
 }
 
-function ejecutarInvocacionMonstruo(datosCarta, cartaId, slotIndex) {
+function ejecutarInvocacionMonstruo(datosCarta, cartaId, slotIndex, posicionInicial = 'ataque') {
+  const pos = (posicionInicial === 'defensa') ? 'defensa' : 'ataque';
   estadoJugador.zonaMonstruos[slotIndex] = {
     id: cartaId,
-    posicion: 'ataque',
+    posicion: pos,
     haAtacado: false,
     atkMod: 0,
     defMod: 0,
@@ -2448,7 +2630,7 @@ function ejecutarInvocacionMonstruo(datosCarta, cartaId, slotIndex) {
 
   const slotElem = document.querySelector(`#player-side .monsters-row .monster-slot[data-slot-index="${slotIndex}"]`);
   crearNumeroFlotante("¡INVOCADO!", slotElem, 'buff');
-  renderizarMonstruoEnCampo(slotElem, datosCarta, 'ataque', slotIndex);
+  renderizarMonstruoEnCampo(slotElem, datosCarta, pos, slotIndex);
   renderizarMano(estadoJugador);
 
   AudioManager.reproducirSFX('enter');
@@ -2456,14 +2638,15 @@ function ejecutarInvocacionMonstruo(datosCarta, cartaId, slotIndex) {
     setTimeout(() => AudioManager.reproducirGrito(datosCarta.slug), 150);
   }
 
-  mostrarMensajeToast(`¡${datosCarta.nombre} (${datosCarta.etapa}) invocado en Posición de Ataque!`);
+  const modoTexto = pos === 'defensa' ? 'Defensa' : 'Ataque';
+  mostrarMensajeToast(`¡${datosCarta.nombre} (${datosCarta.etapa}) invocado en Posición de ${modoTexto}!`);
 
   if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline()) {
     MultiplayerManager.enviarAccion({
       tipo: 'INVOCAR_MONSTRUO',
       carta: datosCarta,
       slotIndex: slotIndex,
-      posicion: 'ataque',
+      posicion: pos,
       manoCount: estadoJugador.mano.length
     });
     MultiplayerManager.sincronizarEstadoCampo();
@@ -2471,11 +2654,11 @@ function ejecutarInvocacionMonstruo(datosCarta, cartaId, slotIndex) {
 }
 
 // --- MODAL DE SELECCIÓN DE SACRIFICIOS ---
-function abrirModalSacrificios(datosCarta, cartaId, targetSlotIndex, sacrificiosRequeridos) {
-  abrirModalSacrificiosConPreseleccion(datosCarta, cartaId, targetSlotIndex, []);
+function abrirModalSacrificios(datosCarta, cartaId, targetSlotIndex, sacrificiosRequeridos, posicionInicial = 'ataque') {
+  abrirModalSacrificiosConPreseleccion(datosCarta, cartaId, targetSlotIndex, [], posicionInicial);
 }
 
-function abrirModalSacrificiosConPreseleccion(datosCarta, cartaId, targetSlotIndex, preseleccionados = []) {
+function abrirModalSacrificiosConPreseleccion(datosCarta, cartaId, targetSlotIndex, preseleccionados = [], posicionInicial = 'ataque') {
   const modal = document.getElementById('tribute-modal');
   const prompt = document.getElementById('tribute-prompt');
   const grid = document.getElementById('tribute-options');
@@ -2539,7 +2722,7 @@ function abrirModalSacrificiosConPreseleccion(datosCarta, cartaId, targetSlotInd
           AudioManager.reproducirSFX('faint');
 
           const slotFinal = targetSlotIndex !== null && targetSlotIndex !== undefined ? targetSlotIndex : idx;
-          ejecutarInvocacionMonstruo(datosCarta, cartaId, slotFinal);
+          ejecutarInvocacionMonstruo(datosCarta, cartaId, slotFinal, posicionInicial);
 
           sumarPuntosDuelo(400, `Evolución Directa de ${datos.nombre} por ${datosCarta.nombre} (1 solo tributo)`);
           marcadorDuelo.sacrificios++;
@@ -2580,7 +2763,7 @@ function abrirModalSacrificiosConPreseleccion(datosCarta, cartaId, targetSlotInd
           AudioManager.reproducirSFX('faint');
 
           const slotFinal = targetSlotIndex !== null && targetSlotIndex !== undefined ? targetSlotIndex : seleccionados[0];
-          ejecutarInvocacionMonstruo(datosCarta, cartaId, slotFinal);
+          ejecutarInvocacionMonstruo(datosCarta, cartaId, slotFinal, posicionInicial);
 
           sumarPuntosDuelo(300, `Sacrificio de ${requeridos} Pokémon por ${datosCarta.nombre}`);
           marcadorDuelo.sacrificios += requeridos;
@@ -2694,11 +2877,9 @@ function manejarDropMagiaTrampa(e) {
       datosCarta,
       cartaId,
       slotMTIndex: slotIndex,
+      ocultarBtnSet: true,
       onConfirm: () => {
         colocarCartaTrampa(datosCarta, cartaId, slotIndex, slotElementActual);
-      },
-      onSet: () => {
-        colocarCartaBocaAbajo(datosCarta, cartaId, slotIndex);
       }
     });
   }
@@ -3269,6 +3450,12 @@ function iniciarDeclaracionAtaque(slotIndexAtacante) {
   estadoJuego.atacanteSeleccionado = slotIndexAtacante;
   const datosAtacante = bdCartas[atacanteData.id];
 
+  limpiarDeclaracionAtaqueVisual();
+  const slotAtacanteElem = document.querySelector(`#player-side .monsters-row .monster-slot[data-slot-index="${slotIndexAtacante}"]`);
+  if (slotAtacanteElem) {
+    slotAtacanteElem.classList.add('combat-attacker-highlight');
+  }
+
   const monstruosRivales = estadoOponente.zonaMonstruos.filter(m => m !== null);
 
   if (monstruosRivales.length > 0) {
@@ -3278,7 +3465,7 @@ function iniciarDeclaracionAtaque(slotIndexAtacante) {
         slot.classList.add('targetable-opponent');
       }
     });
-    mostrarMensajeToast(`[${datosAtacante.nombre}] listo para atacar. ¡Haz clic en el Pokémon rival!`);
+    mostrarMensajeToast(`[${datosAtacante.nombre}] listo para atacar. ¡Toca el Pokémon rival objetivo!`);
   } else {
     ejecutarAtaqueDirecto(slotIndexAtacante);
   }
@@ -3287,6 +3474,89 @@ function iniciarDeclaracionAtaque(slotIndexAtacante) {
 function limpiarTargetingRivales() {
   const slotsRival = document.querySelectorAll('#opponent-side .monsters-row .monster-slot');
   slotsRival.forEach(slot => slot.classList.remove('targetable-opponent'));
+}
+
+let _combatBannerTimeout = null;
+
+function limpiarDeclaracionAtaqueVisual() {
+  if (_combatBannerTimeout) {
+    clearTimeout(_combatBannerTimeout);
+    _combatBannerTimeout = null;
+  }
+  document.querySelectorAll('.combat-attacker-highlight, .combat-target-highlight').forEach(el => {
+    el.classList.remove('combat-attacker-highlight', 'combat-target-highlight');
+  });
+  const prevBanner = document.getElementById('combat-versus-banner');
+  if (prevBanner) prevBanner.remove();
+}
+
+function mostrarDeclaracionAtaqueVisual({
+  slotAtacanteElem = null,
+  slotObjetivoElem = null,
+  datosAtacante = null,
+  atkAtacante = 0,
+  datosObjetivo = null,
+  statObjetivo = 0,
+  modoObjetivo = 'ataque',
+  esDirecto = false,
+  etiquetaDirecto = 'Puntos de Vida',
+  autoClearMs = 0
+}) {
+  limpiarDeclaracionAtaqueVisual();
+
+  if (slotAtacanteElem) slotAtacanteElem.classList.add('combat-attacker-highlight');
+  if (slotObjetivoElem) slotObjetivoElem.classList.add('combat-target-highlight');
+
+  if (!datosAtacante) return;
+
+  const imgAtacante = datosAtacante.spriteCampo || datosAtacante.spriteEstatico || datosAtacante.imagenOficial || '';
+  let targetHtml = '';
+
+  if (esDirecto || !datosObjetivo) {
+    targetHtml = `
+      <div class="combat-vs-card target-side">
+        <div class="combat-vs-info">
+          <span class="combat-vs-name">🎯 ATAQUE DIRECTO</span>
+          <span class="combat-vs-stat">❤️ ${etiquetaDirecto}</span>
+        </div>
+      </div>
+    `;
+  } else {
+    const imgObjetivo = datosObjetivo.spriteCampo || datosObjetivo.spriteEstatico || datosObjetivo.imagenOficial || '';
+    const iconoModo = modoObjetivo === 'defensa' ? '🛡️ DEF' : '⚔️ ATK';
+    targetHtml = `
+      <div class="combat-vs-card target-side">
+        <img class="combat-vs-sprite" src="${imgObjetivo}" alt="${datosObjetivo.nombre}">
+        <div class="combat-vs-info">
+          <span class="combat-vs-name">${datosObjetivo.nombre}</span>
+          <span class="combat-vs-stat">${iconoModo}: ${statObjetivo}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  const banner = document.createElement('div');
+  banner.id = 'combat-versus-banner';
+  banner.className = 'combat-versus-banner';
+  banner.innerHTML = `
+    <div class="combat-vs-card attacker-side">
+      <img class="combat-vs-sprite" src="${imgAtacante}" alt="${datosAtacante.nombre}">
+      <div class="combat-vs-info">
+        <span class="combat-vs-name">${datosAtacante.nombre}</span>
+        <span class="combat-vs-stat">⚔️ ATK: ${atkAtacante}</span>
+      </div>
+    </div>
+    <div class="combat-vs-center">⚔️ ATACA A ➔</div>
+    ${targetHtml}
+  `;
+
+  document.body.appendChild(banner);
+
+  if (autoClearMs > 0) {
+    _combatBannerTimeout = setTimeout(() => {
+      limpiarDeclaracionAtaqueVisual();
+    }, autoClearMs);
+  }
 }
 
 function obtenerEfectoVisualAtaque(datosCarta) {
@@ -3305,9 +3575,20 @@ function ejecutarAtaqueDirecto(slotIndexAtacante) {
   atacanteData.haAtacado = true;
   estadoJuego.atacanteSeleccionado = null;
 
+  const slotAtacanteElemDir = document.querySelector(`#player-side .monsters-row .monster-slot[data-slot-index="${slotIndexAtacante}"]`);
+  mostrarDeclaracionAtaqueVisual({
+    slotAtacanteElem: slotAtacanteElemDir,
+    slotObjetivoElem: null,
+    datosAtacante: datosAtacante,
+    atkAtacante: dano,
+    esDirecto: true,
+    etiquetaDirecto: 'LP del Rival',
+    autoClearMs: 1500
+  });
+
   // Comprobar trampas del oponente ante ataque directo
   const trampaOponenteIndex = Array.isArray(estadoOponente.zonaMagiasTrampas)
-    ? estadoOponente.zonaMagiasTrampas.findIndex(t => t !== null && t.bocaAbajo)
+    ? estadoOponente.zonaMagiasTrampas.findIndex(t => t !== null && t.bocaAbajo && bdCartas[t.id] && bdCartas[t.id].tipoCarta === 'trampa')
     : -1;
 
   if (trampaOponenteIndex !== -1) {
@@ -3465,9 +3746,21 @@ function resolverCombate(slotIndexAtacante, slotIndexObjetivo) {
   const slotAtacanteElem = document.querySelector(`#player-side .monsters-row .monster-slot[data-slot-index="${slotIndexAtacante}"]`);
   const slotObjetivoElem = document.querySelector(`#opponent-side .monsters-row .monster-slot[data-slot-index="${slotIndexObjetivo}"]`);
 
+  mostrarDeclaracionAtaqueVisual({
+    slotAtacanteElem,
+    slotObjetivoElem,
+    datosAtacante,
+    atkAtacante,
+    datosObjetivo,
+    statObjetivo: objetivoData.posicion === 'defensa' ? defObjetivo : atkObjetivo,
+    modoObjetivo: objetivoData.posicion,
+    esDirecto: false,
+    autoClearMs: 1600
+  });
+
   // Comprobar trampas del oponente antes de resolver el combate
   const trampaOponenteIndex = Array.isArray(estadoOponente.zonaMagiasTrampas)
-    ? estadoOponente.zonaMagiasTrampas.findIndex(t => t !== null && t.bocaAbajo)
+    ? estadoOponente.zonaMagiasTrampas.findIndex(t => t !== null && t.bocaAbajo && bdCartas[t.id] && bdCartas[t.id].tipoCarta === 'trampa')
     : -1;
 
   if (trampaOponenteIndex !== -1) {
@@ -3689,12 +3982,7 @@ function resolverCombate(slotIndexAtacante, slotIndexObjetivo) {
 // ==========================================
 // 13. TURNO DE LA IA (RIVAL INTELIGENTE - BLUE)
 // ==========================================
-function ejecutarTurnoIA() {
-  estadoJuego.turnoDe = 'oponente';
-  const isEn = configuracionJuego.idioma === 'en';
-  const diff = configuracionJuego.dificultadIA || 'medio';
-
-  // Temporizador de seguridad (Watchdog) para garantizar que la IA NUNCA congele la partida
+function renovarWatchdogIA(ms = 12000) {
   if (typeof window !== 'undefined') {
     if (window._aiTurnWatchdog) clearTimeout(window._aiTurnWatchdog);
     window._aiTurnWatchdog = setTimeout(() => {
@@ -3702,8 +3990,24 @@ function ejecutarTurnoIA() {
         console.warn("⚠️ [Watchdog IA] El turno de la IA tardó demasiado o se interrumpió. Forzando devolución de turno al jugador...");
         finalizarTurnoIA();
       }
-    }, 4500);
+    }, ms);
   }
+}
+
+function pausarWatchdogIA() {
+  if (typeof window !== 'undefined' && window._aiTurnWatchdog) {
+    clearTimeout(window._aiTurnWatchdog);
+    window._aiTurnWatchdog = null;
+  }
+}
+
+function ejecutarTurnoIA() {
+  estadoJuego.turnoDe = 'oponente';
+  const isEn = configuracionJuego.idioma === 'en';
+  const diff = configuracionJuego.dificultadIA || 'medio';
+
+  // Temporizador de seguridad (Watchdog) para garantizar que la IA NUNCA congele la partida
+  renovarWatchdogIA(12000);
 
   // Asegurar integridad de estructuras de datos
   if (!Array.isArray(estadoOponente.zonaMonstruos)) estadoOponente.zonaMonstruos = [null, null, null, null, null];
@@ -4032,29 +4336,113 @@ function ejecutarFaseBatallaIA(callbackFin) {
   function siguienteAtaque() {
     try {
       if (estadoJugador.lp <= 0 || estadoOponente.lp <= 0) {
+        limpiarDeclaracionAtaqueVisual();
         if (callbackFin) callbackFin();
         return;
       }
+      renovarWatchdogIA(12000);
       ejecutarAtaqueIA((haAtacado) => {
         try {
           if (haAtacado && estadoJugador.lp > 0 && estadoOponente.lp > 0) {
-            // Ataque realizado con éxito: esperar para que se aprecie la animación e intentar atacar con otro monstruo
-            setTimeout(siguienteAtaque, 1100);
+            // Pausa más pausada entre ataques para que el jugador entienda cada duelo con claridad
+            renovarWatchdogIA(12000);
+            setTimeout(siguienteAtaque, 1700);
           } else {
             // No hay más ataques viables o duelo finalizado
+            limpiarDeclaracionAtaqueVisual();
             if (callbackFin) callbackFin();
           }
         } catch (eCallback) {
           console.error("Error en callback de ataque IA:", eCallback);
+          limpiarDeclaracionAtaqueVisual();
           if (callbackFin) callbackFin();
         }
       });
     } catch (errAtk) {
       console.error("Error en siguienteAtaque IA:", errAtk);
+      limpiarDeclaracionAtaqueVisual();
       if (callbackFin) callbackFin();
     }
   }
   siguienteAtaque();
+}
+
+function aplicarTrampaJugadorContraAtaqueIA(trampaIndex, atacanteSlot, dAtacante, atkAtacante, slotRivalElem, isEn, onComplete) {
+  const trampaData = estadoJugador.zonaMagiasTrampas[trampaIndex];
+  if (!trampaData) {
+    if (onComplete) onComplete();
+    return;
+  }
+  const dTrampa = bdCartas[trampaData.id];
+  const slotTrampaElem = document.querySelector(`#player-side .spells-row .spell-trap-slot[data-slot-index="${trampaIndex}"]`);
+
+  if (slotTrampaElem) {
+    lanzarEfectoVisual('escudo', slotTrampaElem);
+    crearNumeroFlotante("¡TRAMPA!", slotTrampaElem, 'buff');
+  }
+  AudioManager.reproducirSFX('hit-super');
+
+  if (trampaData.id === 240) { // Protección
+    mostrarMensajeToast(isEn ? `Your trap "${dTrampa.nombre}" negated the attack!` : `¡Tu trampa "${dTrampa.nombre}" canceló el ataque de ${dAtacante.nombre}!`);
+    sumarPuntosDuelo(200, `Trampa Protección activada`);
+  } else if (trampaData.id === 241) { // Manto Espejo: Devuelve daño y destruye al atacante enemigo
+    estadoOponente.lp = Math.max(0, estadoOponente.lp - atkAtacante);
+    document.getElementById('opponent-lp-val').textContent = estadoOponente.lp;
+    crearNumeroFlotante(`-${atkAtacante} LP`, document.getElementById('opponent-lp-val'), 'damage');
+
+    const atacanteMonstruo = estadoOponente.zonaMonstruos[atacanteSlot];
+    if (atacanteMonstruo) {
+      if (!Array.isArray(estadoOponente.cementerio)) estadoOponente.cementerio = [];
+      estadoOponente.cementerio.push(atacanteMonstruo.id);
+      estadoOponente.zonaMonstruos[atacanteSlot] = null;
+      if (slotRivalElem) {
+        crearNumeroFlotante("DESTRUIDO", slotRivalElem, 'damage');
+        lanzarEfectoVisual('corte', slotRivalElem);
+      }
+      AudioManager.reproducirSFX('faint');
+    }
+
+    const gySubOpp = document.querySelector('#opponent-gy .slot-sub');
+    if (gySubOpp) gySubOpp.textContent = estadoOponente.cementerio.length;
+    renderizarCampoOponente();
+
+    mostrarMensajeToast(isEn
+      ? `"${dTrampa.nombre}" reflected ${atkAtacante} LP damage and destroyed ${dAtacante.nombre}!`
+      : `¡"${dTrampa.nombre}" reflejó ${atkAtacante} LP de daño y destruyó a ${dAtacante.nombre} enemigo!`);
+    sumarPuntosDuelo(300 + atkAtacante, `Manto Espejo reflejó ${atkAtacante} LP y destruyó a ${dAtacante.nombre}`);
+    marcadorDuelo.destruidos++;
+    marcadorDuelo.danoTotal += atkAtacante;
+  } else if (trampaData.id === 242) { // Contador
+    estadoOponente.lp = Math.max(0, estadoOponente.lp - 800);
+    document.getElementById('opponent-lp-val').textContent = estadoOponente.lp;
+    crearNumeroFlotante("-800 LP", document.getElementById('opponent-lp-val'), 'damage');
+    mostrarMensajeToast(isEn ? `"${dTrampa.nombre}" counter-attacked for 800 LP!` : `¡"${dTrampa.nombre}" contraatacó infligiendo 800 LP al rival!`);
+    sumarPuntosDuelo(350, "Trampa Contador activada (-800 LP)");
+  } else if (trampaData.id === 243) { // Paralizador
+    mostrarMensajeToast(isEn ? `"${dTrampa.nombre}" paralyzed ${dAtacante.nombre}!` : `¡"${dTrampa.nombre}" inmovilizó a ${dAtacante.nombre}!`);
+    sumarPuntosDuelo(200, `Trampa Paralizador activada`);
+  } else {
+    mostrarMensajeToast(isEn ? `Your trap "${dTrampa.nombre}" absorbed the attack!` : `¡Tu trampa "${dTrampa.nombre}" absorbió y anuló el ataque!`);
+    sumarPuntosDuelo(250, `Trampa ${dTrampa.nombre} activada`);
+  }
+
+  if (!Array.isArray(estadoJugador.cementerio)) estadoJugador.cementerio = [];
+  estadoJugador.cementerio.push(trampaData.id);
+  estadoJugador.zonaMagiasTrampas[trampaIndex] = null;
+  if (slotTrampaElem) {
+    slotTrampaElem.classList.remove('occupied');
+    slotTrampaElem.innerHTML = `<span class="slot-badge">M / T</span><span class="slot-num">${trampaIndex + 1}</span>`;
+  }
+  const gySub = document.querySelector('#player-gy .slot-sub');
+  if (gySub) gySub.textContent = estadoJugador.cementerio.length;
+
+  actualizarMarcadorLateral();
+  comprobarFinDelDuelo();
+
+  setTimeout(() => {
+    limpiarDeclaracionAtaqueVisual();
+    if (onComplete) onComplete();
+  }, 850);
 }
 
 // LÓGICA DE UN ATAQUE DE LA IA SEGÚN DIFICULTAD
@@ -4079,285 +4467,370 @@ function ejecutarAtaqueIA(onAtaqueRealizado = null) {
       }
     });
 
-  if (atacantesIA.length === 0) {
-    if (onAtaqueRealizado) onAtaqueRealizado(false);
-    return;
-  }
+    if (atacantesIA.length === 0) {
+      if (onAtaqueRealizado) onAtaqueRealizado(false);
+      return;
+    }
 
-  const monstruosJugadorIndices = contarMonstruosEnCampoJugador();
+    const monstruosJugadorIndices = contarMonstruosEnCampoJugador();
 
-  // Caso 1: El jugador NO tiene monstruos -> Ataque directo del rival
-  if (monstruosJugadorIndices.length === 0) {
-    const atacante = atacantesIA[0];
-    atacante.obj.haAtacado = true;
-    const dano = atacante.atk;
-    estadoJugador.lp = Math.max(0, estadoJugador.lp - dano);
+    // Caso 1: El jugador NO tiene monstruos -> Ataque directo del rival
+    if (monstruosJugadorIndices.length === 0) {
+      const atacante = atacantesIA[0];
+      atacante.obj.haAtacado = true;
+      const dano = atacante.atk;
+      const slotRivalDirElem = document.querySelector(`#opponent-side .monsters-row .monster-slot[data-slot-index="${atacante.slotIdx}"]`);
 
-    lanzarEfectoVisual(obtenerEfectoVisualAtaque(atacante.datos), document.getElementById('player-lp-val'));
-    AudioManager.reproducirSFX('hit-super');
-    crearNumeroFlotante(`-${dano} LP`, document.getElementById('player-lp-val'), 'damage');
-    document.getElementById('player-lp-val').textContent = estadoJugador.lp;
-    mostrarMensajeToast(isEn
-      ? `Direct attack! ${atacante.datos.nombre} dealt ${dano} LP damage.`
-      : `¡Ataque directo del rival! ${atacante.datos.nombre} te infligió ${dano} LP de daño.`);
+      mostrarDeclaracionAtaqueVisual({
+        slotAtacanteElem: slotRivalDirElem,
+        slotObjetivoElem: null,
+        datosAtacante: atacante.datos,
+        atkAtacante: dano,
+        esDirecto: true,
+        etiquetaDirecto: isEn ? 'Your Life Points' : 'Tus Puntos de Vida',
+        autoClearMs: 0
+      });
 
-    actualizarMarcadorLateral();
-    renderizarCampoJugador();
-    comprobarFinDelDuelo();
-    if (onAtaqueRealizado) onAtaqueRealizado(true);
-    return;
-  }
+      mostrarMensajeToast(isEn
+        ? `⚔️ Rival's ${atacante.datos.nombre} (ATK ${dano}) declares a DIRECT ATTACK!`
+        : `⚔️ ¡${atacante.datos.nombre} rival (ATK ${dano}) declara un ATAQUE DIRECTO a tus Puntos de Vida!`);
 
-  // En FÁCIL: 25% de error de aleatoriedad (duda y no ataca)
-  if (diff === 'facil' && Math.random() < 0.25) {
-    mostrarMensajeToast(isEn
-      ? "Rival Blue hesitates and holds back attack."
-      : "El rival Blue duda de su ataque y decide no atacar este turno.");
-    if (onAtaqueRealizado) onAtaqueRealizado(false);
-    return;
-  }
+      const resolverGolpeDirecto = () => {
+        renovarWatchdogIA(10000);
+        estadoJugador.lp = Math.max(0, estadoJugador.lp - dano);
 
-  // Caso 2: El jugador SÍ tiene monstruos.
-  // La IA evalúa ventaja de tipo elemental (+/- 300) y solo atacará si vence sin sufrir daño de vida.
-  let jugadaOptima = null;
+        lanzarEfectoVisual(obtenerEfectoVisualAtaque(atacante.datos), document.getElementById('player-lp-val'));
+        AudioManager.reproducirSFX('hit-super');
+        crearNumeroFlotante(`-${dano} LP`, document.getElementById('player-lp-val'), 'damage');
+        document.getElementById('player-lp-val').textContent = estadoJugador.lp;
+        mostrarMensajeToast(isEn
+          ? `Direct attack! ${atacante.datos.nombre} dealt ${dano} LP damage.`
+          : `¡Ataque directo del rival! ${atacante.datos.nombre} te infligió ${dano} LP de daño.`);
 
-  for (const atacante of atacantesIA) {
-    for (const jIdx of monstruosJugadorIndices) {
-      const mTarget = estadoJugador.zonaMonstruos[jIdx];
-      if (!mTarget) continue;
-      const dTarget = bdCartas[mTarget.id];
+        actualizarMarcadorLateral();
+        renderizarCampoJugador();
+        comprobarFinDelDuelo();
+        setTimeout(() => {
+          limpiarDeclaracionAtaqueVisual();
+          if (onAtaqueRealizado) onAtaqueRealizado(true);
+        }, 750);
+      };
+
+      // Comprobar si el jugador tiene una carta de TRAMPA boca abajo para preguntarle si desea activarla
+      const trampaDirIndex = Array.isArray(estadoJugador.zonaMagiasTrampas)
+        ? estadoJugador.zonaMagiasTrampas.findIndex(t => t !== null && t.bocaAbajo && bdCartas[t.id] && bdCartas[t.id].tipoCarta === 'trampa')
+        : -1;
+
+      if (trampaDirIndex !== -1) {
+        const trampaDirData = estadoJugador.zonaMagiasTrampas[trampaDirIndex];
+        const dTrampaDir = bdCartas[trampaDirData.id];
+        setTimeout(() => {
+          pausarWatchdogIA();
+          const resumenHtml = `
+            <span class="trap-vs-side">🔴 Rival: ${atacante.datos.nombre} (ATK ${dano})</span>
+            <span class="trap-vs-arrow">⚔️➔</span>
+            <span class="trap-vs-target">🎯 ¡Ataque Directo a tus LP!</span>
+          `;
+          abrirModalConfirmacionCarta({
+            titulo: isEn ? "⚡ Activate Trap Card?" : "⚡ ¿Activar Carta Trampa?",
+            datosCarta: dTrampaDir,
+            cartaId: trampaDirData.id,
+            infoTarget: isEn ? `Attacker: ${atacante.datos.nombre} (ATK ${dano})` : `Atacante: ${atacante.datos.nombre} (ATK ${dano})`,
+            preguntaCustom: isEn
+              ? `⚠️ Rival's ${atacante.datos.nombre} (ATK ${dano}) is attacking you directly! Activate trap "${dTrampaDir.nombre}"?`
+              : `⚠️ ¡${atacante.datos.nombre} rival (ATK ${dano}) te ataca directamente! ¿Quieres activar tu trampa "${dTrampaDir.nombre}"?`,
+            textoBtnConfirm: isEn ? '⚡ Activate Trap!' : '⚡ ¡Activar Trampa!',
+            ocultarBtnSet: true,
+            textoBtnCancel: isEn ? '🛡️ Keep Set (Do Not Activate)' : '🛡️ No Activar (Guardar)',
+            resumenAtaqueHtml: resumenHtml,
+            onConfirm: () => {
+              renovarWatchdogIA(10000);
+              aplicarTrampaJugadorContraAtaqueIA(trampaDirIndex, atacante.slotIdx, atacante.datos, dano, slotRivalDirElem, isEn, () => {
+                if (onAtaqueRealizado) onAtaqueRealizado(true);
+              });
+            },
+            onCancel: () => {
+              renovarWatchdogIA(10000);
+              setTimeout(resolverGolpeDirecto, 550);
+            }
+          });
+        }, 900);
+        return;
+      }
+
+      // Sin trampa: esperar para que el usuario vea claramente quién lo ataca antes del impacto
+      renovarWatchdogIA(10000);
+      setTimeout(resolverGolpeDirecto, 1650);
+      return;
+    }
+
+    // En FÁCIL: 25% de error de aleatoriedad (duda y no ataca)
+    if (diff === 'facil' && Math.random() < 0.25) {
+      mostrarMensajeToast(isEn
+        ? "Rival Blue hesitates and holds back attack."
+        : "El rival Blue duda de su ataque y decide no atacar este turno.");
+      if (onAtaqueRealizado) onAtaqueRealizado(false);
+      return;
+    }
+
+    // Caso 2: El jugador SÍ tiene monstruos.
+    // La IA evalúa ventaja de tipo elemental (+/- 300) y solo atacará si vence sin sufrir daño de vida.
+    let jugadaOptima = null;
+
+    for (const atacante of atacantesIA) {
+      for (const jIdx of monstruosJugadorIndices) {
+        const mTarget = estadoJugador.zonaMonstruos[jIdx];
+        if (!mTarget) continue;
+        const dTarget = bdCartas[mTarget.id];
+        const targetAtk = obtenerAtkActual(mTarget);
+        const targetDef = obtenerDefActual(mTarget);
+
+        // Calcular ventaja/desventaja elemental de Blue atacando a Red
+        const modTipo = calcularVentajaTipo(atacante.datos.elemento, dTarget.elemento);
+        const atkCombate = Math.max(0, atacante.atk + modTipo);
+
+        if (mTarget.posicion === 'ataque') {
+          if (atkCombate > targetAtk) {
+            const dano = atkCombate - targetAtk;
+            if (!jugadaOptima || dano > jugadaOptima.danoAlJugador) {
+              jugadaOptima = {
+                atacanteSlot: atacante.slotIdx,
+                targetSlot: jIdx,
+                dAtacante: atacante.datos,
+                dTarget: dTarget,
+                mTarget: mTarget,
+                atkAtacante: atkCombate,
+                modTipo: modTipo,
+                targetStat: targetAtk,
+                danoAlJugador: dano,
+                tipo: 'ataque'
+              };
+            }
+          }
+        } else {
+          if (atkCombate > targetDef) {
+            if (!jugadaOptima || jugadaOptima.tipo !== 'ataque') {
+              jugadaOptima = {
+                atacanteSlot: atacante.slotIdx,
+                targetSlot: jIdx,
+                dAtacante: atacante.datos,
+                dTarget: dTarget,
+                mTarget: mTarget,
+                atkAtacante: atkCombate,
+                modTipo: modTipo,
+                targetStat: targetDef,
+                danoAlJugador: 0,
+                tipo: 'defensa'
+              };
+            }
+          }
+        }
+      }
+    }
+
+    // Si no hay ninguna jugada segura, la IA decide no atacar
+    if (!jugadaOptima) {
+      if (onAtaqueRealizado) onAtaqueRealizado(false);
+      return;
+    }
+
+    // Ejecutar ataque seguro con declaración visual clara y pausada
+    const { atacanteSlot, targetSlot, dAtacante, dTarget, mTarget, atkAtacante, modTipo } = jugadaOptima;
+    estadoOponente.zonaMonstruos[atacanteSlot].haAtacado = true;
+
+    const slotRivalElem = document.querySelector(`#opponent-side .monsters-row .monster-slot[data-slot-index="${atacanteSlot}"]`);
+    const slotJugadorElem = document.querySelector(`#player-side .monsters-row .monster-slot[data-slot-index="${targetSlot}"]`);
+
+    const targetAtkActual = obtenerAtkActual(mTarget);
+    const targetDefActual = obtenerDefActual(mTarget);
+    const statObjetivoMostrar = mTarget.posicion === 'defensa' ? targetDefActual : targetAtkActual;
+    const modoTargetTexto = mTarget.posicion === 'defensa' ? `DEF ${targetDefActual}` : `ATK ${targetAtkActual}`;
+
+    mostrarDeclaracionAtaqueVisual({
+      slotAtacanteElem: slotRivalElem,
+      slotObjetivoElem: slotJugadorElem,
+      datosAtacante: dAtacante,
+      atkAtacante: atkAtacante,
+      datosObjetivo: dTarget,
+      statObjetivo: statObjetivoMostrar,
+      modoObjetivo: mTarget.posicion,
+      esDirecto: false,
+      autoClearMs: 0
+    });
+
+    if (modTipo > 0) {
+      const infoA = obtenerInfoTipo(dAtacante.elemento);
+      const infoT = obtenerInfoTipo(dTarget.elemento);
+      crearNumeroFlotante("+300 TIPO!", slotRivalElem, 'buff');
+      mostrarMensajeToast(isEn
+        ? `⚔️ ${dAtacante.nombre} (${infoA.icono}, ATK ${atkAtacante}) attacks your ${dTarget.nombre} (${infoT.icono}, ${modoTargetTexto}) [+300 Elemental]!`
+        : `⚔️ ¡${dAtacante.nombre} rival (${infoA.icono}, ATK ${atkAtacante}) ataca a tu ${dTarget.nombre} (${infoT.icono}, ${modoTargetTexto}) [+300 Elemental]!`);
+    } else if (modTipo < 0) {
+      const infoA = obtenerInfoTipo(dAtacante.elemento);
+      const infoT = obtenerInfoTipo(dTarget.elemento);
+      crearNumeroFlotante("-300 TIPO!", slotRivalElem, 'damage');
+      mostrarMensajeToast(isEn
+        ? `⚔️ ${dAtacante.nombre} (${infoA.icono}, ATK ${atkAtacante}) attacks your ${dTarget.nombre} (${infoT.icono}, ${modoTargetTexto}) [-300 Elemental]!`
+        : `⚔️ ¡${dAtacante.nombre} rival (${infoA.icono}, ATK ${atkAtacante}) ataca a tu ${dTarget.nombre} (${infoT.icono}, ${modoTargetTexto}) [-300 Elemental]!`);
+    } else {
+      mostrarMensajeToast(isEn
+        ? `⚔️ Rival's ${dAtacante.nombre} (ATK ${atkAtacante}) attacks your ${dTarget.nombre} (${modoTargetTexto})!`
+        : `⚔️ ¡${dAtacante.nombre} rival (ATK ${atkAtacante}) está atacando a tu ${dTarget.nombre} (${modoTargetTexto})!`);
+    }
+
+    const resolverCombateMonstruoNormal = () => {
+      renovarWatchdogIA(10000);
+      lanzarEfectoVisual(obtenerEfectoVisualAtaque(dAtacante), slotJugadorElem);
+
       const targetAtk = obtenerAtkActual(mTarget);
       const targetDef = obtenerDefActual(mTarget);
 
-      // Calcular ventaja/desventaja elemental de Blue atacando a Red
-      const modTipo = calcularVentajaTipo(atacante.datos.elemento, dTarget.elemento);
-      const atkCombate = Math.max(0, atacante.atk + modTipo);
-
       if (mTarget.posicion === 'ataque') {
-        // En ataque: Solo ataca si su ATK efectivo supera estrictamente el ATK del jugador
-        if (atkCombate > targetAtk) {
-          const dano = atkCombate - targetAtk;
-          if (!jugadaOptima || dano > jugadaOptima.danoAlJugador) {
-            jugadaOptima = {
-              atacanteSlot: atacante.slotIdx,
-              targetSlot: jIdx,
-              dAtacante: atacante.datos,
-              dTarget: dTarget,
-              mTarget: mTarget,
-              atkAtacante: atkCombate,
-              modTipo: modTipo,
-              targetStat: targetAtk,
-              danoAlJugador: dano,
-              tipo: 'ataque'
-            };
-          }
+        if (atkAtacante > targetAtk) {
+          const dano = atkAtacante - targetAtk;
+          estadoJugador.lp = Math.max(0, estadoJugador.lp - dano);
+          if (!Array.isArray(estadoJugador.cementerio)) estadoJugador.cementerio = [];
+          estadoJugador.cementerio.push(mTarget.id);
+          estadoJugador.zonaMonstruos[targetSlot] = null;
+          AudioManager.reproducirSFX('hit-super');
+          setTimeout(() => AudioManager.reproducirSFX('faint'), 200);
+
+          crearNumeroFlotante(`-${dano} LP`, document.getElementById('player-lp-val'), 'damage');
+          crearNumeroFlotante("DESTRUIDO", slotJugadorElem, 'damage');
+          mostrarMensajeToast(isEn
+            ? `Rival's ${dAtacante.nombre} destroyed your ${dTarget.nombre}! You take ${dano} LP damage.`
+            : `¡El ${dAtacante.nombre} rival destruyó a tu ${dTarget.nombre}! Pierdes ${dano} LP.`);
+        } else if (atkAtacante < targetAtk) {
+          const dano = targetAtk - atkAtacante;
+          estadoOponente.lp = Math.max(0, estadoOponente.lp - dano);
+          if (!Array.isArray(estadoOponente.cementerio)) estadoOponente.cementerio = [];
+          estadoOponente.cementerio.push(dAtacante.id);
+          estadoOponente.zonaMonstruos[atacanteSlot] = null;
+          AudioManager.reproducirSFX('hit-super');
+          setTimeout(() => AudioManager.reproducirSFX('faint'), 200);
+
+          crearNumeroFlotante(`-${dano} LP`, document.getElementById('opponent-lp-val'), 'damage');
+          crearNumeroFlotante("DESTRUIDO", slotRivalElem, 'damage');
+          sumarPuntosDuelo(250 + dano, `Tu ${dTarget.nombre} contraatacó a ${dAtacante.nombre} (-${dano} LP)`);
+          mostrarMensajeToast(isEn
+            ? `Your ${dTarget.nombre} counter-attacked and destroyed ${dAtacante.nombre}! Rival takes ${dano} LP.`
+            : `¡Tu ${dTarget.nombre} contraatacó y destruyó a ${dAtacante.nombre} rival! Rival pierde ${dano} LP.`);
+        } else {
+          if (!Array.isArray(estadoJugador.cementerio)) estadoJugador.cementerio = [];
+          if (!Array.isArray(estadoOponente.cementerio)) estadoOponente.cementerio = [];
+          estadoJugador.cementerio.push(mTarget.id);
+          estadoOponente.cementerio.push(dAtacante.id);
+          estadoJugador.zonaMonstruos[targetSlot] = null;
+          estadoOponente.zonaMonstruos[atacanteSlot] = null;
+          AudioManager.reproducirSFX('hit');
+          crearNumeroFlotante("EMPATE", slotJugadorElem, 'damage');
+          crearNumeroFlotante("EMPATE", slotRivalElem, 'damage');
+          sumarPuntosDuelo(150, "Doble destrucción en combate");
+          mostrarMensajeToast(isEn ? "Double destruction! Both Pokémon were destroyed." : "¡Empate de fuerzas! Ambos Pokémon fueron destruidos.");
         }
       } else {
-        // En defensa: Solo ataca si su ATK efectivo supera estrictamente la DEF del jugador
-        if (atkCombate > targetDef) {
-          if (!jugadaOptima || jugadaOptima.tipo !== 'ataque') {
-            jugadaOptima = {
-              atacanteSlot: atacante.slotIdx,
-              targetSlot: jIdx,
-              dAtacante: atacante.datos,
-              dTarget: dTarget,
-              mTarget: mTarget,
-              atkAtacante: atkCombate,
-              modTipo: modTipo,
-              targetStat: targetDef,
-              danoAlJugador: 0,
-              tipo: 'defensa'
-            };
-          }
+        // Objetivo en defensa
+        if (atkAtacante > targetDef) {
+          if (!Array.isArray(estadoJugador.cementerio)) estadoJugador.cementerio = [];
+          estadoJugador.cementerio.push(mTarget.id);
+          estadoJugador.zonaMonstruos[targetSlot] = null;
+          AudioManager.reproducirSFX('hit');
+          setTimeout(() => AudioManager.reproducirSFX('faint'), 200);
+          crearNumeroFlotante("DESTRUIDO", slotJugadorElem, 'damage');
+          mostrarMensajeToast(isEn
+            ? `Rival's ${dAtacante.nombre} pierced the defense of ${dTarget.nombre}.`
+            : `El ${dAtacante.nombre} rival rompió la defensa de tu ${dTarget.nombre}.`);
+        } else if (atkAtacante < targetDef) {
+          const rebote = targetDef - atkAtacante;
+          estadoOponente.lp = Math.max(0, estadoOponente.lp - rebote);
+          AudioManager.reproducirSFX('hit');
+          crearNumeroFlotante(`-${rebote} LP`, document.getElementById('opponent-lp-val'), 'damage');
+          mostrarMensajeToast(isEn
+            ? `Your ${dTarget.nombre}'s defense held! Rival took ${rebote} LP recoil.`
+            : `¡La defensa de tu ${dTarget.nombre} aguantó! El rival sufre ${rebote} LP de rebote.`);
+        } else {
+          AudioManager.reproducirSFX('hit');
+          mostrarMensajeToast(isEn
+            ? `Attack blocked! Defense of ${dTarget.nombre} held.`
+            : `¡Ataque bloqueado! Las defensas de tu ${dTarget.nombre} aguantaron.`);
         }
       }
-    }
-  }
 
-  // Si no hay ninguna jugada segura (todos los monstruos del jugador son más fuertes o iguales):
-  // La IA decide inteligentemente NO atacar para no perder puntos de vida
-  if (!jugadaOptima) {
-    if (onAtaqueRealizado) onAtaqueRealizado(false);
-    return;
-  }
+      const gySubP = document.querySelector('#player-gy .slot-sub');
+      if (gySubP && Array.isArray(estadoJugador.cementerio)) gySubP.textContent = estadoJugador.cementerio.length;
+      const gySubO = document.querySelector('#opponent-gy .slot-sub');
+      if (gySubO && Array.isArray(estadoOponente.cementerio)) gySubO.textContent = estadoOponente.cementerio.length;
 
-  // Ejecutar ataque seguro
-  const { atacanteSlot, targetSlot, dAtacante, dTarget, mTarget, atkAtacante, modTipo } = jugadaOptima;
-  estadoOponente.zonaMonstruos[atacanteSlot].haAtacado = true;
-
-  const slotRivalElem = document.querySelector(`#opponent-side .monsters-row .monster-slot[data-slot-index="${atacanteSlot}"]`);
-  const slotJugadorElem = document.querySelector(`#player-side .monsters-row .monster-slot[data-slot-index="${targetSlot}"]`);
-
-  if (modTipo > 0) {
-    const infoA = obtenerInfoTipo(dAtacante.elemento);
-    const infoT = obtenerInfoTipo(dTarget.elemento);
-    crearNumeroFlotante("+300 TIPO!", slotRivalElem, 'buff');
-    mostrarMensajeToast(isEn
-      ? `Elemental Advantage! Rival's ${dAtacante.nombre} (${infoA.icono}) over ${dTarget.nombre} (${infoT.icono}): +300 ATK/DEF.`
-      : `¡Ventaja Elemental Rival! ${dAtacante.nombre} (${infoA.icono}) sobre tu ${dTarget.nombre} (${infoT.icono}): +300 ATK/DEF.`);
-  } else if (modTipo < 0) {
-    const infoA = obtenerInfoTipo(dAtacante.elemento);
-    const infoT = obtenerInfoTipo(dTarget.elemento);
-    crearNumeroFlotante("-300 TIPO!", slotRivalElem, 'damage');
-    mostrarMensajeToast(isEn
-      ? `Elemental Disadvantage! Rival's ${dAtacante.nombre} (${infoA.icono}) against ${dTarget.nombre} (${infoT.icono}): -300 ATK/DEF.`
-      : `¡Desventaja Elemental Rival! ${dAtacante.nombre} (${infoA.icono}) frente a tu ${dTarget.nombre} (${infoT.icono}): -300 ATK/DEF.`);
-  }
-
-  // Comprobar trampas del jugador
-  const trampaIndex = estadoJugador.zonaMagiasTrampas.findIndex(t => t !== null && t.bocaAbajo);
-  if (trampaIndex !== -1) {
-    const trampaData = estadoJugador.zonaMagiasTrampas[trampaIndex];
-    const dTrampa = bdCartas[trampaData.id];
-
-    const slotTrampaElem = document.querySelector(`#player-side .spells-row .spell-trap-slot[data-slot-index="${trampaIndex}"]`);
-    lanzarEfectoVisual('escudo', slotTrampaElem);
-    AudioManager.reproducirSFX('hit-super');
-    crearNumeroFlotante("¡TRAMPA!", slotTrampaElem, 'buff');
-
-    if (trampaData.id === 240) { // Protección
-      mostrarMensajeToast(isEn ? `Your trap "${dTrampa.nombre}" negated the attack!` : `¡Tu trampa "${dTrampa.nombre}" canceló el ataque de ${dAtacante.nombre}!`);
-      sumarPuntosDuelo(200, `Trampa Protección activada`);
-    } else if (trampaData.id === 241) { // Manto Espejo: Devuelve daño y destruye al atacante enemigo
-      estadoOponente.lp = Math.max(0, estadoOponente.lp - atkAtacante);
+      document.getElementById('player-lp-val').textContent = estadoJugador.lp;
       document.getElementById('opponent-lp-val').textContent = estadoOponente.lp;
-      crearNumeroFlotante(`-${atkAtacante} LP`, document.getElementById('opponent-lp-val'), 'damage');
-
-      // Destruir al monstruo enemigo que atacó
-      const atacanteMonstruo = estadoOponente.zonaMonstruos[atacanteSlot];
-      if (atacanteMonstruo) {
-        if (!Array.isArray(estadoOponente.cementerio)) estadoOponente.cementerio = [];
-        estadoOponente.cementerio.push(atacanteMonstruo.id);
-        estadoOponente.zonaMonstruos[atacanteSlot] = null;
-        if (slotRivalElem) {
-          crearNumeroFlotante("DESTRUIDO", slotRivalElem, 'damage');
-          lanzarEfectoVisual('corte', slotRivalElem);
-        }
-        AudioManager.reproducirSFX('faint');
-      }
-
-      const gySubOpp = document.querySelector('#opponent-gy .slot-sub');
-      if (gySubOpp) gySubOpp.textContent = estadoOponente.cementerio.length;
+      actualizarMarcadorLateral();
+      renderizarCampoJugador();
       renderizarCampoOponente();
+      comprobarFinDelDuelo();
 
-      mostrarMensajeToast(isEn
-        ? `"${dTrampa.nombre}" reflected ${atkAtacante} LP damage and destroyed ${dAtacante.nombre}!`
-        : `¡"${dTrampa.nombre}" reflejó ${atkAtacante} LP de daño y destruyó a ${dAtacante.nombre} enemigo!`);
-      sumarPuntosDuelo(300 + atkAtacante, `Manto Espejo reflejó ${atkAtacante} LP y destruyó a ${dAtacante.nombre}`);
-      marcadorDuelo.destruidos++;
-      marcadorDuelo.danoTotal += atkAtacante;
-    } else if (trampaData.id === 242) { // Contador
-      estadoOponente.lp = Math.max(0, estadoOponente.lp - 800);
-      document.getElementById('opponent-lp-val').textContent = estadoOponente.lp;
-      crearNumeroFlotante("-800 LP", document.getElementById('opponent-lp-val'), 'damage');
-      mostrarMensajeToast(isEn ? `"${dTrampa.nombre}" counter-attacked for 800 LP!` : `¡"${dTrampa.nombre}" contraatacó infligiendo 800 LP al rival!`);
-      sumarPuntosDuelo(350, "Trampa Contador activada (-800 LP)");
-    } else if (trampaData.id === 243) { // Paralizador
-      mostrarMensajeToast(isEn ? `"${dTrampa.nombre}" paralyzed ${dAtacante.nombre}!` : `¡"${dTrampa.nombre}" inmovilizó a ${dAtacante.nombre}!`);
-      sumarPuntosDuelo(200, `Trampa Paralizador activada`);
-    } else {
-      mostrarMensajeToast(isEn ? `Your trap "${dTrampa.nombre}" absorbed the attack!` : `¡Tu trampa "${dTrampa.nombre}" absorbió y anuló el ataque!`);
-      sumarPuntosDuelo(250, `Trampa ${dTrampa.nombre} activada`);
+      setTimeout(() => {
+        limpiarDeclaracionAtaqueVisual();
+        if (onAtaqueRealizado) onAtaqueRealizado(true);
+      }, 750);
+    };
+
+    // Comprobar si el jugador tiene una carta de TRAMPA boca abajo para preguntarle si desea activarla
+    const trampaIndex = Array.isArray(estadoJugador.zonaMagiasTrampas)
+      ? estadoJugador.zonaMagiasTrampas.findIndex(t => t !== null && t.bocaAbajo && bdCartas[t.id] && bdCartas[t.id].tipoCarta === 'trampa')
+      : -1;
+
+    if (trampaIndex !== -1) {
+      const trampaData = estadoJugador.zonaMagiasTrampas[trampaIndex];
+      const dTrampa = bdCartas[trampaData.id];
+
+      // Esperar un instante para que el usuario vea resaltado en el tablero quién ataca a quién antes de abrir el modal
+      setTimeout(() => {
+        pausarWatchdogIA();
+        const resumenHtml = `
+          <span class="trap-vs-side">🔴 Rival: ${dAtacante.nombre} (ATK ${atkAtacante})</span>
+          <span class="trap-vs-arrow">⚔️➔</span>
+          <span class="trap-vs-target">🔵 Tu ${dTarget.nombre} (${modoTargetTexto})</span>
+        `;
+        abrirModalConfirmacionCarta({
+          titulo: isEn ? "⚡ Activate Trap Card?" : "⚡ ¿Activar Carta Trampa?",
+          datosCarta: dTrampa,
+          cartaId: trampaData.id,
+          infoTarget: `${dAtacante.nombre} (ATK ${atkAtacante}) ➔ ${dTarget.nombre} (${modoTargetTexto})`,
+          preguntaCustom: isEn
+            ? `⚠️ Rival's ${dAtacante.nombre} (ATK ${atkAtacante}) is attacking your ${dTarget.nombre} (${modoTargetTexto})! Do you want to activate your trap "${dTrampa.nombre}"?`
+            : `⚠️ ¡${dAtacante.nombre} rival (ATK ${atkAtacante}) está atacando a tu ${dTarget.nombre} (${modoTargetTexto})! ¿Quieres activar tu trampa "${dTrampa.nombre}"?`,
+          textoBtnConfirm: isEn ? '⚡ Activate Trap!' : '⚡ ¡Activar Trampa!',
+          ocultarBtnSet: true,
+          textoBtnCancel: isEn ? '🛡️ Keep Set (Do Not Activate)' : '🛡️ No Activar (Guardar)',
+          resumenAtaqueHtml: resumenHtml,
+          onConfirm: () => {
+            renovarWatchdogIA(10000);
+            aplicarTrampaJugadorContraAtaqueIA(trampaIndex, atacanteSlot, dAtacante, atkAtacante, slotRivalElem, isEn, () => {
+              if (onAtaqueRealizado) onAtaqueRealizado(true);
+            });
+          },
+          onCancel: () => {
+            renovarWatchdogIA(10000);
+            setTimeout(resolverCombateMonstruoNormal, 600);
+          }
+        });
+      }, 900);
+      return;
     }
 
-    estadoJugador.cementerio.push(trampaData.id);
-    estadoJugador.zonaMagiasTrampas[trampaIndex] = null;
-    slotTrampaElem.classList.remove('occupied');
-    slotTrampaElem.innerHTML = `<span class="slot-badge">M / T</span><span class="slot-num">${trampaIndex + 1}</span>`;
-    const gySub = document.querySelector('#player-gy .slot-sub');
-    if (gySub) gySub.textContent = estadoJugador.cementerio.length;
-
-    actualizarMarcadorLateral();
-    comprobarFinDelDuelo();
-    if (onAtaqueRealizado) onAtaqueRealizado(true);
-    return;
+    // Sin trampa: pausa de 1.65s mostrando claramente el banner de ataque y resaltando atacante/objetivo antes del golpe
+    renovarWatchdogIA(10000);
+    setTimeout(resolverCombateMonstruoNormal, 1650);
+  } catch (errAtaque) {
+    console.error("Error en ejecutarAtaqueIA:", errAtaque);
+    limpiarDeclaracionAtaqueVisual();
+    if (onAtaqueRealizado) onAtaqueRealizado(false);
   }
-
-  // Resolución de combate normal
-  lanzarEfectoVisual(obtenerEfectoVisualAtaque(dAtacante), slotJugadorElem);
-
-  const targetAtk = obtenerAtkActual(mTarget);
-  const targetDef = obtenerDefActual(mTarget);
-
-  if (mTarget.posicion === 'ataque') {
-    if (atkAtacante > targetAtk) {
-      const dano = atkAtacante - targetAtk;
-      estadoJugador.lp = Math.max(0, estadoJugador.lp - dano);
-      estadoJugador.zonaMonstruos[targetSlot] = null;
-      AudioManager.reproducirSFX('hit-super');
-      setTimeout(() => AudioManager.reproducirSFX('faint'), 200);
-
-      crearNumeroFlotante(`-${dano} LP`, document.getElementById('player-lp-val'), 'damage');
-      crearNumeroFlotante("DESTRUIDO", slotJugadorElem, 'damage');
-      mostrarMensajeToast(isEn
-        ? `Rival's ${dAtacante.nombre} destroyed your ${dTarget.nombre}! You take ${dano} LP damage.`
-        : `¡El ${dAtacante.nombre} rival destruyó a tu ${dTarget.nombre}! Pierdes ${dano} LP.`);
-    } else if (atkAtacante < targetAtk) {
-      const dano = targetAtk - atkAtacante;
-      estadoOponente.lp = Math.max(0, estadoOponente.lp - dano);
-      estadoOponente.zonaMonstruos[atacanteSlot] = null;
-      AudioManager.reproducirSFX('hit-super');
-      setTimeout(() => AudioManager.reproducirSFX('faint'), 200);
-
-      crearNumeroFlotante(`-${dano} LP`, document.getElementById('opponent-lp-val'), 'damage');
-      crearNumeroFlotante("DESTRUIDO", slotRivalElem, 'damage');
-      sumarPuntosDuelo(250 + dano, `Tu ${dTarget.nombre} contraatacó a ${dAtacante.nombre} (-${dano} LP)`);
-      mostrarMensajeToast(isEn
-        ? `Your ${dTarget.nombre} counter-attacked and destroyed ${dAtacante.nombre}! Rival takes ${dano} LP.`
-        : `¡Tu ${dTarget.nombre} contraatacó y destruyó a ${dAtacante.nombre} rival! Rival pierde ${dano} LP.`);
-    } else {
-      estadoJugador.zonaMonstruos[targetSlot] = null;
-      estadoOponente.zonaMonstruos[atacanteSlot] = null;
-      AudioManager.reproducirSFX('hit');
-      crearNumeroFlotante("EMPATE", slotJugadorElem, 'damage');
-      crearNumeroFlotante("EMPATE", slotRivalElem, 'damage');
-      sumarPuntosDuelo(150, "Doble destrucción en combate");
-      mostrarMensajeToast(isEn ? "Double destruction! Both Pokémon were destroyed." : "¡Empate de fuerzas! Ambos Pokémon fueron destruidos.");
-    }
-  } else {
-    // Objetivo en defensa
-    if (atkAtacante > targetDef) {
-      estadoJugador.zonaMonstruos[targetSlot] = null;
-      AudioManager.reproducirSFX('hit');
-      setTimeout(() => AudioManager.reproducirSFX('faint'), 200);
-      crearNumeroFlotante("DESTRUIDO", slotJugadorElem, 'damage');
-      mostrarMensajeToast(isEn
-        ? `Rival's ${dAtacante.nombre} pierced the defense of ${dTarget.nombre}.`
-        : `El ${dAtacante.nombre} rival rompió la defensa de tu ${dTarget.nombre}.`);
-    } else if (atkAtacante < targetDef) {
-      const rebote = targetDef - atkAtacante;
-      estadoOponente.lp = Math.max(0, estadoOponente.lp - rebote);
-      AudioManager.reproducirSFX('hit');
-      crearNumeroFlotante(`-${rebote} LP`, document.getElementById('opponent-lp-val'), 'damage');
-      mostrarMensajeToast(isEn
-        ? `Your ${dTarget.nombre}'s defense held! Rival took ${rebote} LP recoil.`
-        : `¡La defensa de tu ${dTarget.nombre} aguantó! El rival sufre ${rebote} LP de rebote.`);
-    } else {
-      AudioManager.reproducirSFX('hit');
-      mostrarMensajeToast(isEn
-        ? `Attack blocked! Defense of ${dTarget.nombre} held.`
-        : `¡Ataque bloqueado! Las defensas de tu ${dTarget.nombre} aguantaron.`);
-    }
-  }
-
-  document.getElementById('player-lp-val').textContent = estadoJugador.lp;
-  document.getElementById('opponent-lp-val').textContent = estadoOponente.lp;
-  actualizarMarcadorLateral();
-  renderizarCampoJugador();
-  renderizarCampoOponente();
-  comprobarFinDelDuelo();
-  if (onAtaqueRealizado) onAtaqueRealizado(true);
-} catch (errAtaque) {
-  console.error("Error en ejecutarAtaqueIA:", errAtaque);
-  if (onAtaqueRealizado) onAtaqueRealizado(false);
-}
 }
 
 function finalizarTurnoIA() {
-  if (typeof window !== 'undefined' && window._aiTurnWatchdog) {
-    clearTimeout(window._aiTurnWatchdog);
-    window._aiTurnWatchdog = null;
-  }
+  pausarWatchdogIA();
+  limpiarDeclaracionAtaqueVisual();
 
   if (estadoJugador.lp <= 0 || estadoOponente.lp <= 0) return;
 

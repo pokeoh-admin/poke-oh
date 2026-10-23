@@ -4786,6 +4786,199 @@ body {
   color: #feca57;
 }
 
+/* 7. Indicadores visuales de combate: qué Pokémon ataca a qué Pokémon */
+.combat-attacker-highlight {
+  border-color: #ff9f43 !important;
+  box-shadow: 0 0 26px rgba(255, 159, 67, 0.98), 0 0 12px rgba(254, 202, 87, 0.9) !important;
+  z-index: 45 !important;
+  animation: combat-attacker-pulse 0.55s ease-in-out infinite alternate !important;
+}
+
+.combat-attacker-highlight::after {
+  content: '⚔️ ATACANDO';
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+  color: #fff;
+  border: 1px solid #feca57;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.58rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 8px;
+  white-space: nowrap;
+  z-index: 90;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+}
+
+.combat-target-highlight {
+  border-color: #ff4757 !important;
+  box-shadow: 0 0 26px rgba(255, 71, 87, 0.98), inset 0 0 14px rgba(255, 71, 87, 0.55) !important;
+  z-index: 45 !important;
+  animation: combat-target-pulse 0.55s ease-in-out infinite alternate !important;
+}
+
+.combat-target-highlight::after {
+  content: '🎯 OBJETIVO';
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #ff4757 0%, #c0392b 100%);
+  color: #fff;
+  border: 1px solid #ff6b81;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.58rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 8px;
+  white-space: nowrap;
+  z-index: 90;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+}
+
+@keyframes combat-attacker-pulse {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.09); }
+}
+
+@keyframes combat-target-pulse {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.07); }
+}
+
+/* Banner flotante central de enfrentamiento (Atacante ⚔️ ➔ 🎯 Objetivo) */
+.combat-versus-banner {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.92);
+  z-index: 58000;
+  background: linear-gradient(135deg, rgba(12, 18, 32, 0.97) 0%, rgba(24, 14, 28, 0.97) 100%);
+  border: 2px solid #feca57;
+  border-radius: 14px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.95), 0 0 28px rgba(254, 202, 87, 0.5);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  max-width: 94vw;
+}
+
+.combat-versus-banner.visible {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.versus-fighter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  padding: 5px 10px;
+}
+
+.versus-fighter.attacker-side {
+  border-color: rgba(255, 159, 67, 0.65);
+  background: rgba(255, 159, 67, 0.12);
+}
+
+.versus-fighter.target-side {
+  border-color: rgba(255, 71, 87, 0.65);
+  background: rgba(255, 71, 87, 0.12);
+}
+
+.versus-sprite {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.85));
+}
+
+.versus-info {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.versus-role {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: #a4b0be;
+}
+
+.versus-fighter.attacker-side .versus-role {
+  color: #ff9f43;
+}
+
+.versus-fighter.target-side .versus-role {
+  color: #ff6b81;
+}
+
+.versus-name {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.1;
+}
+
+.versus-stat {
+  font-family: 'Chakra Petch', monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #feca57;
+}
+
+.versus-arrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #feca57;
+  font-weight: 800;
+  font-size: 0.72rem;
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 10px rgba(254, 202, 87, 0.8);
+}
+
+.versus-arrow-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+  animation: arrow-slide 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes arrow-slide {
+  0% { transform: translateX(-3px); }
+  100% { transform: translateX(4px); }
+}
+
+/* Resumen de ataque dentro del modal de confirmación de Trampa */
+.trap-attack-summary {
+  width: 100%;
+  background: linear-gradient(135deg, rgba(255, 71, 87, 0.16) 0%, rgba(255, 159, 67, 0.12) 100%);
+  border: 1.5px solid rgba(255, 107, 129, 0.6);
+  border-radius: 10px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+
 
 
 
