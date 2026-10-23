@@ -2961,17 +2961,39 @@ function colocarCartaTrampa(datosCarta, cartaId, slotIndex, slotElem) {
 }
 
 // ==========================================
-// 10. ACCIONES EN CAMPO (GIRAR, ATACAR - SIN BOTÓN SACRIFICAR EN MENÚ)
+// 10. ACCIONES EN CAMPO (GIRAR, ATACAR - SOLO BOTÓN ATACAR ARRIBA)
 // ==========================================
 function alternarPosicionMonstruo(slotIndex) {
   const slotData = estadoJugador.zonaMonstruos[slotIndex];
   if (!slotData) return;
 
+  const isEn = configuracionJuego.idioma === 'en';
+  const slotElement = document.querySelector(`#player-side .monsters-row .monster-slot[data-slot-index="${slotIndex}"]`);
+
+  // Bloquear cambio de posición durante el turno del rival o al estar pasando el turno
+  if (estadoJuego.turnoDe !== 'jugador' || estadoJuego.faseActual === 'FIN') {
+    const msgRival = isEn
+      ? "You cannot change monster position while waiting for the opponent's turn."
+      : "No puedes cambiar la posición de tus Pokémon mientras esperas el turno del rival.";
+    mostrarMensajeToast(msgRival);
+    mostrarAlertaRegla(msgRival, slotElement, isEn ? "RIVAL'S TURN!" : "¡TURNO RIVAL!");
+    return;
+  }
+
+  // Bloquear cambio de posición durante la Fase de Batalla
+  if (estadoJuego.faseActual !== 'PRINCIPAL') {
+    const msgBatalla = isEn
+      ? "You cannot switch between Attack and Defense during the Battle Phase (only in Main Phase)."
+      : "No puedes cambiar de Ataque a Defensa durante la Fase de Batalla (solo en Fase Principal).";
+    mostrarMensajeToast(msgBatalla);
+    mostrarAlertaRegla(msgBatalla, slotElement, isEn ? "MAIN PHASE ONLY!" : "¡SOLO FASE PRINCIPAL!");
+    return;
+  }
+
   const nuevaPosicion = slotData.posicion === 'ataque' ? 'defensa' : 'ataque';
   slotData.posicion = nuevaPosicion;
 
   const datosCarta = bdCartas[slotData.id];
-  const slotElement = document.querySelector(`#player-side .monsters-row .monster-slot[data-slot-index="${slotIndex}"]`);
 
   if (slotElement) {
     renderizarMonstruoEnCampo(slotElement, datosCarta, nuevaPosicion, slotIndex);
@@ -3035,7 +3057,6 @@ function renderizarMonstruoEnCampo(slotElement, datosCarta, posicion = 'ataque',
   const slotData = estadoJugador.zonaMonstruos[slotIndex] || { posicion, haAtacado: false, atkMod: 0, defMod: 0 };
   const esDefensa = slotData.posicion === 'defensa';
   const clasePosicion = esDefensa ? 'defense-position' : 'attack-position';
-  const etiquetaBotonGirar = esDefensa ? '⚔️ Ataque' : '🛡️ Defensa';
 
   const curAtk = obtenerAtkActual(slotData);
   const curDef = obtenerDefActual(slotData);
@@ -3074,15 +3095,16 @@ function renderizarMonstruoEnCampo(slotElement, datosCarta, posicion = 'ataque',
     }
   }
 
-  // MENÚ LIMPIO SIN BOTÓN DE SACRIFICIO (Solo atacar y girar posición)
+  const barraAccionesHtml = botonAtacarHtml
+    ? `<div class="monster-actions-bar">${botonAtacarHtml}</div>`
+    : '';
+
+  // MENÚ LIMPIO EN LA PARTE SUPERIOR DE LA CARTA (Solo muestra "Atacar" en Fase de Batalla)
   slotElement.innerHTML = `
-    <div class="monster-actions-bar">
-      ${botonAtacarHtml}
-      <button class="monster-action-btn btn-girar" title="Alternar Ataque / Defensa">${etiquetaBotonGirar}</button>
-    </div>
+    ${barraAccionesHtml}
 
     <!-- Carta del Monstruo -->
-    <div class="card-on-field preview-card ${datosCarta.claseCss} ${clasePosicion} ${obtenerClaseFrontCarta(datosCarta)}" title="Haz clic para alternar posición">
+    <div class="card-on-field preview-card ${datosCarta.claseCss} ${clasePosicion} ${obtenerClaseFrontCarta(datosCarta)}" title="Haz clic en Fase Principal para alternar Ataque / Defensa">
       ${tributosBadgeHtml}
       ${badgeTipoHtml}
       <span class="card-name-mini">${datosCarta.nombre}</span>
@@ -3095,17 +3117,11 @@ function renderizarMonstruoEnCampo(slotElement, datosCarta, posicion = 'ataque',
   `;
 
   const cardElement = slotElement.querySelector('.card-on-field');
-  const btnGirar = slotElement.querySelector('.btn-girar');
   const btnAtacar = slotElement.querySelector('.btn-atacar');
 
   configurarInspectorHover(cardElement, datosCarta, false, false, () => estadoJugador.zonaMonstruos[slotIndex]);
 
   cardElement.addEventListener('click', () => {
-    alternarPosicionMonstruo(slotIndex);
-  });
-
-  btnGirar.addEventListener('click', (e) => {
-    e.stopPropagation();
     alternarPosicionMonstruo(slotIndex);
   });
 
