@@ -41,6 +41,10 @@
     <div class="main-menu-container">
       <div class="main-menu-header">
         <div class="menu-user-bar">
+          <button class="menu-fullscreen-pill" id="btn-menu-fullscreen" type="button" title="Alternar Pantalla Completa / Fullscreen">
+            <span class="fs-pill-icon" id="menu-fs-icon">⛶</span>
+            <span class="fs-pill-text" id="menu-fs-text" data-i18n="btnFullscreen">Pantalla Full</span>
+          </button>
           <button class="menu-user-pill" id="btn-menu-user" type="button" title="Gestión de Usuario / Perfil">
             <span class="user-pill-avatar" id="menu-user-avatar">👤</span>
             <span class="user-pill-name" id="menu-user-name">Iniciar Sesión</span>
@@ -192,9 +196,9 @@
         </div>
       </div>
 
-      <!-- CONTROLES DE AUDIO -->
-      <div class="sidebar-section">
-        <div class="section-title">AUDIO & MÚSICA</div>
+      <!-- CONTROLES DE AUDIO, GUÍAS Y SISTEMA -->
+      <div class="sidebar-section sidebar-controls-unified">
+        <div class="section-title">CONTROLES Y SISTEMA</div>
         <div class="audio-controls-row">
           <button class="audio-btn active" id="btn-toggle-bgm" type="button" title="Música de Batalla GBA">
             <span class="audio-btn-icon" id="bgm-icon">🎵</span> Música: <b id="bgm-status">ON</b>
@@ -203,26 +207,19 @@
             <span class="audio-btn-icon" id="sfx-icon">🔊</span> SFX: <b id="sfx-status">ON</b>
           </button>
         </div>
-      </div>
-
-      <!-- GUÍAS, MAZOS Y TIPOS -->
-      <div class="sidebar-section">
-        <div class="system-actions-row">
+        <div class="system-actions-grid">
           <button class="sidebar-action-btn" id="btn-open-rules" type="button" title="Reglamento e Instrucciones del Juego">
             <span class="btn-icon">📖</span> <b data-i18n="btnRules">REGLAS</b>
           </button>
           <button class="sidebar-action-btn" id="btn-open-deck-builder" type="button" title="Constructor de Barajas & Colección">
             <span class="btn-icon">🎴</span> <b data-i18n="btnDeckShort">MAZOS</b>
           </button>
-        </div>
-        <button class="sidebar-action-btn" id="btn-open-type-chart" type="button" title="Consultar tabla de tipos y ventajas (+/- 300)" style="margin-top: 6px;">
-          <span class="btn-icon">📜</span> <b>TABLA DE TIPOS</b> (±300)
-        </button>
-      </div>
-
-      <!-- ACCIONES DEL SISTEMA -->
-      <div class="sidebar-section">
-        <div class="system-actions-row">
+          <button class="sidebar-action-btn" id="btn-open-type-chart" type="button" title="Consultar tabla de tipos y ventajas (+/- 300)">
+            <span class="btn-icon">📜</span> <b>TIPOS (±300)</b>
+          </button>
+          <button class="sidebar-action-btn btn-fullscreen-action" id="btn-sidebar-fullscreen" type="button" title="Alternar Pantalla Completa / Fullscreen">
+            <span class="btn-icon" id="sidebar-fs-icon">⛶</span> <b id="sidebar-fs-text" data-i18n="btnFullscreenShort">PANTALLA FULL</b>
+          </button>
           <button class="sidebar-action-btn" id="btn-open-settings" type="button" title="Configuración / Settings">
             <span class="btn-icon">⚙️</span> <b data-i18n="btnSettings">AJUSTES</b>
           </button>

@@ -132,7 +132,9 @@ const I18N = {
     btnReturnMainMenu: "Volver al Menú Principal 🏠",
     rotateTitle: "¡Gira tu Dispositivo!",
     rotateDesc: "Para disfrutar del tablero de duelo completo de Poké-Oh! en celulares y tabletas, por favor coloca tu pantalla en posición horizontal (Landscape).",
-    rotateBadge: "📱 ↔️ Modo Horizontal Requerido"
+    rotateBadge: "📱 ↔️ Modo Horizontal Requerido",
+    btnFullscreen: "Pantalla Full",
+    btnFullscreenShort: "PANTALLA FULL"
   },
   en: {
     menuSubtitle: "STRATEGIC CARD DUEL (POKÉMON x YU-GI-OH!)",
@@ -239,7 +241,9 @@ const I18N = {
     btnReturnMainMenu: "Main Menu 🏠",
     rotateTitle: "Rotate Your Device!",
     rotateDesc: "To enjoy the full Poké-Oh! duel board on mobile phones and tablets, please rotate your screen to horizontal (Landscape) mode.",
-    rotateBadge: "📱 ↔️ Landscape Mode Required"
+    rotateBadge: "📱 ↔️ Landscape Mode Required",
+    btnFullscreen: "Fullscreen",
+    btnFullscreenShort: "FULLSCREEN"
   }
 };
 
@@ -659,13 +663,15 @@ function restaurarStatsBase() {
 function obtenerAtkActual(slotData) {
   if (!slotData) return 0;
   const baseAtk = bdCartas[slotData.id] ? bdCartas[slotData.id].atk : 0;
-  return Math.max(0, baseAtk + (slotData.atkMod || 0));
+  const mod = (typeof slotData.atkMod === 'number') ? slotData.atkMod : (slotData.modAtk || 0);
+  return Math.max(0, baseAtk + mod);
 }
 
 function obtenerDefActual(slotData) {
   if (!slotData) return 0;
   const baseDef = bdCartas[slotData.id] ? bdCartas[slotData.id].def : 0;
-  return Math.max(0, baseDef + (slotData.defMod || 0));
+  const mod = (typeof slotData.defMod === 'number') ? slotData.defMod : (slotData.modDef || 0);
+  return Math.max(0, baseDef + mod);
 }
 
 // ==========================================
@@ -1026,6 +1032,17 @@ function colocarCartaBocaAbajo(datosCarta, cartaId, slotIndex = null) {
     : `¡${datosCarta.nombre} colocada boca abajo! Pasa el cursor para inspeccionarla.`;
   mostrarMensajeToast(msg);
   actualizarMarcadorLateral();
+
+  if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline()) {
+    MultiplayerManager.enviarAccion({
+      tipo: 'JUGAR_MAGIA_EQUIPO',
+      carta: datosCarta,
+      slotIndex: slotIndex,
+      bocaAbajo: true,
+      manoCount: estadoJugador.mano.length
+    });
+    MultiplayerManager.sincronizarEstadoCampo();
+  }
   return true;
 }
 
@@ -1576,7 +1593,7 @@ function mostrarMensajeToast(mensaje) {
 // ==========================================
 let inspectorTouchTimeout = null;
 
-function configurarInspectorHover(elemento, datosCarta, esPropiaBocaAbajo = false, esOponenteBocaAbajo = false) {
+function configurarInspectorHover(elemento, datosCarta, esPropiaBocaAbajo = false, esOponenteBocaAbajo = false, obtenerSlotCampoFn = null) {
   const inspector = document.getElementById('card-inspector');
   const imgElem = document.getElementById('inspector-img');
   const nameElem = document.getElementById('inspector-name');
@@ -1602,6 +1619,7 @@ function configurarInspectorHover(elemento, datosCarta, esPropiaBocaAbajo = fals
       nameElem.textContent = isEn ? "Face-Down Card" : "Carta Boca Abajo";
       typeElem.textContent = isEn ? "SECRET" : "SECRETO";
       statsElem.style.display = 'none';
+      statsElem.classList.remove('stat-buffed');
       descElem.textContent = isEn
         ? "This card is placed face-down. Its identity and effects remain secret until activated."
         : "Esta carta está colocada boca abajo. Su contenido y efectos son secretos hasta que sea activada.";
@@ -1635,19 +1653,49 @@ function configurarInspectorHover(elemento, datosCarta, esPropiaBocaAbajo = fals
     const suffix = esPropiaBocaAbajo ? (isEn ? " (Face-Down)" : " (Boca Abajo)") : "";
     nameElem.textContent = `${datosCarta.nombre}${suffix}`;
 
+    const slotCampo = (typeof obtenerSlotCampoFn === 'function') ? obtenerSlotCampoFn() : null;
+    let descTexto = datosCarta.descripcion || '';
+
     if (datosCarta.tipoCarta === 'monstruo') {
       const tribText = datosCarta.sacrificios > 0
         ? ` (${datosCarta.sacrificios} ${isEn ? (datosCarta.sacrificios > 1 ? 'Tributes' : 'Tribute') : (datosCarta.sacrificios > 1 ? 'Sacrificios' : 'Sacrificio')})`
         : '';
       typeElem.textContent = `${datosCarta.etapa}${tribText} [${(datosCarta.elemento || 'Normal').toUpperCase()}]`;
-      statsElem.textContent = `ATK ${datosCarta.atk} / DEF ${datosCarta.def}`;
+
+      const curAtk = slotCampo ? obtenerAtkActual(slotCampo) : datosCarta.atk;
+      const curDef = slotCampo ? obtenerDefActual(slotCampo) : datosCarta.def;
+      const atkBonus = curAtk - (datosCarta.atk || 0);
+      const defBonus = curDef - (datosCarta.def || 0);
+
+      const atkStr = atkBonus > 0 ? `${curAtk} (+${atkBonus})` : `${curAtk}`;
+      const defStr = defBonus > 0 ? `${curDef} (+${defBonus})` : `${curDef}`;
+
+      statsElem.textContent = `ATK ${atkStr} / DEF ${defStr}`;
+      statsElem.classList.toggle('stat-buffed', atkBonus > 0 || defBonus > 0);
+      statsElem.style.display = 'inline-block';
+
+      if (slotCampo && Array.isArray(slotCampo.equipos) && slotCampo.equipos.length > 0) {
+        const listaEquipos = slotCampo.equipos.map(eqId => {
+          const eqC = bdCartas[eqId];
+          const ef = obtenerEfectoEquipo(eqId);
+          return eqC ? `${eqC.nombre} (${ef.texto})` : `#${eqId}`;
+        }).join(', ');
+        const prefEq = isEn ? '🗡️ Equipped:' : '🗡️ Equipado:';
+        descTexto = `${prefEq} ${listaEquipos} — ${descTexto}`;
+      }
+    } else if (esCartaEquipo(datosCarta, datosCarta.id)) {
+      const ef = obtenerEfectoEquipo(datosCarta.id);
+      typeElem.textContent = `${datosCarta.tipoCarta.toUpperCase()} (${datosCarta.subtipo || 'Equipo'})`;
+      statsElem.textContent = ef.texto;
+      statsElem.classList.add('stat-buffed');
       statsElem.style.display = 'inline-block';
     } else {
       typeElem.textContent = `${datosCarta.tipoCarta.toUpperCase()} (${datosCarta.subtipo || ''})`;
+      statsElem.classList.remove('stat-buffed');
       statsElem.style.display = 'none';
     }
 
-    descElem.textContent = datosCarta.descripcion || '';
+    descElem.textContent = descTexto;
     inspector.classList.remove('hidden');
 
     if (esTouch) {
@@ -1912,6 +1960,17 @@ function aplicarEquipoAMonstruo(datosCarta, cartaId, targetSlotIndex, slotMTInde
   mostrarMensajeToast(`¡${datosCarta.nombre} equipado a ${dTarget.nombre}! (${efecto.texto}).`);
   actualizarMarcadorLateral();
 
+  if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline()) {
+    MultiplayerManager.enviarAccion({
+      tipo: 'JUGAR_MAGIA_EQUIPO',
+      carta: datosCarta,
+      slotIndex: slotMTIndex,
+      bocaAbajo: false,
+      manoCount: estadoJugador.mano.length
+    });
+    MultiplayerManager.sincronizarEstadoCampo();
+  }
+
   // Liberar slot M/T y enviar al cementerio tras la activación
   setTimeout(() => {
     estadoJugador.cementerio.push(cartaId);
@@ -1924,6 +1983,9 @@ function aplicarEquipoAMonstruo(datosCarta, cartaId, targetSlotIndex, slotMTInde
     }
     const gySub = document.querySelector('#player-gy .slot-sub');
     if (gySub) gySub.textContent = estadoJugador.cementerio.length;
+    if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline()) {
+      MultiplayerManager.sincronizarEstadoCampo();
+    }
   }, 1300);
 
   return true;
@@ -2977,7 +3039,7 @@ function renderizarMonstruoEnCampo(slotElement, datosCarta, posicion = 'ataque',
   const btnGirar = slotElement.querySelector('.btn-girar');
   const btnAtacar = slotElement.querySelector('.btn-atacar');
 
-  configurarInspectorHover(cardElement, datosCarta);
+  configurarInspectorHover(cardElement, datosCarta, false, false, () => estadoJugador.zonaMonstruos[slotIndex]);
 
   cardElement.addEventListener('click', () => {
     alternarPosicionMonstruo(slotIndex);
@@ -3063,7 +3125,7 @@ function renderizarCampoOponente() {
         </div>
       `;
 
-      configurarInspectorHover(slot.querySelector('.card-on-field'), datosCarta);
+      configurarInspectorHover(slot.querySelector('.card-on-field'), datosCarta, false, false, () => estadoOponente.zonaMonstruos[index]);
 
       slot.onclick = () => {
         if (estadoJuego.faseActual === 'BATALLA' && estadoJuego.atacanteSeleccionado !== null) {
@@ -5855,9 +5917,87 @@ const SupabaseCloud = {
 };
 
 // ==============================================================
-// 20.1. SISTEMA DE GESTIÓN DE USUARIOS (SUPABASE CLOUD + CACHÉ)
+// 20.1. SISTEMA DE GESTIÓN DE USUARIOS (SUPABASE CLOUD + SHA-256)
 // ==============================================================
-const UserManager = {
+function esHashSHA256(str) {
+  return typeof str === 'string' && /^[a-f0-9]{64}$/i.test(str);
+}
+
+// Implementación estándar FIPS 180-4 SHA-256 sincrónica y multiplataforma (UTF-8 -> Hex 64 chars)
+function hashPasswordSHA256(str) {
+  const input = String(str ?? '');
+  if (esHashSHA256(input)) return input.toLowerCase();
+
+  const utf8 = unescape(encodeURIComponent(input));
+  const K = [
+    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+  ];
+  const H = [
+    0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+    0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
+  ];
+
+  const msgLen = utf8.length;
+  const wordLen = (((msgLen + 8) >> 6) + 1) << 4;
+  const words = new Array(wordLen).fill(0);
+
+  for (let i = 0; i < msgLen; i++) {
+    words[i >> 2] |= utf8.charCodeAt(i) << (24 - (i % 4) * 8);
+  }
+  words[msgLen >> 2] |= 0x80 << (24 - (msgLen % 4) * 8);
+  words[wordLen - 1] = msgLen * 8;
+
+  const rotr = (n, x) => (x >>> n) | (x << (32 - n));
+  const W = new Array(64);
+
+  for (let i = 0; i < wordLen; i += 16) {
+    for (let t = 0; t < 16; t++) W[t] = words[i + t] | 0;
+    for (let t = 16; t < 64; t++) {
+      const s0 = rotr(7, W[t - 15]) ^ rotr(18, W[t - 15]) ^ (W[t - 15] >>> 3);
+      const s1 = rotr(17, W[t - 2]) ^ rotr(19, W[t - 2]) ^ (W[t - 2] >>> 10);
+      W[t] = (W[t - 16] + s0 + W[t - 7] + s1) | 0;
+    }
+
+    let [a, b, c, d, e, f, g, h] = H;
+    for (let t = 0; t < 64; t++) {
+      const S1 = rotr(6, e) ^ rotr(11, e) ^ rotr(25, e);
+      const ch = (e & f) ^ (~e & g);
+      const temp1 = (h + S1 + ch + K[t] + W[t]) | 0;
+      const S0 = rotr(2, a) ^ rotr(13, a) ^ rotr(22, a);
+      const maj = (a & b) ^ (a & c) ^ (b & c);
+      const temp2 = (S0 + maj) | 0;
+
+      h = g;
+      g = f;
+      f = e;
+      e = (d + temp1) | 0;
+      d = c;
+      c = b;
+      b = a;
+      a = (temp1 + temp2) | 0;
+    }
+
+    H[0] = (H[0] + a) | 0;
+    H[1] = (H[1] + b) | 0;
+    H[2] = (H[2] + c) | 0;
+    H[3] = (H[3] + d) | 0;
+    H[4] = (H[4] + e) | 0;
+    H[5] = (H[5] + f) | 0;
+    H[6] = (H[6] + g) | 0;
+    H[7] = (H[7] + h) | 0;
+  }
+
+  return H.map(v => (v >>> 0).toString(16).padStart(8, '0')).join('');
+}
+
+var UserManager = {
   DB_KEY: 'pokeoh_users_db_v1',
   CURRENT_USER_KEY: 'pokeoh_session_user_v2',
   currentUser: null,
@@ -5879,10 +6019,11 @@ const UserManager = {
 
   normalizarUsuario(u) {
     if (!u) return null;
+    const rawPass = u.password || '';
     return {
       id: u.id || ('usr_' + Date.now().toString(36)),
       username: u.username,
-      password: u.password,
+      password: esHashSHA256(rawPass) ? rawPass.toLowerCase() : hashPasswordSHA256(rawPass),
       role: u.role || 'user',
       avatar: u.avatar || '🧢',
       createdAt: u.created_at || u.createdAt || new Date().toISOString(),
@@ -5895,6 +6036,15 @@ const UserManager = {
     try {
       const cloudUsers = await SupabaseCloud.fetchAllUsers();
       if (Array.isArray(cloudUsers) && cloudUsers.length > 0) {
+        // Si algún usuario en la nube tenía contraseña en texto plano, codificarla en SHA-256 automáticamente
+        for (const cu of cloudUsers) {
+          if (cu && cu.username && cu.password && !esHashSHA256(cu.password)) {
+            const hashed = hashPasswordSHA256(cu.password);
+            cu.password = hashed;
+            SupabaseCloud.updateUserByUsername(cu.username, { password: hashed }).catch(() => {});
+          }
+        }
+
         const normalized = cloudUsers.map(u => this.normalizarUsuario(u));
         this.saveUsers(normalized);
 
@@ -5967,13 +6117,23 @@ const UserManager = {
       users = [];
     }
 
-    // Asegurar cuenta admin en caché local si aún no se ha sincronizado
+    let modificado = false;
+
+    // Migrar cualquier contraseña en texto plano existente en caché local a SHA-256
+    users.forEach(u => {
+      if (u && u.password && !esHashSHA256(u.password)) {
+        u.password = hashPasswordSHA256(u.password);
+        modificado = true;
+      }
+    });
+
+    // Asegurar cuenta admin en caché local con hash SHA-256
     const hasAdmin = users.some(u => u.username && u.username.toLowerCase() === 'admin');
     if (!hasAdmin) {
       users.unshift({
         id: 'usr_admin',
         username: 'admin',
-        password: 'admin',
+        password: 'fe081059b48d84051653f3c664d08379ee7bb1376f116331ec6e9da0ca8c9f77',
         role: 'admin',
         avatar: '👑',
         createdAt: new Date().toISOString(),
@@ -5986,6 +6146,10 @@ const UserManager = {
         },
         mazos: []
       });
+      modificado = true;
+    }
+
+    if (modificado) {
       localStorage.setItem(this.DB_KEY, JSON.stringify(users));
     }
   },
@@ -6027,6 +6191,8 @@ const UserManager = {
       return { ok: false, error: "La contraseña debe tener al menos 3 caracteres." };
     }
 
+    const passwordHash = hashPasswordSHA256(password);
+
     // Comprobar en Supabase primero
     try {
       const existingCloud = await SupabaseCloud.findUserByUsername(cleanUser);
@@ -6047,7 +6213,7 @@ const UserManager = {
 
     const payload = {
       username: cleanUser,
-      password: password,
+      password: passwordHash,
       role: 'user',
       avatar: randomAvatar,
       stats: {
@@ -6097,10 +6263,17 @@ const UserManager = {
       return { ok: false, error: "Ingresa tu usuario y contraseña." };
     }
 
+    const passwordHash = hashPasswordSHA256(password);
+
     let user = null;
     try {
       const cloudRow = await SupabaseCloud.findUserByUsername(cleanUser);
       if (cloudRow) {
+        if (cloudRow.password && !esHashSHA256(cloudRow.password)) {
+          const migratedHash = hashPasswordSHA256(cloudRow.password);
+          cloudRow.password = migratedHash;
+          SupabaseCloud.updateUserByUsername(cloudRow.username, { password: migratedHash }).catch(() => {});
+        }
         user = this.normalizarUsuario(cloudRow);
       }
     } catch (err) {
@@ -6112,9 +6285,11 @@ const UserManager = {
       user = users.find(u => u.username.toLowerCase() === cleanUser.toLowerCase()) || null;
     }
 
-    if (!user || user.password !== password) {
+    if (!user || (user.password !== passwordHash && user.password !== password)) {
       return { ok: false, error: "Usuario o contraseña incorrectos." };
     }
+
+    user.password = passwordHash;
 
     // Si el usuario en Supabase aún no tenía sus 5 mazos inicializados, inicializarlos
     if (!esMazosValidos(user.mazos)) {
@@ -7626,11 +7801,65 @@ function configurarTouchDragCarta(cartaDiv, cartaId, datosCarta, indexMano) {
   cartaDiv.addEventListener('touchcancel', finalizarTouch);
 }
 
+function estaEnPantallaCompleta() {
+  return !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+}
+
+function actualizarBotonesFullscreenUI() {
+  const isFull = estaEnPantallaCompleta();
+  const isEn = configuracionJuego.idioma === 'en';
+
+  const menuFsIcon = document.getElementById('menu-fs-icon');
+  const menuFsText = document.getElementById('menu-fs-text');
+  if (menuFsIcon) menuFsIcon.textContent = isFull ? '🗗' : '⛶';
+  if (menuFsText) menuFsText.textContent = isFull ? (isEn ? 'Exit Full' : 'Salir Full') : (isEn ? 'Fullscreen' : 'Pantalla Full');
+
+  const sideFsIcon = document.getElementById('sidebar-fs-icon');
+  const sideFsText = document.getElementById('sidebar-fs-text');
+  if (sideFsIcon) sideFsIcon.textContent = isFull ? '🗗' : '⛶';
+  if (sideFsText) sideFsText.textContent = isFull ? (isEn ? 'EXIT FULL' : 'SALIR FULL') : (isEn ? 'FULLSCREEN' : 'PANTALLA FULL');
+
+  const btnArenaFs = document.getElementById('btn-arena-fullscreen');
+  if (btnArenaFs) {
+    btnArenaFs.innerHTML = isFull ? '🗗 <span>Salir Full</span>' : '⛶ <span>Full</span>';
+  }
+}
+
+async function toggleFullscreenJuego() {
+  try {
+    if (!estaEnPantallaCompleta()) {
+      const el = document.documentElement;
+      if (el.requestFullscreen) {
+        await el.requestFullscreen();
+      } else if (el.webkitRequestFullscreen) {
+        el.webkitRequestFullscreen();
+      } else if (el.msRequestFullscreen) {
+        el.msRequestFullscreen();
+      }
+      if (window.screen && window.screen.orientation && typeof window.screen.orientation.lock === 'function') {
+        window.screen.orientation.lock('landscape').catch(() => {});
+      }
+    } else {
+      if (document.exitFullscreen) {
+        await document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      } else if (document.msExitFullscreen) {
+        document.msExitFullscreen();
+      }
+    }
+  } catch (e) {
+    console.warn("No se pudo alternar pantalla completa:", e);
+  }
+  actualizarBotonesFullscreenUI();
+  setTimeout(ajustarEscalaResponsiva, 100);
+}
+
 function inicializarAdaptacionMovilYRotacion() {
-  // Crear botón rápido en la esquina de la arena para ocultar/mostrar el marcador lateral en móviles/tablets
-  const arena = document.querySelector('.duel-arena');
+  // Botones de acceso rápido en la barra central (Panel Lateral y Pantalla Completa)
+  const phaseControls = document.querySelector('.phase-controls');
   const sidebar = document.getElementById('duel-sidebar');
-  if (arena && sidebar && !document.getElementById('btn-toggle-sidebar-mobile')) {
+  if (phaseControls && sidebar && !document.getElementById('btn-toggle-sidebar-mobile')) {
     const btnToggle = document.createElement('button');
     btnToggle.type = 'button';
     btnToggle.id = 'btn-toggle-sidebar-mobile';
@@ -7643,8 +7872,34 @@ function inicializarAdaptacionMovilYRotacion() {
       btnToggle.innerHTML = oculto ? '📊 <span>Mostrar Panel</span>' : '📊 <span>Panel</span>';
       ajustarEscalaResponsiva();
     });
-    arena.appendChild(btnToggle);
+    phaseControls.insertBefore(btnToggle, phaseControls.firstChild);
   }
+
+  if (phaseControls && !document.getElementById('btn-arena-fullscreen')) {
+    const btnFsArena = document.createElement('button');
+    btnFsArena.type = 'button';
+    btnFsArena.id = 'btn-arena-fullscreen';
+    btnFsArena.className = 'btn-arena-fullscreen';
+    btnFsArena.innerHTML = '⛶ <span>Full</span>';
+    btnFsArena.title = 'Alternar Pantalla Completa';
+    btnFsArena.addEventListener('click', toggleFullscreenJuego);
+    phaseControls.appendChild(btnFsArena);
+  }
+
+  const btnMenuFs = document.getElementById('btn-menu-fullscreen');
+  if (btnMenuFs) btnMenuFs.addEventListener('click', toggleFullscreenJuego);
+
+  const btnSideFs = document.getElementById('btn-sidebar-fullscreen');
+  if (btnSideFs) btnSideFs.addEventListener('click', toggleFullscreenJuego);
+
+  document.addEventListener('fullscreenchange', () => {
+    actualizarBotonesFullscreenUI();
+    setTimeout(ajustarEscalaResponsiva, 100);
+  });
+  document.addEventListener('webkitfullscreenchange', () => {
+    actualizarBotonesFullscreenUI();
+    setTimeout(ajustarEscalaResponsiva, 100);
+  });
 
   // Ocultar el inspector al tocar fuera de una carta en pantallas táctiles
   document.addEventListener('touchstart', (e) => {
