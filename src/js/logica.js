@@ -13,6 +13,8 @@
 // ==========================================
 // CONFIGURACIÓN GLOBAL Y BILINGÜE DEL JUEGO
 // ==========================================
+const POKEOH_VERSION = '0.3.0 Beta';
+
 const configuracionJuego = {
   idioma: 'es',
   lpInicial: 8000,
@@ -121,8 +123,10 @@ const I18N = {
     ruleTabObjective: "🎯 Objetivo & Fases",
     ruleTabSummons: "⭐ Invocación & Sacrificios",
     ruleTabBattle: "⚔️ Combate & Tipos (±300)",
-    ruleTabSpells: "🪄 Magias, Equipos & Trampas",
+    ruleTabSpells: "🪄 Magias & Equipos",
+    ruleTabEffectsMegas: "✨ Efectos & Megas",
     ruleTabSecrets: "🃏 Boca Abajo & Secretos",
+    ruleTabChangelog: "📜 Notas de Versión",
     searchPlaceholder: "Buscar por nombre o ataque...",
     deckSavedSuccess: "¡Baraja guardada correctamente con 40 cartas!",
     deckInvalidCount: "La baraja debe tener exactamente 40 cartas para ser válida.",
@@ -230,8 +234,10 @@ const I18N = {
     ruleTabObjective: "🎯 Objective & Phases",
     ruleTabSummons: "⭐ Summons & Tributes",
     ruleTabBattle: "⚔️ Combat & Types (±300)",
-    ruleTabSpells: "🪄 Spells, Equips & Traps",
+    ruleTabSpells: "🪄 Spells & Equips",
+    ruleTabEffectsMegas: "✨ Effects & Megas",
     ruleTabSecrets: "🃏 Face-Down & Secrets",
+    ruleTabChangelog: "📜 Changelogs",
     searchPlaceholder: "Search by name or attack...",
     deckSavedSuccess: "Deck saved successfully with 40 cards!",
     deckInvalidCount: "A valid deck must contain exactly 40 cards.",
@@ -6638,6 +6644,12 @@ function inicializarMenuPrincipal() {
     btnOpenRulesSidebar.onclick = () => abrirModalReglas();
   }
 
+  // Acceso directo a Changelogs / Notas de Versión desde el Menú Principal
+  const btnMenuChangelog = document.getElementById('btn-menu-changelog');
+  if (btnMenuChangelog) {
+    btnMenuChangelog.onclick = () => cambiarPestanaReglas('tab-rules-changelog');
+  }
+
   // Acceso a Ajustes desde la barra lateral en todo momento
   if (btnOpenSettings) {
     btnOpenSettings.onclick = () => {
@@ -7588,15 +7600,40 @@ function renderizarSelectorMazosPrePartida() {
 // ==========================================
 // 19. MODAL DE REGLAMENTO E INSTRUCCIONES
 // ==========================================
+function cambiarPestanaReglas(targetId) {
+  const modal = document.getElementById('rules-modal');
+  if (modal) modal.classList.remove('hidden');
+  const tabBtns = modal ? modal.querySelectorAll('.rules-tab-btn') : [];
+  const panes = modal ? modal.querySelectorAll('.rules-tab-pane') : [];
+
+  tabBtns.forEach(b => {
+    if (b.getAttribute('data-tab') === targetId) {
+      b.classList.add('active');
+    } else {
+      b.classList.remove('active');
+    }
+  });
+
+  panes.forEach(p => {
+    if (p.id === targetId) {
+      p.classList.add('active');
+    } else {
+      p.classList.remove('active');
+    }
+  });
+
+  AudioManager.reproducirSFX('enter');
+}
+
 function inicializarModalReglas() {
   const modal = document.getElementById('rules-modal');
+  if (!modal) return;
   const btnCloseX = document.getElementById('btn-close-rules-x');
   const btnClose = document.getElementById('btn-close-rules');
-  const tabBtns = document.querySelectorAll('.rules-tab-btn');
-  const panes = document.querySelectorAll('.rules-tab-pane');
+  const tabBtns = modal.querySelectorAll('.rules-tab-btn');
 
   const cerrar = () => {
-    if (modal) modal.classList.add('hidden');
+    modal.classList.add('hidden');
   };
 
   if (btnCloseX) btnCloseX.onclick = cerrar;
@@ -7604,23 +7641,14 @@ function inicializarModalReglas() {
 
   tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      tabBtns.forEach(b => b.classList.remove('active'));
-      panes.forEach(p => p.classList.remove('active'));
-
-      btn.classList.add('active');
       const targetId = btn.getAttribute('data-tab');
-      const targetPane = document.getElementById(targetId);
-      if (targetPane) targetPane.classList.add('active');
-
-      AudioManager.reproducirSFX('enter');
+      cambiarPestanaReglas(targetId);
     });
   });
 }
 
-function abrirModalReglas() {
-  const modal = document.getElementById('rules-modal');
-  if (modal) modal.classList.remove('hidden');
-  AudioManager.reproducirSFX('enter');
+function abrirModalReglas(targetId = 'tab-rules-obj') {
+  cambiarPestanaReglas(targetId);
 }
 
 // ==============================================================

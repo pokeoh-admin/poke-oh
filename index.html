@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="src/css/style.css?v=20261024_1">
+  <link rel="stylesheet" href="src/css/style.css?v=20261024_030">
 </head>
 <body>
   <!-- ============================================== -->
@@ -44,6 +44,11 @@
           <button class="menu-fullscreen-pill" id="btn-menu-fullscreen" type="button" title="Alternar Pantalla Completa / Fullscreen">
             <span class="fs-pill-icon" id="menu-fs-icon">⛶</span>
             <span class="fs-pill-text" id="menu-fs-text" data-i18n="btnFullscreen">Pantalla Full</span>
+          </button>
+          <button class="menu-version-pill" id="btn-menu-changelog" type="button" title="Ver registro de cambios y versiones de Poké-Oh!">
+            <span class="version-dot"></span>
+            <span class="version-text">v0.3.0 Beta</span>
+            <span class="version-icon">📜</span>
           </button>
           <button class="menu-user-pill" id="btn-menu-user" type="button" title="Gestión de Usuario / Perfil">
             <span class="user-pill-avatar" id="menu-user-avatar">👤</span>
@@ -114,7 +119,7 @@
       </div>
 
       <div class="main-menu-footer">
-        <span>POKÉ-OH! • Antigravity Duel Engine • 2026</span>
+        <span>POKÉ-OH! • Antigravity Duel Engine • 2026 • <b class="footer-version-tag">v0.3.0 Beta</b></span>
       </div>
     </div>
   </div>
@@ -129,7 +134,7 @@
       <div class="sidebar-header">
         <div class="logo-box">
           <span class="logo-icon">⚡</span>
-          <h2 class="sidebar-title">POKÉ-OH!</h2>
+          <h2 class="sidebar-title">POKÉ-OH! <span class="sidebar-version-pill">v0.3.0</span></h2>
         </div>
         <button class="sidebar-user-pill" id="btn-sidebar-user" type="button" title="Perfil de Usuario">
           <span class="user-pill-avatar" id="sidebar-user-avatar">👤</span>
@@ -813,7 +818,7 @@
   <div class="modal-overlay hidden" id="rules-modal">
     <div class="modal-box rules-box">
       <div class="modal-header-with-close">
-        <h3 class="modal-title" data-i18n="rulesTitle">📖 Guía y Reglamento de Poké-Oh!</h3>
+        <h3 class="modal-title" data-i18n="rulesTitle">📖 Guía y Reglamento de Poké-Oh! <span class="rules-version-badge">v0.3.0 Beta</span></h3>
         <button class="modal-close-x" id="btn-close-rules-x" type="button" title="Cerrar">&times;</button>
       </div>
 
@@ -822,8 +827,10 @@
         <button type="button" class="rules-tab-btn active" data-tab="tab-rules-obj" data-i18n="ruleTabObjective">🎯 Objetivo & Fases</button>
         <button type="button" class="rules-tab-btn" data-tab="tab-rules-summons" data-i18n="ruleTabSummons">⭐ Invocación & Sacrificios</button>
         <button type="button" class="rules-tab-btn" data-tab="tab-rules-battle" data-i18n="ruleTabBattle">⚔️ Combate & Tipos (±300)</button>
-        <button type="button" class="rules-tab-btn" data-tab="tab-rules-spells" data-i18n="ruleTabSpells">🪄 Magias, Equipos & Trampas</button>
+        <button type="button" class="rules-tab-btn" data-tab="tab-rules-spells" data-i18n="ruleTabSpells">🪄 Magias & Equipos</button>
+        <button type="button" class="rules-tab-btn" data-tab="tab-rules-effects-megas" data-i18n="ruleTabEffectsMegas">✨ Efectos & Megas</button>
         <button type="button" class="rules-tab-btn" data-tab="tab-rules-secrets" data-i18n="ruleTabSecrets">🃏 Boca Abajo & Secretos</button>
+        <button type="button" class="rules-tab-btn" data-tab="tab-rules-changelog" data-i18n="ruleTabChangelog">📜 Notas de Versión</button>
       </div>
 
       <!-- Contenidos de las pestañas -->
@@ -912,6 +919,212 @@
               <li><b>Tus Cartas Boca Abajo:</b> Puedes pasar el cursor sobre ellas en cualquier momento para inspeccionar su efecto y recordar tu estrategia. Durante tu Fase Principal, puedes hacer clic en ellas para activarlas.</li>
               <li><b>Cartas Boca Abajo del Rival:</b> Ni tú puedes ver el contenido de las cartas del rival, ni el rival puede ver las tuyas. En el inspector aparecen como <b>"SECRETO"</b> hasta que son activadas.</li>
             </ul>
+          </div>
+        </div>
+
+        <!-- Pestaña 6: Efectos Activos, Megaevoluciones y Magias Tácticas -->
+        <div class="rules-tab-pane" id="tab-rules-effects-megas">
+          <div class="rule-block">
+            <h4>⚡ Efectos Activos de Monstruos (1 Solo Uso)</h4>
+            <p>Más del <b>30% de los Pokémon</b> ahora poseen habilidades tácticas únicas basadas en su elemento. Puedes activar su efecto una sola vez mientras el Pokémon permanezca en el campo.</p>
+            <ul class="rule-steps-list">
+              <li><b>¿Cuándo activarlo?:</b> Durante tu <b>Fase Principal</b>, pulsa sobre un Pokémon que controles en el campo. Si posee un efecto disponible, verás el botón brillante <b style="color:#feca57;">⚡ EFECTO</b>.</li>
+              <li><b>Selección de Objetivos:</b> Si la habilidad requiere un blanco (como seleccionar un monstruo rival para devolverlo a la mano o bloquear su ataque), se desplegará un menú interactivo para elegir a tu objetivo.</li>
+              <li><b>Consumo de Efecto:</b> Una vez ejecutada la habilidad, el Pokémon queda marcado como <i>[EFECTO USADO]</i>. Si es enviado al cementerio o devuelto a la mano y vuelve a ser invocado, recuperará su habilidad.</li>
+            </ul>
+            <div class="rule-grid-3" style="margin-top: 10px;">
+              <div class="rule-card-item">
+                <span class="rule-card-badge badge-blue">🔮 Psíquico</span>
+                <h5>Control y Teletransporte</h5>
+                <p>Regresa monstruos rivales a la mano o congela sus ataques durante 2 turnos (ej. Alakazam, Hypno, Mewtwo).</p>
+              </div>
+              <div class="rule-card-item">
+                <span class="rule-card-badge badge-green">🌿 Planta</span>
+                <h5>Enredo y Drenaje</h5>
+                <p>Amarran e inmovilizan al enemigo impidiendo que ataque o curan Puntos de Vida (ej. Venusaur, Victreebel).</p>
+              </div>
+              <div class="rule-card-item">
+                <span class="rule-card-badge badge-gold">⚡ Eléctrico / 🔥 Fuego</span>
+                <h5>Parálisis y Quemadura</h5>
+                <p>Paralizan al rival para anular su ofensiva o causan quemaduras que desgastan su ataque (ej. Raichu, Charizard).</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="rule-block">
+            <h4>🧬 Megaevolución y el Side Deck (14 Formas Legendarias)</h4>
+            <p>Las <b>Megaevoluciones</b> habitan en tu <b>Side Deck</b> independiente: ¡no ocupan espacio dentro de tus 40 cartas de la baraja principal y siempre están listas para el combate!</p>
+            <ul class="rule-steps-list">
+              <li><b>Cómo Megaevolucionar:</b> Juega la carta mágica <b>Megaevolución (ID 250)</b> en tu Fase Principal teniendo en tu campo al Pokémon correspondiente.</li>
+              <li><b>Selección de Ramas:</b> Si tu Pokémon posee dos formas (como Charizard con <b>Mega Charizard X</b> o <b>Mega Charizard Y</b>, o Mewtwo con <b>X/Y</b>) o controlas varios candidatos, se abrirá un selector visual para que elijas tu transformación favorita.</li>
+              <li><b>Poder Heredado:</b> La Megaevolución sustituye a tu Pokémon en la misma casilla, conserva todos los objetos equipados y su posición de batalla (Ataque o Defensa), alcanzando hasta <b>3800 ATK</b>.</li>
+              <li><b>Pokémon Compatibles (14):</b> Venusaur, Charizard (X/Y), Blastoise, Alakazam, Gengar, Pinsir, Gyarados, Aerodactyl, Mewtwo (X/Y), Beedrill, Pidgeot y Kangaskhan.</li>
+            </ul>
+          </div>
+
+          <div class="rule-block">
+            <h4>🪄 8 Nuevas Cartas Mágicas Tácticas (Nivel TCG Competitivo)</h4>
+            <div class="rule-grid-3">
+              <div class="rule-card-item">
+                <span class="rule-card-badge badge-green">🪦 ID 213</span>
+                <h5>Ceniza Sagrada</h5>
+                <p>Resucita 1 Pokémon de tu cementerio directamente a una casilla libre de tu campo.</p>
+              </div>
+              <div class="rule-card-item">
+                <span class="rule-card-badge badge-blue">🛡️ ID 214</span>
+                <h5>Muro Prismático</h5>
+                <p>Despliega un escudo impenetrable que bloquea todos los ataques rivales durante 3 turnos.</p>
+              </div>
+              <div class="rule-card-item">
+                <span class="rule-card-badge badge-gold">🌪️ ID 215</span>
+                <h5>Viento Feérico</h5>
+                <p>Una ráfaga mágica que destruye todas las cartas de magia y trampa en ambos campos.</p>
+              </div>
+              <div class="rule-card-item">
+                <span class="rule-card-badge badge-red" style="background:#ff4757; color:#fff;">💥 ID 216</span>
+                <h5>Fisura Sísmica</h5>
+                <p>Un terremoto devastador que destruye al instante a todos los monstruos en modo Ataque del campo.</p>
+              </div>
+              <div class="rule-card-item">
+                <span class="rule-card-badge badge-blue">🧠 ID 217</span>
+                <h5>Señuelo Telepático</h5>
+                <p>Toma el control de 1 monstruo enemigo y pásalo a tu campo durante el turno en curso.</p>
+              </div>
+              <div class="rule-card-item">
+                <span class="rule-card-badge badge-gold">🏺 ID 218</span>
+                <h5>Cofre Reliquia</h5>
+                <p>Acelera tu estrategia robando inmediatamente 2 cartas de tu baraja a tu mano.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="rule-block">
+            <h4>🔥💧🌱 Elección de Mazos Iniciales al Registrarse</h4>
+            <p>Al crear una cuenta nueva en Poké-Oh!, puedes seleccionar tu baraja inicial de 40 cartas totalmente equilibrada (20 Básicos, 5 Invocaciones y 15 Magias/Trampas):</p>
+            <ul class="rule-steps-list">
+              <li><b>🔥 Mazo Fuego (Furia Ígnea):</b> Ofensiva demoledora centrada en Charmander, Charmeleon y Charizard, reforzada con cartas de aumento de daño y contraataques.</li>
+              <li><b>💧 Mazo Agua (Torrente Abisal):</b> Resistencia y control con Squirtle, Wartortle y Blastoise, apoyados con escudos, curación y defensas impenetrables.</li>
+              <li><b>🌱 Mazo Planta (Selva Floral):</b> Estrategia táctica con Bulbasaur, Ivysaur y Venusaur, combinando efectos de atadura, recuperación de LP y resistencia.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Pestaña 7: Notas de Versión / Changelogs -->
+        <div class="rules-tab-pane" id="tab-rules-changelog">
+          <div class="changelog-intro-box">
+            <h4>📜 Historial de Actualizaciones & Novedades</h4>
+            <p>Consulta los cambios, mejoras y correcciones realizadas en Poké-Oh! ordenadas cronológicamente.</p>
+          </div>
+
+          <div class="changelog-timeline">
+            <!-- Versión 0.3.0 Beta (Actual) -->
+            <div class="changelog-version-card current-version">
+              <div class="changelog-version-header">
+                <div class="changelog-version-title">
+                  <span class="changelog-tag tag-major">GRAN ACTUALIZACIÓN</span>
+                  <span class="changelog-version-num">v0.3.0 Beta</span>
+                </div>
+                <span class="changelog-version-date">24 Oct 2026 (Actual)</span>
+              </div>
+              <ul class="changelog-items-list">
+                <li>⚡ <b>Efectos Activos de Monstruos:</b> Más del 30% de Pokémon ahora tienen habilidades únicas de 1 solo uso con el botón <code>EFECTO</code> en tu Fase Principal.</li>
+                <li>🧬 <b>14 Megaevoluciones & Side Deck:</b> Nuevo Side Deck independiente con 14 formas legendarias activables mediante la carta mágica <i>Megaevolución</i>, incluyendo selector de ramas para Charizard y Mewtwo.</li>
+                <li>🪄 <b>8 Nuevas Cartas Mágicas Tácticas:</b> Nuevos hechizos para revivir del cementerio, escudo de 3 turnos, barrido de magias/trampas, destrucción de atacantes, robo acelerado y control de monstruo rival.</li>
+                <li>🔥💧🌱 <b>Selección de Mazo Inicial:</b> Los nuevos usuarios eligen entre barajas equilibradas de 40 cartas de Fuego, Agua o Planta al registrarse.</li>
+                <li>🌐 <b>Explorador de Salas JcJ:</b> Búsqueda y listado en tiempo real de partidas abiertas en 2 Jugadores con un solo clic.</li>
+                <li>🛡️ <b>Panel de Administración:</b> Opciones para bloquear/desbloquear usuarios, reiniciar estadísticas, cambiar roles y eliminar cuentas de forma segura.</li>
+              </ul>
+            </div>
+
+            <!-- Versión 0.2.0 Beta -->
+            <div class="changelog-version-card">
+              <div class="changelog-version-header">
+                <div class="changelog-version-title">
+                  <span class="changelog-tag tag-major">GRAN ACTUALIZACIÓN</span>
+                  <span class="changelog-version-num">v0.2.0 Beta</span>
+                </div>
+                <span class="changelog-version-date">23 Oct 2026</span>
+              </div>
+              <ul class="changelog-items-list">
+                <li>🌐 <b>Multijugador Online en Tiempo Real:</b> Duelos JcJ punto a punto con servidor Colyseus y base de datos Supabase.</li>
+                <li>🎴 <b>Selección Previa de Mazo:</b> Puedes elegir cuál de tus 5 barajas usar antes de iniciar cada duelo en 2 Jugadores.</li>
+                <li>🪙 <b>Sorteo de Moneda 50/50:</b> Decisión al azar totalmente balanceada para determinar quién juega el primer turno.</li>
+                <li>📜 <b>Panel Lateral de Acciones:</b> Registro visual en vivo a la derecha para ver cada movimiento y jugada del rival durante su turno.</li>
+                <li>🔔 <b>Aviso de Turno Más Visible:</b> Cartel animado de alta notoriedad para identificar el cambio de turno al instante.</li>
+                <li>🐛 <b>Corrección en Trampas y Magias:</b> Solucionado bug donde las trampas se activaban sobre el atacante y desincronización de cartas M/T tras su uso.</li>
+                <li>🪦 <b>Conteo Sincronizado de Baraja y Cementerio:</b> Ambos jugadores pueden ver la cantidad exacta de cartas en cementerio y mazo del rival.</li>
+                <li>🏳️ <b>Penalización por Abandono:</b> Si un jugador se retira en JcJ, se concede la victoria al rival y se anota derrota al que abandonó.</li>
+                <li>🖥️ <b>Pantalla Completa en PC:</b> Arreglado el botón de pantalla completa en navegadores de escritorio.</li>
+              </ul>
+            </div>
+
+            <!-- Versión 0.1.3 Beta -->
+            <div class="changelog-version-card">
+              <div class="changelog-version-header">
+                <div class="changelog-version-title">
+                  <span class="changelog-tag tag-patch">PARCHE</span>
+                  <span class="changelog-version-num">v0.1.3 Beta</span>
+                </div>
+                <span class="changelog-version-date">22 Oct 2026</span>
+              </div>
+              <ul class="changelog-items-list">
+                <li>📱 <b>Invocación Táctil Confirmada:</b> En móviles y tablets, presionar una carta pregunta confirmación para evitar invocaciones por error.</li>
+                <li>🛑 <b>Trampas Interactivas:</b> Pregunta al jugador si desea activar su trampa cuando el rival declara un ataque.</li>
+                <li>⚔️ <b>Ataques Visuales Claros:</b> Proceso de ataque ralentizado con resaltado visible de qué Pokémon ataca a cuál.</li>
+              </ul>
+            </div>
+
+            <!-- Versión 0.1.2 Beta -->
+            <div class="changelog-version-card">
+              <div class="changelog-version-header">
+                <div class="changelog-version-title">
+                  <span class="changelog-tag tag-patch">PARCHE</span>
+                  <span class="changelog-version-num">v0.1.2 Beta</span>
+                </div>
+                <span class="changelog-version-date">21 Oct 2026</span>
+              </div>
+              <ul class="changelog-items-list">
+                <li>🛡️ <b>Menú de Acción Limpio:</b> Eliminada la opción redundante de defender en cartas de monstruo; solo se muestra la acción Atacar.</li>
+                <li>🔒 <b>Bloqueo de Posición en Batalla:</b> Las cartas no pueden alternar entre ataque y defensa durante la Fase de Batalla ni en el turno rival.</li>
+              </ul>
+            </div>
+
+            <!-- Versión 0.1.1 Beta -->
+            <div class="changelog-version-card">
+              <div class="changelog-version-header">
+                <div class="changelog-version-title">
+                  <span class="changelog-tag tag-patch">PARCHE</span>
+                  <span class="changelog-version-num">v0.1.1 Beta</span>
+                </div>
+                <span class="changelog-version-date">21 Oct 2026</span>
+              </div>
+              <ul class="changelog-items-list">
+                <li>📱 <b>Mayor Visibilidad Móvil:</b> Números de ATK y DEF aumentados y optimizados para celulares y tablets.</li>
+                <li>🔄 <b>Rotación en Defensa:</b> Las cartas se rotan horizontalmente al ponerse en modo de Defensa.</li>
+                <li>⚠️ <b>Alerta de Invocación Única:</b> Advertencia en pantalla al intentar invocar más de un monstruo por turno.</li>
+                <li>📱 <b>Ajuste de Altura de Menú:</b> Botón "!Comenzar Duelo!" visible sin problemas de scroll en dispositivos móviles.</li>
+                <li>🖼️ <b>Icono de Fullscreen:</b> Restaurado el icono gráfico para salir de pantalla completa.</li>
+              </ul>
+            </div>
+
+            <!-- Versión 0.1.0 Beta -->
+            <div class="changelog-version-card">
+              <div class="changelog-version-header">
+                <div class="changelog-version-title">
+                  <span class="changelog-tag tag-initial">LANZAMIENTO</span>
+                  <span class="changelog-version-num">v0.1.0 Beta</span>
+                </div>
+                <span class="changelog-version-date">20 Oct 2026</span>
+              </div>
+              <ul class="changelog-items-list">
+                <li>🚀 <b>Lanzamiento Inicial:</b> Motor de combate por turnos y tablero estratégico de Poké-Oh!.</li>
+                <li>⚡ <b>151 Pokémon de Kanto:</b> Criaturas con tipos elementales, estadísticas de combate y sistema de sacrificios para Fase 1 y Fase 2.</li>
+                <li>✨ <b>Ventaja Elemental (±300):</b> Tabla de tipos con bonificación y penalización en cálculos de combate.</li>
+                <li>🪄 <b>Cartas de Soporte:</b> Magias, objetos de equipo permanentes y trampas secretas boca abajo.</li>
+                <li>🤖 <b>Modo Jugador vs IA (Blue):</b> Duelos individuales con 3 niveles de dificultad y Puntos de Vida personalizables.</li>
+                <li>🎴 <b>Deck Builder:</b> Constructor de barajas con soporte para 5 mazos de 40 cartas y regla 20/5/15.</li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -1344,9 +1557,9 @@
   <!-- SDK Cliente de Colyseus para Multijugador Online -->
   <script src="lib/colyseus.js"></script>
   <!-- Base de Datos de Cartas (151 Pokémon + Ítems de todas las generaciones) -->
-  <script src="src/js/cartas.js?v=20261024_1"></script>
+  <script src="src/js/cartas.js?v=20261024_030"></script>
   <!-- Lógica del Duelo -->
-  <script src="src/js/logica.js?v=20261024_1"></script>
+  <script src="src/js/logica.js?v=20261024_030"></script>
 </body>
 </html>
 
