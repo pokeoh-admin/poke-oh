@@ -3328,6 +3328,146 @@ function activarCartaMagica(datosCarta, cartaId, slotIndex, slotElem) {
     AudioManager.reproducirSFX('enter');
     sumarPuntosDuelo(150, "Poké Flauta reactivó a tus Pokémon");
     mostrarMensajeToast("¡Poké Flauta sonó! Todos tus Pokémon pueden atacar de nuevo.");
+  } else if (cartaId === 213) { // Ceniza Sagrada: Resurrección de Monstruo del Cementerio al campo
+    const monstruosGY = (estadoJugador.cementerio || [])
+      .map((id, gyIdx) => ({ id, gyIdx, carta: bdCartas[id] }))
+      .filter(item => item.carta && item.carta.tipoCarta === 'monstruo');
+
+    const slotLibre = estadoJugador.zonaMonstruos.findIndex(m => m === null);
+
+    if (monstruosGY.length === 0) {
+      mostrarMensajeToast("¡Ceniza Sagrada activada! Pero no tienes Pokémon en tu Cementerio para resucitar.");
+    } else if (slotLibre === -1) {
+      mostrarMensajeToast("¡Ceniza Sagrada activada! Pero no tienes espacios libres en tu Zona de Monstruos.");
+    } else if (monstruosGY.length === 1) {
+      const rescatado = monstruosGY[0];
+      const idxReal = estadoJugador.cementerio.indexOf(rescatado.id);
+      if (idxReal !== -1) estadoJugador.cementerio.splice(idxReal, 1);
+      estadoJugador.zonaMonstruos[slotLibre] = {
+        id: rescatado.id,
+        posicion: 'ataque',
+        haAtacado: false,
+        atkMod: 0,
+        defMod: 0
+      };
+      AudioManager.reproducirSFX('heal');
+      renderizarCampoJugador();
+      actualizarContadoresMazoYCementerio();
+      sumarPuntosDuelo(250, `Ceniza Sagrada resucitó a ${rescatado.carta.nombre}`);
+      mostrarMensajeToast(`¡Ceniza Sagrada resucitó a ${rescatado.carta.nombre} directamente al campo!`);
+      registrarAccionBatalla({ actor: 'you', icono: '🔮', texto: `Ceniza Sagrada resucitó a ${rescatado.carta.nombre}.` });
+      if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline()) {
+        MultiplayerManager.sincronizarEstadoCampo();
+      }
+    } else {
+      abrirModalResurreccionCementerio(monstruosGY, slotLibre);
+    }
+  } else if (cartaId === 214) { // Muro Prismático: Bloquea ataques rivales por 3 turnos
+    estadoJuego.bloqueoAtaqueRivalTurnos = 3;
+    AudioManager.reproducirSFX('heal');
+    lanzarEfectoVisual('shield', document.getElementById('player-field-area') || document.body);
+    sumarPuntosDuelo(200, "Muro Prismático activado (3 turnos de protección)");
+    mostrarMensajeToast("¡Muro Prismático activado! El rival no podrá declarar ataques durante 3 turnos.");
+    registrarAccionBatalla({ actor: 'you', icono: '🛡️', texto: "Muro Prismático activado: Ataques rivales bloqueados por 3 turnos." });
+  } else if (cartaId === 215) { // Viento Feérico: Plumero de la Arpía (destruye todas las M/T del rival)
+    let mtDestruidas = 0;
+    estadoOponente.zonaMagiasTrampas.forEach((t, idx) => {
+      if (t !== null) {
+        if (!Array.isArray(estadoOponente.cementerio)) estadoOponente.cementerio = [];
+        estadoOponente.cementerio.push(t.id);
+        estadoOponente.zonaMagiasTrampas[idx] = null;
+        mtDestruidas++;
+        const sMT = document.querySelector(`#opponent-side .spells-row .spell-trap-slot[data-slot-index="${idx}"]`);
+        if (sMT) {
+          lanzarEfectoVisual('viento', sMT);
+          crearNumeroFlotante("BARRIDA", sMT, 'damage');
+        }
+      }
+    });
+    AudioManager.reproducirSFX('faint');
+    renderizarCampoOponente();
+    sumarPuntosDuelo(250, `Viento Feérico destruyó ${mtDestruidas} cartas M/T rivales`);
+    mostrarMensajeToast(`¡Viento Feérico activado! Barrió y destruyó ${mtDestruidas} carta(s) M/T del rival.`);
+    registrarAccionBatalla({ actor: 'you', icono: '🪄', texto: `Viento Feérico barrió ${mtDestruidas} cartas M/T del rival.` });
+    if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline()) {
+      MultiplayerManager.sincronizarEstadoCampo();
+    }
+  } else if (cartaId === 216) { // Fisura Sísmica: Destruye todos los Pokémon rivales en campo
+    let destruidos = 0;
+    estadoOponente.zonaMonstruos.forEach((m, idx) => {
+      if (m !== null) {
+        if (!Array.isArray(estadoOponente.cementerio)) estadoOponente.cementerio = [];
+        estadoOponente.cementerio.push(m.id);
+        estadoOponente.zonaMonstruos[idx] = null;
+        destruidos++;
+        const sM = document.querySelector(`#opponent-side .monsters-row .monster-slot[data-slot-index="${idx}"]`);
+        if (sM) {
+          lanzarEfectoVisual('fuego', sM);
+          crearNumeroFlotante("DESTRUIDO", sM, 'damage');
+        }
+      }
+    });
+    AudioManager.reproducirSFX('faint');
+    renderizarCampoOponente();
+    sumarPuntosDuelo(300, `Fisura Sísmica destruyó ${destruidos} Pokémon rivales`);
+    mostrarMensajeToast(`¡Fisura Sísmica activada! Destruyó a todos los Pokémon en el campo rival (${destruidos}).`);
+    registrarAccionBatalla({ actor: 'you', icono: '💥', texto: `Fisura Sísmica destruyó ${destruidos} Pokémon del rival.` });
+    if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline()) {
+      MultiplayerManager.sincronizarEstadoCampo();
+    }
+  } else if (cartaId === 217) { // Señuelo Telepático: Control Mental (roba 1 monstruo rival al campo)
+    const rivalMonstruos = estadoOponente.zonaMonstruos
+      .map((m, idx) => m ? { idx, m, atk: obtenerAtkActual(m) } : null)
+      .filter(Boolean)
+      .sort((a, b) => b.atk - a.atk);
+
+    const slotLibreJugador = estadoJugador.zonaMonstruos.findIndex(m => m === null);
+
+    if (rivalMonstruos.length > 0 && slotLibreJugador !== -1) {
+      const robado = rivalMonstruos[0];
+      estadoJugador.zonaMonstruos[slotLibreJugador] = { ...robado.m, haAtacado: false };
+      estadoOponente.zonaMonstruos[robado.idx] = null;
+      const dRobado = bdCartas[robado.m.id] || { nombre: 'Pokémon' };
+      AudioManager.reproducirSFX('hit-super');
+      sumarPuntosDuelo(300, `Señuelo Telepático tomó el control de ${dRobado.nombre}`);
+      mostrarMensajeToast(`¡Señuelo Telepático activado! Tomaste el control de ${dRobado.nombre} del rival.`);
+      registrarAccionBatalla({ actor: 'you', icono: '🌀', texto: `Señuelo Telepático tomó el control de ${dRobado.nombre} rival.` });
+      renderizarCampoJugador();
+      renderizarCampoOponente();
+      if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline()) {
+        MultiplayerManager.sincronizarEstadoCampo();
+      }
+    } else {
+      mostrarMensajeToast("Señuelo Telepático activado, pero no hay objetivos en el campo rival o tu zona está llena.");
+    }
+  } else if (cartaId === 218) { // Cofre Reliquia: Olla de la Codicia (Roba 2 cartas)
+    robarCartas(estadoJugador, 2);
+    renderizarMano(estadoJugador);
+    AudioManager.reproducirSFX('enter');
+    crearNumeroFlotante("+2 Cartas", document.querySelector('#player-deck'), 'buff');
+    sumarPuntosDuelo(200, "Cofre Reliquia robó 2 cartas");
+    mostrarMensajeToast("¡Cofre Reliquia activado! Robaste 2 cartas de tu baraja.");
+    registrarAccionBatalla({ actor: 'you', icono: '🏺', texto: "Cofre Reliquia: Robaste 2 cartas." });
+  } else if (cartaId === 219) { // Polvo Inmunológico: Silencia los efectos de todos los Pokémon rivales
+    estadoOponente.zonaMonstruos.forEach((m, idx) => {
+      if (m) {
+        m.efectoSilenciado = true;
+        const sM = document.querySelector(`#opponent-side .monsters-row .monster-slot[data-slot-index="${idx}"]`);
+        if (sM) {
+          lanzarEfectoVisual('shield', sM);
+          crearNumeroFlotante("SILENCIADO", sM, 'damage');
+        }
+      }
+    });
+    AudioManager.reproducirSFX('hit');
+    sumarPuntosDuelo(200, "Polvo Inmunológico silenció al rival");
+    mostrarMensajeToast("¡Polvo Inmunológico activado! Los efectos de todos los Pokémon del rival han sido silenciados.");
+    registrarAccionBatalla({ actor: 'you', icono: '✨', texto: "Polvo Inmunológico: Efectos de monstruos rivales silenciados." });
+    if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline()) {
+      MultiplayerManager.sincronizarEstadoCampo();
+    }
+  } else if (cartaId === 250) { // Megaevolución Suprema
+    iniciarProcesoMegaevolucion();
   }
 
   document.getElementById('player-lp-val').textContent = estadoJugador.lp;
@@ -3504,6 +3644,17 @@ function renderizarMonstruoEnCampo(slotElement, datosCarta, posicion = 'ataque',
     }
   }
 
+  // Botón de EFECTO especial de 1 solo uso
+  let botonEfectoHtml = "";
+  if (datosCarta.efectoActivo) {
+    if (slotData.efectoUsado) {
+      botonEfectoHtml = `<button class="monster-action-btn btn-efecto-usado" disabled title="Efecto de 1 solo uso ya utilizado">⚡ Usado</button>`;
+    } else if (estadoJuego.faseActual === 'PRINCIPAL' && estadoJuego.turnoDe === 'jugador' && !slotData.efectoSilenciado) {
+      const descEff = datosCarta.efectoActivo.descripcion || datosCarta.efectoActivo.nombre || "Efecto especial";
+      botonEfectoHtml = `<button class="monster-action-btn btn-efecto-activo" title="${escapeHtml(descEff)}">⚡ EFECTO</button>`;
+    }
+  }
+
   let badgeTipoHtml = "";
   let tributosBadgeHtml = "";
   if (datosCarta.tipoCarta === 'monstruo') {
@@ -3518,11 +3669,12 @@ function renderizarMonstruoEnCampo(slotElement, datosCarta, posicion = 'ataque',
     }
   }
 
-  const barraAccionesHtml = botonAtacarHtml
-    ? `<div class="monster-actions-bar">${botonAtacarHtml}</div>`
-    : '';
+  let barraAccionesHtml = "";
+  if (botonAtacarHtml || botonEfectoHtml) {
+    barraAccionesHtml = `<div class="monster-actions-bar">${botonAtacarHtml}${botonEfectoHtml}</div>`;
+  }
 
-  // MENÚ LIMPIO EN LA PARTE SUPERIOR DE LA CARTA (Solo muestra "Atacar" en Fase de Batalla)
+  // MENÚ LIMPIO EN LA PARTE SUPERIOR DE LA CARTA
   slotElement.innerHTML = `
     ${barraAccionesHtml}
 
@@ -3541,6 +3693,7 @@ function renderizarMonstruoEnCampo(slotElement, datosCarta, posicion = 'ataque',
 
   const cardElement = slotElement.querySelector('.card-on-field');
   const btnAtacar = slotElement.querySelector('.btn-atacar');
+  const btnEfecto = slotElement.querySelector('.btn-efecto-activo');
 
   configurarInspectorHover(cardElement, datosCarta, false, false, () => estadoJugador.zonaMonstruos[slotIndex]);
 
@@ -3554,6 +3707,641 @@ function renderizarMonstruoEnCampo(slotElement, datosCarta, posicion = 'ataque',
       iniciarDeclaracionAtaque(slotIndex);
     });
   }
+
+  if (btnEfecto && !slotData.efectoUsado) {
+    btnEfecto.addEventListener('click', (e) => {
+      e.stopPropagation();
+      activarEfectoActivoMonstruo(slotIndex);
+    });
+  }
+}
+
+// ==============================================================
+// 12.1. SISTEMA DE EFECTOS ACTIVOS DE 1 SOLO USO POR MONSTRUO
+// ==============================================================
+function activarEfectoActivoMonstruo(slotIndex, slotObjetivoRival = null) {
+  if (estadoJuego.faseActual !== 'PRINCIPAL' || estadoJuego.turnoDe !== 'jugador') {
+    mostrarMensajeToast("Solo puedes activar los efectos de tus Pokémon durante tu Fase Principal.");
+    return;
+  }
+  const slotData = estadoJugador.zonaMonstruos[slotIndex];
+  if (!slotData) return;
+  const datosCarta = bdCartas[slotData.id];
+  if (!datosCarta || !datosCarta.efectoActivo) return;
+
+  if (slotData.efectoUsado) {
+    mostrarMensajeToast("Este Pokémon ya utilizó su efecto de 1 solo uso en este duelo.");
+    return;
+  }
+  if (slotData.efectoSilenciado) {
+    mostrarMensajeToast("Los efectos de este Pokémon están silenciados por Polvo Inmunológico.");
+    return;
+  }
+
+  const efecto = datosCarta.efectoActivo;
+
+  // Si requiere objetivo rival
+  if (efecto.requiereObjetivoRival && slotObjetivoRival === null) {
+    // Verificar si es objetivo de cartas M/T o de monstruos
+    if (['destruir_equipo_rival', 'destruir_trampa_rival', 'destruir_magia_trampa_rival', 'devolver_magia_trampa_mano'].includes(efecto.tipo)) {
+      const slotsMTOcupados = estadoOponente.zonaMagiasTrampas
+        .map((s, idx) => s !== null ? idx : null)
+        .filter(idx => idx !== null);
+
+      if (slotsMTOcupados.length === 0) {
+        mostrarMensajeToast("El rival no tiene cartas en su Zona Mágica/Trampa para este efecto.");
+        return;
+      }
+      if (slotsMTOcupados.length === 1) {
+        slotObjetivoRival = slotsMTOcupados[0];
+      } else {
+        abrirModalSeleccionObjetivoEfecto(slotIndex, efecto, 'mt', slotsMTOcupados);
+        return;
+      }
+    } else {
+      // Objetivo de monstruo rival
+      const monstruosRival = estadoOponente.zonaMonstruos
+        .map((m, idx) => (m && bdCartas[m.id]) ? { idx, m, datos: bdCartas[m.id] } : null)
+        .filter(Boolean);
+
+      if (monstruosRival.length === 0) {
+        mostrarMensajeToast("El rival no tiene Pokémon en el campo para aplicar este efecto.");
+        return;
+      }
+
+      if (efecto.tipo === 'destruir_monstruo_debil') {
+        const debiles = monstruosRival.filter(r => (r.datos.atk || 0) <= (efecto.valorAtkMax || 1800));
+        if (debiles.length === 0) {
+          mostrarMensajeToast(`El rival no tiene ningún monstruo con ${efecto.valorAtkMax || 1800} ATK o menos.`);
+          return;
+        }
+        if (debiles.length === 1) {
+          slotObjetivoRival = debiles[0].idx;
+        } else {
+          abrirModalSeleccionObjetivoEfecto(slotIndex, efecto, 'monstruos_filtrados', debiles.map(d => d.idx));
+          return;
+        }
+      } else if (efecto.tipo === 'destruir_defensa') {
+        const enDefensa = monstruosRival.filter(r => r.m.posicion === 'defensa');
+        if (enDefensa.length === 0) {
+          mostrarMensajeToast("El rival no tiene ningún monstruo en posición de Defensa.");
+          return;
+        }
+        if (enDefensa.length === 1) {
+          slotObjetivoRival = enDefensa[0].idx;
+        } else {
+          abrirModalSeleccionObjetivoEfecto(slotIndex, efecto, 'monstruos_filtrados', enDefensa.map(d => d.idx));
+          return;
+        }
+      } else if (efecto.tipo === 'destruir_menor_atk') {
+        monstruosRival.sort((a, b) => obtenerAtkActual(a.m) - obtenerAtkActual(b.m));
+        slotObjetivoRival = monstruosRival[0].idx;
+      } else if (monstruosRival.length === 1) {
+        slotObjetivoRival = monstruosRival[0].idx;
+      } else {
+        abrirModalSeleccionObjetivoEfecto(slotIndex, efecto, 'monstruos', monstruosRival.map(m => m.idx));
+        return;
+      }
+    }
+  }
+
+  // Ejecutar el efecto
+  ejecutarLogicaEfecto(slotIndex, efecto, slotObjetivoRival);
+}
+
+function abrirModalSeleccionObjetivoEfecto(slotIndex, efecto, modo, indicesObjetivos) {
+  const modal = document.getElementById('effect-target-modal');
+  const title = document.getElementById('effect-target-title');
+  const name = document.getElementById('effect-target-name');
+  const desc = document.getElementById('effect-target-desc');
+  const prompt = document.getElementById('effect-target-prompt');
+  const grid = document.getElementById('effect-targets-grid');
+  if (!modal || !grid) return;
+
+  if (title) title.textContent = `⚡ ${efecto.nombre}`;
+  if (name) name.textContent = efecto.nombre;
+  if (desc) desc.textContent = efecto.descripcion || '';
+  if (prompt) prompt.textContent = "Elige la carta rival objetivo:";
+
+  grid.innerHTML = '';
+  indicesObjetivos.forEach(idx => {
+    let cardData = null;
+    let label = '';
+    let imgSrc = '';
+
+    if (modo === 'mt') {
+      const mt = estadoOponente.zonaMagiasTrampas[idx];
+      cardData = mt ? bdCartas[mt.id] : null;
+      label = `Zona M/T #${idx + 1}`;
+      imgSrc = (cardData && !mt.bocaAbajo) ? (cardData.imagenOficial || cardData.spriteEstatico) : 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';
+    } else {
+      const m = estadoOponente.zonaMonstruos[idx];
+      cardData = m ? bdCartas[m.id] : null;
+      label = cardData ? `${cardData.nombre} (${m.posicion.toUpperCase()})` : `Monstruo #${idx + 1}`;
+      imgSrc = cardData ? (cardData.spriteCampo || cardData.spriteEstatico || cardData.imagenOficial) : '';
+    }
+
+    const cardEl = document.createElement('div');
+    cardEl.className = 'effect-target-card';
+    cardEl.innerHTML = `
+      <img src="${imgSrc}" alt="${label}" class="target-card-img" onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';">
+      <div class="target-card-info">
+        <span class="target-card-name">${label}</span>
+        ${cardData && cardData.atk ? `<span class="target-card-stat">ATK: ${cardData.atk}</span>` : ''}
+      </div>
+      <button type="button" class="phase-btn btn-confirm btn-select-target">🎯 Elegir</button>
+    `;
+
+    cardEl.querySelector('.btn-select-target').addEventListener('click', () => {
+      modal.classList.add('hidden');
+      ejecutarLogicaEfecto(slotIndex, efecto, idx);
+    });
+
+    grid.appendChild(cardEl);
+  });
+
+  modal.classList.remove('hidden');
+  AudioManager.reproducirSFX('select');
+}
+
+function ejecutarLogicaEfecto(slotIndex, efecto, targetSlotIndex) {
+  const slotData = estadoJugador.zonaMonstruos[slotIndex];
+  if (!slotData) return;
+  const datosCarta = bdCartas[slotData.id];
+  const slotElem = document.querySelector(`#player-side .monsters-row .monster-slot[data-slot-index="${slotIndex}"]`);
+  const targetSlotElem = (targetSlotIndex !== null && targetSlotIndex !== undefined)
+    ? document.querySelector(`#opponent-side .monsters-row .monster-slot[data-slot-index="${targetSlotIndex}"]`)
+    : null;
+
+  slotData.efectoUsado = true;
+  let logDesc = "";
+
+  switch (efecto.tipo) {
+    case 'reducir_atk_y_curar': {
+      const targetM = estadoOponente.zonaMonstruos[targetSlotIndex];
+      if (targetM) {
+        targetM.atkMod = (targetM.atkMod || 0) - efecto.valor;
+        estadoJugador.lp = Math.min(configuracionJuego.lpMax || 8000, estadoJugador.lp + efecto.valor);
+        document.getElementById('player-lp-val').textContent = estadoJugador.lp;
+        if (targetSlotElem) {
+          lanzarEfectoVisual('fuego', targetSlotElem);
+          crearNumeroFlotante(`-${efecto.valor} ATK`, targetSlotElem, 'damage');
+        }
+        if (slotElem) {
+          lanzarEfectoVisual('luz', slotElem);
+          crearNumeroFlotante(`+${efecto.valor} LP`, slotElem, 'heal');
+        }
+        AudioManager.reproducirSFX('heal');
+        logDesc = `${datosCarta.nombre} usó ${efecto.nombre}: drenó ${efecto.valor} ATK y curó ${efecto.valor} LP.`;
+      }
+      break;
+    }
+    case 'danar_lp': {
+      estadoOponente.lp = Math.max(0, estadoOponente.lp - efecto.valor);
+      const oLp = document.getElementById('opponent-lp-val');
+      if (oLp) {
+        oLp.textContent = estadoOponente.lp;
+        crearNumeroFlotante(`-${efecto.valor} LP`, oLp, 'damage');
+      }
+      if (slotElem) lanzarEfectoVisual('fuego', slotElem);
+      AudioManager.reproducirSFX('hit-super');
+      logDesc = `${datosCarta.nombre} usó ${efecto.nombre}: causó ${efecto.valor} de daño directo al rival.`;
+      comprobarFinDelDuelo();
+      break;
+    }
+    case 'curar_lp': {
+      estadoJugador.lp = Math.min(configuracionJuego.lpMax || 8000, estadoJugador.lp + efecto.valor);
+      document.getElementById('player-lp-val').textContent = estadoJugador.lp;
+      if (slotElem) {
+        lanzarEfectoVisual('luz', slotElem);
+        crearNumeroFlotante(`+${efecto.valor} LP`, slotElem, 'heal');
+      }
+      AudioManager.reproducirSFX('heal');
+      logDesc = `${datosCarta.nombre} usó ${efecto.nombre}: recuperó +${efecto.valor} LP.`;
+      break;
+    }
+    case 'reducir_atk': {
+      const targetM = estadoOponente.zonaMonstruos[targetSlotIndex];
+      if (targetM) {
+        targetM.atkMod = (targetM.atkMod || 0) - efecto.valor;
+        if (targetSlotElem) {
+          lanzarEfectoVisual('fuego', targetSlotElem);
+          crearNumeroFlotante(`-${efecto.valor} ATK`, targetSlotElem, 'damage');
+        }
+        AudioManager.reproducirSFX('hit');
+        const dTarget = bdCartas[targetM.id];
+        logDesc = `${datosCarta.nombre} usó ${efecto.nombre}: redujo el ATK de ${dTarget.nombre} en ${efecto.valor}.`;
+      }
+      break;
+    }
+    case 'reducir_def': {
+      const targetM = estadoOponente.zonaMonstruos[targetSlotIndex];
+      if (targetM) {
+        targetM.defMod = (targetM.defMod || 0) - efecto.valor;
+        if (targetSlotElem) {
+          lanzarEfectoVisual('fuego', targetSlotElem);
+          crearNumeroFlotante(`-${efecto.valor} DEF`, targetSlotElem, 'damage');
+        }
+        AudioManager.reproducirSFX('hit');
+        const dTarget = bdCartas[targetM.id];
+        logDesc = `${datosCarta.nombre} usó ${efecto.nombre}: redujo la DEF de ${dTarget.nombre} en ${efecto.valor}.`;
+      }
+      break;
+    }
+    case 'reducir_atk_todos_rival': {
+      estadoOponente.zonaMonstruos.forEach((m, idx) => {
+        if (m) {
+          m.atkMod = (m.atkMod || 0) - efecto.valor;
+          const sEl = document.querySelector(`#opponent-side .monsters-row .monster-slot[data-slot-index="${idx}"]`);
+          if (sEl) {
+            lanzarEfectoVisual('fuego', sEl);
+            crearNumeroFlotante(`-${efecto.valor} ATK`, sEl, 'damage');
+          }
+        }
+      });
+      AudioManager.reproducirSFX('hit');
+      logDesc = `${datosCarta.nombre} usó ${efecto.nombre}: redujo el ATK de todos los rivales en ${efecto.valor}.`;
+      break;
+    }
+    case 'bloquear_ataque':
+    case 'paralizar':
+    case 'congelar': {
+      const targetM = estadoOponente.zonaMonstruos[targetSlotIndex];
+      if (targetM) {
+        targetM.bloqueadoAtaqueTurnos = efecto.duracionTurnos || 1;
+        if (targetSlotElem) {
+          lanzarEfectoVisual('shield', targetSlotElem);
+          crearNumeroFlotante(efecto.tipo.toUpperCase(), targetSlotElem, 'damage');
+        }
+        AudioManager.reproducirSFX('hit');
+        const dTarget = bdCartas[targetM.id];
+        logDesc = `${datosCarta.nombre} usó ${efecto.nombre}: ${dTarget.nombre} quedó inmovilizado por ${targetM.bloqueadoAtaqueTurnos} turno(s).`;
+      }
+      break;
+    }
+    case 'congelar_todos_ataque': {
+      estadoOponente.zonaMonstruos.forEach((m, idx) => {
+        if (m && m.posicion === 'ataque') {
+          m.bloqueadoAtaqueTurnos = efecto.duracionTurnos || 1;
+          const sEl = document.querySelector(`#opponent-side .monsters-row .monster-slot[data-slot-index="${idx}"]`);
+          if (sEl) {
+            lanzarEfectoVisual('shield', sEl);
+            crearNumeroFlotante("CONGELADO", sEl, 'damage');
+          }
+        }
+      });
+      AudioManager.reproducirSFX('hit');
+      logDesc = `${datosCarta.nombre} usó ${efecto.nombre}: congeló a todos los rivales en modo ataque.`;
+      break;
+    }
+    case 'devolver_mano': {
+      const targetM = estadoOponente.zonaMonstruos[targetSlotIndex];
+      if (targetM) {
+        const idR = targetM.id;
+        estadoOponente.zonaMonstruos[targetSlotIndex] = null;
+        if (!Array.isArray(estadoOponente.mano)) estadoOponente.mano = [];
+        estadoOponente.mano.push(idR);
+        if (targetSlotElem) {
+          lanzarEfectoVisual('vortice', targetSlotElem);
+          crearNumeroFlotante("A LA MANO", targetSlotElem, 'buff');
+        }
+        AudioManager.reproducirSFX('card-place');
+        const dTarget = bdCartas[idR];
+        logDesc = `${datosCarta.nombre} usó ${efecto.nombre}: devolvió a ${dTarget.nombre} a la mano del rival.`;
+      }
+      break;
+    }
+    case 'destruir_monstruo_debil':
+    case 'destruir_defensa':
+    case 'destruir_menor_atk': {
+      const targetM = estadoOponente.zonaMonstruos[targetSlotIndex];
+      if (targetM) {
+        const idR = targetM.id;
+        estadoOponente.zonaMonstruos[targetSlotIndex] = null;
+        if (!Array.isArray(estadoOponente.cementerio)) estadoOponente.cementerio = [];
+        estadoOponente.cementerio.push(idR);
+        if (targetSlotElem) {
+          lanzarEfectoVisual('fuego', targetSlotElem);
+          crearNumeroFlotante("DESTRUIDO", targetSlotElem, 'damage');
+        }
+        AudioManager.reproducirSFX('faint');
+        const dTarget = bdCartas[idR];
+        logDesc = `${datosCarta.nombre} usó ${efecto.nombre}: destruyó a ${dTarget.nombre}.`;
+      }
+      break;
+    }
+    case 'destruir_equipo_rival':
+    case 'destruir_trampa_rival':
+    case 'destruir_magia_trampa_rival': {
+      const targetMT = estadoOponente.zonaMagiasTrampas[targetSlotIndex];
+      if (targetMT) {
+        const idR = targetMT.id;
+        estadoOponente.zonaMagiasTrampas[targetSlotIndex] = null;
+        if (!Array.isArray(estadoOponente.cementerio)) estadoOponente.cementerio = [];
+        estadoOponente.cementerio.push(idR);
+        const slotMTEl = document.querySelector(`#opponent-side .spells-row .spell-trap-slot[data-slot-index="${targetSlotIndex}"]`);
+        if (slotMTEl) {
+          lanzarEfectoVisual('fuego', slotMTEl);
+          crearNumeroFlotante("DESTRUIDA", slotMTEl, 'damage');
+        }
+        AudioManager.reproducirSFX('faint');
+        const dTarget = bdCartas[idR] || { nombre: 'Carta M/T' };
+        logDesc = `${datosCarta.nombre} usó ${efecto.nombre}: destruyó la carta M/T del rival (${dTarget.nombre}).`;
+      }
+      break;
+    }
+    case 'devolver_magia_trampa_mano': {
+      const targetMT = estadoOponente.zonaMagiasTrampas[targetSlotIndex];
+      if (targetMT) {
+        const idR = targetMT.id;
+        estadoOponente.zonaMagiasTrampas[targetSlotIndex] = null;
+        if (!Array.isArray(estadoOponente.mano)) estadoOponente.mano = [];
+        estadoOponente.mano.push(idR);
+        const slotMTEl = document.querySelector(`#opponent-side .spells-row .spell-trap-slot[data-slot-index="${targetSlotIndex}"]`);
+        if (slotMTEl) {
+          lanzarEfectoVisual('vortice', slotMTEl);
+          crearNumeroFlotante("A LA MANO", slotMTEl, 'buff');
+        }
+        AudioManager.reproducirSFX('card-place');
+        logDesc = `${datosCarta.nombre} usó ${efecto.nombre}: regresó la carta M/T a la mano del rival.`;
+      }
+      break;
+    }
+    case 'robar_carta': {
+      robarCartas(estadoJugador, 1);
+      renderizarMano(estadoJugador);
+      if (slotElem) {
+        lanzarEfectoVisual('luz', slotElem);
+        crearNumeroFlotante("+1 CARTA", slotElem, 'buff');
+      }
+      AudioManager.reproducirSFX('enter');
+      logDesc = `${datosCarta.nombre} usó ${efecto.nombre}: robaste 1 carta de tu baraja.`;
+      break;
+    }
+    case 'aumento_atk_propio': {
+      slotData.atkMod = (slotData.atkMod || 0) + efecto.valor;
+      if (slotElem) {
+        lanzarEfectoVisual('fuego', slotElem);
+        crearNumeroFlotante(`+${efecto.valor} ATK`, slotElem, 'buff');
+      }
+      AudioManager.reproducirSFX('enter');
+      logDesc = `${datosCarta.nombre} usó ${efecto.nombre}: aumentó su ATK en +${efecto.valor}.`;
+      break;
+    }
+    case 'aumento_def_propio': {
+      slotData.defMod = (slotData.defMod || 0) + efecto.valor;
+      if (slotElem) {
+        lanzarEfectoVisual('shield', slotElem);
+        crearNumeroFlotante(`+${efecto.valor} DEF`, slotElem, 'buff');
+      }
+      AudioManager.reproducirSFX('enter');
+      logDesc = `${datosCarta.nombre} usó ${efecto.nombre}: aumentó su DEF en +${efecto.valor}.`;
+      break;
+    }
+    case 'aumento_stats_propio': {
+      slotData.atkMod = (slotData.atkMod || 0) + efecto.valor;
+      slotData.defMod = (slotData.defMod || 0) + efecto.valor;
+      if (slotElem) {
+        lanzarEfectoVisual('luz', slotElem);
+        crearNumeroFlotante(`+${efecto.valor} ATK/DEF`, slotElem, 'buff');
+      }
+      AudioManager.reproducirSFX('heal');
+      logDesc = `${datosCarta.nombre} usó ${efecto.nombre}: subió +${efecto.valor} ATK y DEF.`;
+      break;
+    }
+    case 'modo_defensa_inmune': {
+      slotData.posicion = 'defensa';
+      slotData.inmuneBatallaTurno = true;
+      if (slotElem) {
+        lanzarEfectoVisual('shield', slotElem);
+        crearNumeroFlotante("INMUNE", slotElem, 'buff');
+      }
+      AudioManager.reproducirSFX('enter');
+      logDesc = `${datosCarta.nombre} usó ${efecto.nombre}: pasó a Defensa e inmunidad este turno.`;
+      break;
+    }
+    case 'descartar_carta_rival': {
+      if (estadoOponente.mano && estadoOponente.mano.length > 0) {
+        const randIdx = Math.floor(Math.random() * estadoOponente.mano.length);
+        const [cDesc] = estadoOponente.mano.splice(randIdx, 1);
+        if (cDesc) {
+          if (!Array.isArray(estadoOponente.cementerio)) estadoOponente.cementerio = [];
+          estadoOponente.cementerio.push(cDesc);
+        }
+        AudioManager.reproducirSFX('faint');
+        logDesc = `${datosCarta.nombre} usó ${efecto.nombre}: forzó al rival a descartar 1 carta.`;
+      }
+      break;
+    }
+    default:
+      logDesc = `${datosCarta.nombre} activó su efecto "${efecto.nombre}".`;
+      break;
+  }
+
+  sumarPuntosDuelo(150, logDesc);
+  mostrarMensajeToast(`⚡ ¡${logDesc}`);
+  registrarAccionBatalla({ actor: 'you', icono: '⚡', texto: logDesc });
+
+  renderizarCampoJugador();
+  renderizarCampoOponente();
+  renderizarManoOponente();
+  actualizarContadoresMazoYCementerio();
+  actualizarMarcadorLateral();
+
+  if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline()) {
+    MultiplayerManager.enviarAccion({
+      tipo: 'ACTIVAR_EFECTO_MONSTRUO',
+      slotOrigen: slotIndex,
+      slotObjetivo: targetSlotIndex,
+      efecto: efecto
+    });
+    MultiplayerManager.sincronizarEstadoCampo();
+  }
+}
+
+// ==============================================================
+// 12.2. SISTEMA DE MEGAEVOLUCIÓN & SIDE DECK DE MEGAS
+// ==============================================================
+function iniciarProcesoMegaevolucion() {
+  if (typeof bdMegaevoluciones === 'undefined') return;
+
+  const candidatos = [];
+  estadoJugador.zonaMonstruos.forEach((slotData, idx) => {
+    if (!slotData) return;
+    const baseId = slotData.id;
+    Object.values(bdMegaevoluciones).forEach(mega => {
+      if (mega.preEvolucionId === baseId) {
+        candidatos.push({
+          slotIndex: idx,
+          baseMonster: slotData,
+          baseCarta: bdCartas[baseId],
+          megaId: mega.id,
+          megaData: mega
+        });
+      }
+    });
+  });
+
+  if (candidatos.length === 0) {
+    mostrarMensajeToast("¡Megaevolución activada! Pero no controlas en el campo ningún Pokémon con Megaevolución (Venusaur, Charizard, Blastoise, Beedrill, Pidgeot, Alakazam, Gengar, Kangaskhan, Pinsir, Gyarados, Aerodactyl o Mewtwo).");
+    return;
+  }
+
+  // Si solo hay 1 candidato y 1 forma (ej: Blastoise en campo), megaevolucionar directamente sin preguntar
+  if (candidatos.length === 1) {
+    ejecutarMegaevolucion(candidatos[0].slotIndex, candidatos[0].megaId);
+    return;
+  }
+
+  // Si hay más de un candidato o ramas alternativas (Charizard X/Y, Mewtwo X/Y), abrir modal de selección
+  abrirModalSeleccionMegaevolucion(candidatos);
+}
+
+function abrirModalSeleccionMegaevolucion(candidatos) {
+  const modal = document.getElementById('mega-evolucion-modal');
+  const grid = document.getElementById('mega-modal-options-grid');
+  if (!modal || !grid) return;
+
+  grid.innerHTML = '';
+  candidatos.forEach(cand => {
+    const cardEl = document.createElement('div');
+    cardEl.className = 'mega-option-card';
+    cardEl.innerHTML = `
+      <img src="${cand.megaData.imagenOficial}" alt="${cand.megaData.nombre}" class="mega-card-art" onerror="this.src='${cand.megaData.spriteEstatico}';">
+      <div class="mega-card-body">
+        <h4 class="mega-card-title">${cand.megaData.nombre}</h4>
+        <span class="mega-card-base">Evoluciona de: ${cand.baseCarta.nombre} (Slot #${cand.slotIndex + 1})</span>
+        <div class="mega-card-stats">
+          <span class="mega-stat atk">⚔️ ${cand.megaData.atk}</span>
+          <span class="mega-stat def">🛡️ ${cand.megaData.def}</span>
+        </div>
+        <p class="mega-card-desc">${cand.megaData.descripcion || ''}</p>
+        <button type="button" class="phase-btn btn-confirm btn-select-mega">✨ Despertar Mega</button>
+      </div>
+    `;
+
+    cardEl.querySelector('.btn-select-mega').addEventListener('click', () => {
+      modal.classList.add('hidden');
+      ejecutarMegaevolucion(cand.slotIndex, cand.megaId);
+    });
+
+    grid.appendChild(cardEl);
+  });
+
+  modal.classList.remove('hidden');
+  AudioManager.reproducirSFX('select');
+}
+
+function ejecutarMegaevolucion(slotIndex, megaId) {
+  const slotData = estadoJugador.zonaMonstruos[slotIndex];
+  if (!slotData) return;
+  const megaData = bdCartas[megaId] || (typeof bdMegaevoluciones !== 'undefined' ? bdMegaevoluciones[megaId] : null);
+  if (!megaData) return;
+
+  const anteriorNombre = (bdCartas[slotData.id] ? bdCartas[slotData.id].nombre : 'Pokémon');
+  slotData.id = megaId;
+  slotData.haAtacado = false;
+
+  const slotElem = document.querySelector(`#player-side .monsters-row .monster-slot[data-slot-index="${slotIndex}"]`);
+  if (slotElem) {
+    lanzarEfectoVisual('vortice', slotElem);
+    crearNumeroFlotante("¡MEGAEVOLUCIÓN!", slotElem, 'buff');
+  }
+
+  AudioManager.reproducirSFX('hit-super');
+  if (megaData.slug) {
+    setTimeout(() => AudioManager.reproducirGrito(megaData.slug), 200);
+  }
+
+  renderizarMonstruoEnCampo(slotElem, megaData, slotData.posicion, slotIndex);
+  sumarPuntosDuelo(350, `¡Megaevolución de ${anteriorNombre} a ${megaData.nombre}!`);
+  mostrarMensajeToast(`✨ ¡${anteriorNombre} ha alcanzado su forma suprema: ${megaData.nombre} (${megaData.atk} ATK / ${megaData.def} DEF)!`);
+  registrarAccionBatalla({ actor: 'you', icono: '✨', texto: `¡Megaevolución suprema! ${anteriorNombre} -> ${megaData.nombre} (${megaData.atk} ATK).` });
+
+  if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline()) {
+    MultiplayerManager.enviarAccion({
+      tipo: 'MEGAEVOLUCIONAR_MONSTRUO',
+      slotIndex: slotIndex,
+      megaId: megaId
+    });
+    MultiplayerManager.sincronizarEstadoCampo();
+  }
+}
+
+// ==============================================================
+// 12.3. RESURRECCIÓN DESDE EL CEMENTERIO (CENIZA SAGRADA)
+// ==============================================================
+function abrirModalResurreccionCementerio(monstruosCementerio, slotLibre) {
+  const modal = document.getElementById('gy-resurrect-modal');
+  const grid = document.getElementById('gy-resurrect-grid');
+  if (!modal || !grid) return;
+
+  grid.innerHTML = '';
+  monstruosCementerio.forEach(item => {
+    const cardEl = document.createElement('div');
+    cardEl.className = 'gy-resurrect-card';
+    const fallbackSrc = item.carta.spriteEstatico || item.carta.imagenOficial;
+    cardEl.innerHTML = `
+      <img src="${item.carta.spriteCampo || fallbackSrc}" alt="${item.carta.nombre}" class="gy-card-img" onerror="this.src='${fallbackSrc}';">
+      <div class="gy-card-info">
+        <h4 class="gy-card-name">${item.carta.nombre}</h4>
+        <span class="gy-card-stat">⚔️ ${item.carta.atk} / 🛡️ ${item.carta.def}</span>
+      </div>
+      <button type="button" class="phase-btn btn-confirm btn-pick-gy-monster">🔮 Invocar</button>
+    `;
+
+    cardEl.querySelector('.btn-pick-gy-monster').addEventListener('click', () => {
+      modal.classList.add('hidden');
+      const idxReal = estadoJugador.cementerio.indexOf(item.id);
+      if (idxReal !== -1) {
+        estadoJugador.cementerio.splice(idxReal, 1);
+      }
+      estadoJugador.zonaMonstruos[slotLibre] = {
+        id: item.id,
+        posicion: 'ataque',
+        haAtacado: false,
+        atkMod: 0,
+        defMod: 0
+      };
+      AudioManager.reproducirSFX('heal');
+      renderizarCampoJugador();
+      actualizarContadoresMazoYCementerio();
+      sumarPuntosDuelo(250, `Ceniza Sagrada resucitó a ${item.carta.nombre}`);
+      mostrarMensajeToast(`¡Ceniza Sagrada resucitó a ${item.carta.nombre} directamente al campo!`);
+      registrarAccionBatalla({ actor: 'you', icono: '🔮', texto: `Ceniza Sagrada resucitó a ${item.carta.nombre}.` });
+      if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline()) {
+        MultiplayerManager.sincronizarEstadoCampo();
+      }
+    });
+
+    grid.appendChild(cardEl);
+  });
+
+  modal.classList.remove('hidden');
+  AudioManager.reproducirSFX('select');
+}
+
+function inicializarModalesEfectosYMegas() {
+  const btnCloseMegaX = document.getElementById('btn-close-mega-modal-x');
+  const btnCancelMega = document.getElementById('btn-cancel-mega-modal');
+  const modalMega = document.getElementById('mega-evolucion-modal');
+
+  const btnCloseTargetX = document.getElementById('btn-close-effect-target-x');
+  const btnCancelTarget = document.getElementById('btn-cancel-effect-target');
+  const modalTarget = document.getElementById('effect-target-modal');
+
+  const btnCloseGyX = document.getElementById('btn-close-gy-resurrect-x');
+  const btnCancelGy = document.getElementById('btn-cancel-gy-resurrect');
+  const modalGy = document.getElementById('gy-resurrect-modal');
+
+  if (btnCloseMegaX && modalMega) btnCloseMegaX.onclick = () => modalMega.classList.add('hidden');
+  if (btnCancelMega && modalMega) btnCancelMega.onclick = () => modalMega.classList.add('hidden');
+
+  if (btnCloseTargetX && modalTarget) btnCloseTargetX.onclick = () => modalTarget.classList.add('hidden');
+  if (btnCancelTarget && modalTarget) btnCancelTarget.onclick = () => modalTarget.classList.add('hidden');
+
+  if (btnCloseGyX && modalGy) btnCloseGyX.onclick = () => modalGy.classList.add('hidden');
+  if (btnCancelGy && modalGy) btnCancelGy.onclick = () => modalGy.classList.add('hidden');
 }
 
 function renderizarCampoJugador() {
@@ -3720,9 +4508,20 @@ function iniciarDeclaracionAtaque(slotIndexAtacante) {
     return;
   }
 
+  if (estadoJuego.bloqueoAtaqueJugadorTurnos && estadoJuego.bloqueoAtaqueJugadorTurnos > 0) {
+    mostrarMensajeToast(`¡Tus ataques están bloqueados por un efecto rival (${estadoJuego.bloqueoAtaqueJugadorTurnos} turno(s) restante(s))!`);
+    return;
+  }
+
   const atacanteData = estadoJugador.zonaMonstruos[slotIndexAtacante];
   if (!atacanteData || atacanteData.posicion === 'defensa' || atacanteData.haAtacado) {
     mostrarMensajeToast("Este monstruo no puede declarar un ataque.");
+    return;
+  }
+
+  if (atacanteData.bloqueadoAtaqueTurnos && atacanteData.bloqueadoAtaqueTurnos > 0) {
+    const datosAtkBloq = bdCartas[atacanteData.id] || { nombre: 'Pokémon' };
+    mostrarMensajeToast(`¡${datosAtkBloq.nombre} no puede atacar porque está congelado/paralizado (${atacanteData.bloqueadoAtaqueTurnos} turno(s) restante(s))!`);
     return;
   }
 
@@ -4576,13 +5375,98 @@ function ejecutarTurnoIA() {
           renderizarCampoOponente();
         }
       }
+
+      // 5. Megaevolución de la IA (si controla un Pokémon compatible en su campo)
+      if (typeof bdMegaevoluciones !== 'undefined') {
+        const probMega = diff === 'dificil' ? 0.8 : (diff === 'medio' ? 0.5 : 0.25);
+        if (Math.random() < probMega) {
+          for (let i = 0; i < estadoOponente.zonaMonstruos.length; i++) {
+            const m = estadoOponente.zonaMonstruos[i];
+            if (m && bdCartas[m.id]) {
+              const megasPosibles = Object.values(bdMegaevoluciones).filter(mg => mg.preEvolucionId === m.id);
+              if (megasPosibles.length > 0) {
+                const megaElegida = megasPosibles[Math.floor(Math.random() * megasPosibles.length)];
+                m.id = megaElegida.id;
+                m.haAtacado = false;
+                const slotElemR = document.querySelector(`#opponent-side .monsters-row .monster-slot[data-slot-index="${i}"]`);
+                if (slotElemR) {
+                  lanzarEfectoVisual('vortice', slotElemR);
+                  crearNumeroFlotante("¡MEGAEVOLUCIÓN!", slotElemR, 'buff');
+                }
+                AudioManager.reproducirSFX('hit-super');
+                if (megaElegida.slug) AudioManager.reproducirGrito(megaElegida.slug);
+                renderizarCampoOponente();
+                mostrarMensajeToast(isEn
+                  ? `✨ Rival Blue Mega Evolved ${bdCartas[megaElegida.preEvolucionId]?.nombre || 'Pokémon'} into ${megaElegida.nombre}!`
+                  : `✨ ¡El Rival Blue Megaevolucionó a ${megaElegida.nombre} (${megaElegida.atk} ATK / ${megaElegida.def} DEF)!`);
+                registrarAccionBatalla({ actor: 'rival', icono: '✨', texto: `El Rival Blue Megaevolucionó a ${megaElegida.nombre}.` });
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      // 6. Efectos Activos de 1 solo uso de los Pokémon de la IA
+      for (let i = 0; i < estadoOponente.zonaMonstruos.length; i++) {
+        const m = estadoOponente.zonaMonstruos[i];
+        if (m && bdCartas[m.id] && bdCartas[m.id].efectoActivo && !m.efectoUsado && !m.efectoSilenciado) {
+          const ef = bdCartas[m.id].efectoActivo;
+          let ejecuto = false;
+          if (ef.tipo === 'danar_lp') {
+            estadoJugador.lp = Math.max(0, estadoJugador.lp - ef.valor);
+            document.getElementById('player-lp-val').textContent = estadoJugador.lp;
+            crearNumeroFlotante(`-${ef.valor} LP`, document.getElementById('player-lp-val'), 'damage');
+            m.efectoUsado = true;
+            ejecuto = true;
+          } else if (ef.tipo === 'curar_lp' && estadoOponente.lp < 6000) {
+            estadoOponente.lp = Math.min(configuracionJuego.lpMax || 8000, estadoOponente.lp + ef.valor);
+            const opLpElem = document.getElementById('opponent-lp-val');
+            if (opLpElem) opLpElem.textContent = estadoOponente.lp;
+            m.efectoUsado = true;
+            ejecuto = true;
+          } else if (['reducir_atk', 'bloquear_ataque', 'congelar', 'paralizar'].includes(ef.tipo)) {
+            const objetivos = estadoJugador.zonaMonstruos.map((jm, jIdx) => jm ? jIdx : null).filter(j => j !== null);
+            if (objetivos.length > 0) {
+              const targetIdx = objetivos[Math.floor(Math.random() * objetivos.length)];
+              const targetM = estadoJugador.zonaMonstruos[targetIdx];
+              if (ef.tipo === 'reducir_atk') targetM.atkMod = (targetM.atkMod || 0) - ef.valor;
+              else targetM.bloqueadoAtaqueTurnos = ef.duracionTurnos || 1;
+              const sJ = document.querySelector(`#player-side .monsters-row .monster-slot[data-slot-index="${targetIdx}"]`);
+              if (sJ) {
+                lanzarEfectoVisual('fuego', sJ);
+                crearNumeroFlotante(ef.tipo === 'reducir_atk' ? `-${ef.valor} ATK` : 'BLOQUEADO', sJ, 'damage');
+              }
+              m.efectoUsado = true;
+              ejecuto = true;
+            }
+          }
+          if (ejecuto) {
+            AudioManager.reproducirSFX('hit');
+            const dM = bdCartas[m.id];
+            mostrarMensajeToast(`⚡ ¡El Rival Blue activó el efecto de ${dM.nombre} (${ef.nombre})!`);
+            registrarAccionBatalla({ actor: 'rival', icono: '⚡', texto: `El Rival activó efecto de ${dM.nombre} (${ef.nombre}).` });
+            renderizarCampoJugador();
+            renderizarCampoOponente();
+          }
+        }
+      }
     } catch (errPaso1) {
       console.error("⚠️ Error en Paso 1 (Fase Principal) de la IA:", errPaso1);
     }
 
     // Paso 2: Fase de Batalla de la IA
+    // Si los ataques del rival están bloqueados por Muro Prismático
+    if (estadoJuego.bloqueoAtaqueRivalTurnos && estadoJuego.bloqueoAtaqueRivalTurnos > 0) {
+      mostrarMensajeToast(`🛡️ ¡Los ataques del Rival Blue están bloqueados por Muro Prismático (${estadoJuego.bloqueoAtaqueRivalTurnos} turno(s) restante(s))!`);
+      setTimeout(() => {
+        finalizarTurnoIA();
+      }, 600);
+      return;
+    }
+
     // Si la IA no tiene monstruos en posición de ataque, pasar directamente a fin de turno
-    const tieneAtacantes = estadoOponente.zonaMonstruos.some(m => m !== null && m.posicion === 'ataque' && !m.haAtacado);
+    const tieneAtacantes = estadoOponente.zonaMonstruos.some(m => m !== null && m.posicion === 'ataque' && !m.haAtacado && (!m.bloqueadoAtaqueTurnos || m.bloqueadoAtaqueTurnos <= 0));
 
     if (!tieneAtacantes) {
       setTimeout(() => {
@@ -4729,7 +5613,7 @@ function ejecutarAtaqueIA(onAtaqueRealizado = null) {
 
     const atacantesIA = [];
     estadoOponente.zonaMonstruos.forEach((m, idx) => {
-      if (m !== null && m.posicion === 'ataque' && !m.haAtacado) {
+      if (m !== null && m.posicion === 'ataque' && !m.haAtacado && (!m.bloqueadoAtaqueTurnos || m.bloqueadoAtaqueTurnos <= 0)) {
         const d = bdCartas[m.id];
         if (d) {
           atacantesIA.push({
@@ -5147,6 +6031,15 @@ function finalizarTurnoIA() {
   }
 
   // Devolver el turno al jugador incondicionalmente
+  if (estadoJuego.bloqueoAtaqueRivalTurnos > 0) {
+    estadoJuego.bloqueoAtaqueRivalTurnos--;
+  }
+  if (Array.isArray(estadoOponente.zonaMonstruos)) {
+    estadoOponente.zonaMonstruos.forEach(m => {
+      if (m && m.bloqueadoAtaqueTurnos > 0) m.bloqueadoAtaqueTurnos--;
+    });
+  }
+
   estadoJuego.turnoDe = 'jugador';
   estadoJuego.turno++;
   estadoJuego.haInvocadoMonstruoEsteTurno = false; // Reiniciar límite de 1 invocación de monstruo por turno
@@ -5345,6 +6238,15 @@ function pasarAutomaticamenteAFin(mensajeToast) {
   }
 
   mostrarMensajeToast(mensajeToast);
+  if (estadoJuego.bloqueoAtaqueJugadorTurnos > 0) {
+    estadoJuego.bloqueoAtaqueJugadorTurnos--;
+  }
+  if (Array.isArray(estadoJugador.zonaMonstruos)) {
+    estadoJugador.zonaMonstruos.forEach(m => {
+      if (m && m.bloqueadoAtaqueTurnos > 0) m.bloqueadoAtaqueTurnos--;
+    });
+  }
+
   setTimeout(() => {
     if (estadoJuego.faseActual === 'FIN' && estadoJuego.turnoDe === 'jugador') {
       if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline()) {
@@ -7068,7 +7970,7 @@ var UserManager = {
     localStorage.removeItem(this.CURRENT_USER_KEY);
   },
 
-  async register(username, password) {
+  async register(username, password, starterChoice = 'fuego') {
     const cleanUser = username.trim();
     if (cleanUser.length < 3) {
       return { ok: false, error: "El nombre de usuario debe tener al menos 3 caracteres." };
@@ -7097,6 +7999,16 @@ var UserManager = {
     const randomAvatar = avatars[Math.floor(Math.random() * avatars.length)];
     const defaultDecks = JSON.parse(JSON.stringify(MAZOS_DEFAULT));
 
+    // Si el usuario eligió un mazo inicial equilibrado (Fuego, Agua o Planta), configurarlo como Mazo #1
+    if (typeof MAZOS_INICIALES_SELECCION !== 'undefined' && MAZOS_INICIALES_SELECCION[starterChoice]) {
+      const chosenStarter = MAZOS_INICIALES_SELECCION[starterChoice];
+      defaultDecks[0] = {
+        id: 1,
+        nombre: chosenStarter.nombre,
+        cartas: [...chosenStarter.cartas]
+      };
+    }
+
     const payload = {
       username: cleanUser,
       password: passwordHash,
@@ -7107,7 +8019,8 @@ var UserManager = {
         victorias: 0,
         derrotas: 0,
         puntos: 0,
-        rango: 'Aspirante'
+        rango: 'Aspirante',
+        bloqueado: false
       },
       mazos: defaultDecks
     };
@@ -7175,6 +8088,11 @@ var UserManager = {
       return { ok: false, error: "Usuario o contraseña incorrectos." };
     }
 
+    // Comprobar si el usuario ha sido bloqueado por un administrador
+    if ((user.stats && user.stats.bloqueado) || user.bloqueado) {
+      return { ok: false, error: "Esta cuenta ha sido bloqueada o suspendida por un administrador de Poké-Oh." };
+    }
+
     user.password = passwordHash;
 
     // Si el usuario en Supabase aún no tenía sus 5 mazos inicializados, inicializarlos
@@ -7234,6 +8152,90 @@ var UserManager = {
         renderizarPestanasDeckBuilder();
       }
     }
+  },
+
+  async toggleBloqueoUsuario(username) {
+    if (!this.currentUser || this.currentUser.role !== 'admin') {
+      return { ok: false, error: "Solo los administradores pueden bloquear o desbloquear usuarios." };
+    }
+    if (username.toLowerCase() === 'admin') {
+      return { ok: false, error: "No se puede bloquear la cuenta del administrador principal." };
+    }
+
+    const users = this.getAllUsers();
+    const target = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+    if (!target) return { ok: false, error: "Usuario no encontrado." };
+
+    if (!target.stats) target.stats = { duelos: 0, victorias: 0, derrotas: 0, puntos: 0 };
+    target.stats.bloqueado = !target.stats.bloqueado;
+    target.bloqueado = target.stats.bloqueado;
+
+    this.saveUsers(users);
+
+    try {
+      await SupabaseCloud.updateUserByUsername(target.username, { stats: target.stats });
+    } catch (err) {
+      console.warn("[Supabase] Error al actualizar estado de bloqueo en nube:", err);
+    }
+
+    this.renderAdminTable();
+    return { ok: true, bloqueado: target.stats.bloqueado };
+  },
+
+  async resetearEstadisticas(username) {
+    if (!this.currentUser || this.currentUser.role !== 'admin') {
+      return { ok: false, error: "Solo los administradores pueden resetear estadísticas." };
+    }
+
+    const users = this.getAllUsers();
+    const target = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+    if (!target) return { ok: false, error: "Usuario no encontrado." };
+
+    const estadoBloqueo = target.stats ? !!target.stats.bloqueado : false;
+    target.stats = {
+      duelos: 0,
+      victorias: 0,
+      derrotas: 0,
+      puntos: 0,
+      rango: 'Aspirante',
+      bloqueado: estadoBloqueo
+    };
+
+    this.saveUsers(users);
+
+    try {
+      await SupabaseCloud.updateUserByUsername(target.username, { stats: target.stats });
+    } catch (err) {
+      console.warn("[Supabase] Error al resetear estadísticas en nube:", err);
+    }
+
+    this.renderAdminTable();
+    return { ok: true };
+  },
+
+  async cambiarRolUsuario(username) {
+    if (!this.currentUser || this.currentUser.role !== 'admin') {
+      return { ok: false, error: "Solo los administradores pueden cambiar roles." };
+    }
+    if (username.toLowerCase() === 'admin') {
+      return { ok: false, error: "No se puede alterar el rol del administrador principal." };
+    }
+
+    const users = this.getAllUsers();
+    const target = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+    if (!target) return { ok: false, error: "Usuario no encontrado." };
+
+    target.role = (target.role === 'admin') ? 'user' : 'admin';
+    this.saveUsers(users);
+
+    try {
+      await SupabaseCloud.updateUserByUsername(target.username, { role: target.role });
+    } catch (err) {
+      console.warn("[Supabase] Error al cambiar rol en nube:", err);
+    }
+
+    this.renderAdminTable();
+    return { ok: true, role: target.role };
   },
 
   async deleteUser(username) {
@@ -7391,32 +8393,117 @@ var UserManager = {
     const users = this.getAllUsers();
     if (countBadge) countBadge.textContent = `Total: ${users.length} usuarios`;
 
+    // Actualizar métricas globales del servidor
+    const mTotal = document.getElementById('admin-metric-total-users');
+    const mAdmins = document.getElementById('admin-metric-admins');
+    const mBanned = document.getElementById('admin-metric-banned');
+    const mMatches = document.getElementById('admin-metric-matches');
+
+    const totalAdmins = users.filter(u => u.role === 'admin').length;
+    const totalBanned = users.filter(u => (u.stats && u.stats.bloqueado) || u.bloqueado).length;
+    const totalMatches = users.reduce((acc, u) => acc + (u.stats?.duelos || 0), 0);
+
+    if (mTotal) mTotal.textContent = users.length;
+    if (mAdmins) mAdmins.textContent = totalAdmins;
+    if (mBanned) mBanned.textContent = totalBanned;
+    if (mMatches) mMatches.textContent = totalMatches;
+
+    // Filtros de búsqueda y estado
+    const searchInput = document.getElementById('admin-user-search');
+    const filterSelect = document.getElementById('admin-user-filter');
+    const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const filterVal = filterSelect ? filterSelect.value : 'todos';
+
+    const filtered = users.filter(u => {
+      if (query && !u.username.toLowerCase().includes(query)) return false;
+      const esBanned = !!((u.stats && u.stats.bloqueado) || u.bloqueado);
+      if (filterVal === 'activos' && esBanned) return false;
+      if (filterVal === 'bloqueados' && !esBanned) return false;
+      if (filterVal === 'admins' && u.role !== 'admin') return false;
+      return true;
+    });
+
     tbody.innerHTML = '';
-    users.forEach(u => {
+    filtered.forEach(u => {
       const tr = document.createElement('tr');
       const fecha = new Date(u.createdAt || Date.now()).toLocaleDateString();
       const esAdminPrincipal = u.username.toLowerCase() === 'admin';
+      const esBanned = !!((u.stats && u.stats.bloqueado) || u.bloqueado);
+
+      const statusBadgeHtml = esBanned
+        ? '<span class="admin-status-badge admin-status-banned">🚫 Bloqueado</span>'
+        : '<span class="admin-status-badge admin-status-active">✅ Activo</span>';
+
+      const duelsDetail = `${u.stats?.duelos || 0} (${u.stats?.victorias || 0}V / ${u.stats?.derrotas || 0}D)`;
 
       tr.innerHTML = `
         <td><b>${u.avatar || '👤'} ${u.username}</b></td>
         <td><span class="user-role-badge" style="background:${u.role === 'admin' ? '#feca57' : '#54a0ff'};color:#1e272e;">${u.role.toUpperCase()}</span></td>
-        <td>${u.stats?.duelos || 0}</td>
-        <td>${u.stats?.victorias || 0}</td>
+        <td>${statusBadgeHtml}</td>
+        <td>${duelsDetail}</td>
         <td>${u.stats?.puntos || 0} pts</td>
         <td>${fecha}</td>
         <td>
           ${esAdminPrincipal 
             ? '<span style="color:#a4b0be;font-size:0.75rem;">(Principal)</span>' 
-            : `<button class="btn-del-user" data-user="${u.username}">Eliminar</button>`}
+            : `
+              <div class="admin-actions-cell" style="display:flex;gap:4px;flex-wrap:wrap;">
+                <button type="button" class="btn-admin-act ${esBanned ? 'btn-admin-unban' : 'btn-admin-ban'}" data-user="${u.username}">
+                  ${esBanned ? '🔓 Desbloquear' : '🚫 Bloquear'}
+                </button>
+                <button type="button" class="btn-admin-act btn-admin-reset" data-user="${u.username}" title="Resetear victorias, derrotas y puntos a 0">
+                  🔄 Reset
+                </button>
+                <button type="button" class="btn-admin-act btn-admin-role" data-user="${u.username}" title="Alternar entre Jugador y Administrador">
+                  ${u.role === 'admin' ? '👤 Hacer User' : '👑 Hacer Admin'}
+                </button>
+                <button type="button" class="btn-admin-act btn-admin-del btn-del-user" data-user="${u.username}">
+                  🗑️ Eliminar
+                </button>
+              </div>
+            `}
         </td>
       `;
       tbody.appendChild(tr);
     });
 
+    // Eventos de botones de acción de administración
+    tbody.querySelectorAll('.btn-admin-ban, .btn-admin-unban').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const targetUser = btn.getAttribute('data-user');
+        const res = await this.toggleBloqueoUsuario(targetUser);
+        if (res.ok) {
+          mostrarMensajeToast(res.bloqueado ? `Cuenta "${targetUser}" bloqueada.` : `Cuenta "${targetUser}" desbloqueada.`);
+        }
+      });
+    });
+
+    tbody.querySelectorAll('.btn-admin-reset').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const targetUser = btn.getAttribute('data-user');
+        if (confirm(`¿Deseas resetear a 0 todos los duelos, victorias y puntos de "${targetUser}"?`)) {
+          await this.resetearEstadisticas(targetUser);
+          mostrarMensajeToast(`Estadísticas de "${targetUser}" reseteadas.`);
+        }
+      });
+    });
+
+    tbody.querySelectorAll('.btn-admin-role').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const targetUser = btn.getAttribute('data-user');
+        if (confirm(`¿Deseas alternar el rol de administrador/usuario para "${targetUser}"?`)) {
+          const res = await this.cambiarRolUsuario(targetUser);
+          if (res.ok) {
+            mostrarMensajeToast(`Rol de "${targetUser}" cambiado a ${res.role.toUpperCase()}.`);
+          }
+        }
+      });
+    });
+
     tbody.querySelectorAll('.btn-del-user').forEach(btn => {
       btn.addEventListener('click', async () => {
         const targetUser = btn.getAttribute('data-user');
-        if (confirm(`¿Estás seguro de que deseas eliminar la cuenta de "${targetUser}" de Supabase?`)) {
+        if (confirm(`¿Estás seguro de que deseas eliminar permanentemente la cuenta de "${targetUser}" de Supabase?`)) {
           await this.deleteUser(targetUser);
           mostrarMensajeToast(`Usuario "${targetUser}" eliminado.`);
         }
@@ -7459,7 +8546,7 @@ var UserManager = {
         const targetPane = document.getElementById(targetId);
         if (targetPane) targetPane.classList.add('active');
         if (targetId === 'tab-user-admin') {
-          this.sincronizarDesdeSupabase();
+          this.sincronizarDesdeSupabase().then(() => this.renderAdminTable());
         }
         AudioManager.reproducirSFX('enter');
       });
@@ -7504,6 +8591,16 @@ var UserManager = {
       };
     }
 
+    // Selección de Mazo Inicial en Registro (Fuego / Agua / Planta)
+    const starterCards = document.querySelectorAll('#reg-starter-deck-options .starter-deck-card');
+    starterCards.forEach(card => {
+      card.addEventListener('click', () => {
+        starterCards.forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        AudioManager.reproducirSFX('select');
+      });
+    });
+
     // Registrarse Submit
     const btnSubmitReg = document.getElementById('btn-submit-register');
     const inputRegUser = document.getElementById('reg-username');
@@ -7527,14 +8624,18 @@ var UserManager = {
           return;
         }
 
+        // Obtener el mazo inicial elegido (fuego, agua o planta)
+        const activeStarterCard = document.querySelector('#reg-starter-deck-options .starter-deck-card.active');
+        const chosenStarter = activeStarterCard ? (activeStarterCard.getAttribute('data-deck-starter') || 'fuego') : 'fuego';
+
         btnSubmitReg.disabled = true;
-        const res = await this.register(u, p);
+        const res = await this.register(u, p, chosenStarter);
         btnSubmitReg.disabled = false;
 
         if (res.ok) {
           if (regMsg) {
             regMsg.className = 'user-msg-banner success';
-            regMsg.textContent = `¡Cuenta "${res.user.username}" creada en Supabase con éxito!`;
+            regMsg.textContent = `¡Cuenta "${res.user.username}" creada en Supabase con éxito! Mazo inicial: ${chosenStarter.toUpperCase()}`;
             regMsg.classList.remove('hidden');
           }
           mostrarMensajeToast(`¡Cuenta creada en la nube! Bienvenido, ${res.user.username}`);
@@ -7554,6 +8655,27 @@ var UserManager = {
           AudioManager.reproducirSFX('hit');
         }
       };
+    }
+
+    // Buscador y Filtros en Panel Admin
+    const searchAdmin = document.getElementById('admin-user-search');
+    const filterAdmin = document.getElementById('admin-user-filter');
+    const btnRefreshAdmin = document.getElementById('btn-admin-refresh');
+
+    if (searchAdmin) {
+      searchAdmin.addEventListener('input', () => this.renderAdminTable());
+    }
+    if (filterAdmin) {
+      filterAdmin.addEventListener('change', () => this.renderAdminTable());
+    }
+    if (btnRefreshAdmin) {
+      btnRefreshAdmin.addEventListener('click', async () => {
+        btnRefreshAdmin.disabled = true;
+        await this.sincronizarDesdeSupabase();
+        this.renderAdminTable();
+        btnRefreshAdmin.disabled = false;
+        mostrarMensajeToast("Datos de usuarios actualizados.");
+      });
     }
 
     // Logout
@@ -7788,6 +8910,8 @@ const MultiplayerManager = {
   client: null,
   room: null,
   lobbyChannel: null,
+  hostLobbyChannel: null,
+  browseChannel: null,
   enPartidaOnline: false,
   usarSupabaseRealtime: true,
   miAsiento: 0,
@@ -7850,15 +8974,161 @@ const MultiplayerManager = {
 
   cambiarVista(vista) {
     const viewOptions = document.getElementById('pvp-view-options');
+    const viewRooms = document.getElementById('pvp-view-rooms');
     const viewWaiting = document.getElementById('pvp-view-waiting');
 
-    if (vista === 'options') {
-      if (viewOptions) viewOptions.classList.add('active');
-      if (viewWaiting) viewWaiting.classList.remove('active');
-    } else if (vista === 'waiting') {
-      if (viewOptions) viewOptions.classList.remove('active');
-      if (viewWaiting) viewWaiting.classList.add('active');
+    if (viewOptions) viewOptions.classList.toggle('active', vista === 'options');
+    if (viewRooms) viewRooms.classList.toggle('active', vista === 'rooms');
+    if (viewWaiting) viewWaiting.classList.toggle('active', vista === 'waiting');
+  },
+
+  publicarSalaEnLobby(code, user) {
+    const sb = SupabaseCloud.getClient();
+    if (!sb) return;
+    try {
+      this.despublicarSalaEnLobby();
+      const lobby = sb.channel('pokeoh_lobby_rooms', {
+        config: { presence: { key: 'host_' + code } }
+      });
+      this.hostLobbyChannel = lobby;
+      lobby.subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await lobby.track({
+            roomCode: code,
+            hostUser: user.username,
+            hostAvatar: user.avatar || '🔴',
+            createdAt: Date.now()
+          });
+        }
+      });
+    } catch (e) {
+      console.warn("[Lobby] Error publicando sala en lobby:", e);
     }
+  },
+
+  despublicarSalaEnLobby() {
+    if (this.hostLobbyChannel) {
+      const sb = SupabaseCloud.getClient();
+      if (sb) {
+        try { sb.removeChannel(this.hostLobbyChannel); } catch (e) {}
+      }
+      this.hostLobbyChannel = null;
+    }
+  },
+
+  abrirBuscadorSalas() {
+    if (typeof UserManager !== 'undefined' && !UserManager.currentUser) {
+      UserManager.exigirAutenticacion("Debes iniciar sesión o registrar tu cuenta para buscar salas.");
+      return;
+    }
+    this.cambiarVista('rooms');
+    this.actualizarListaSalas();
+  },
+
+  actualizarListaSalas() {
+    const listEl = document.getElementById('pvp-rooms-list');
+    const badgeEl = document.getElementById('pvp-rooms-count-badge');
+    if (!listEl) return;
+
+    listEl.innerHTML = `
+      <div class="pvp-searching-rooms" style="text-align:center;padding:30px;color:#a4b0be;">
+        <div class="pvp-spinner" style="font-size:2rem;margin-bottom:10px;">🌀</div>
+        <p>Buscando salas de duelo abiertas...</p>
+      </div>
+    `;
+
+    const sb = SupabaseCloud.getClient();
+    if (!sb) {
+      listEl.innerHTML = `<div class="pvp-no-rooms"><p>El cliente de Supabase no está disponible.</p></div>`;
+      return;
+    }
+
+    if (!this.browseChannel) {
+      this.browseChannel = sb.channel('pokeoh_lobby_rooms');
+      this.browseChannel.on('presence', { event: 'sync' }, () => {
+        this.renderizarSalasDesdePresence();
+      });
+      this.browseChannel.on('presence', { event: 'join' }, () => {
+        this.renderizarSalasDesdePresence();
+      });
+      this.browseChannel.on('presence', { event: 'leave' }, () => {
+        this.renderizarSalasDesdePresence();
+      });
+      this.browseChannel.subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          setTimeout(() => this.renderizarSalasDesdePresence(), 150);
+        }
+      });
+    } else {
+      setTimeout(() => this.renderizarSalasDesdePresence(), 100);
+    }
+  },
+
+  renderizarSalasDesdePresence() {
+    const listEl = document.getElementById('pvp-rooms-list');
+    const badgeEl = document.getElementById('pvp-rooms-count-badge');
+    if (!listEl) return;
+
+    if (!this.browseChannel) return;
+    const state = this.browseChannel.presenceState();
+    const rooms = [];
+    const myUsername = (UserManager.currentUser?.username || '').toLowerCase();
+
+    Object.values(state).forEach(presences => {
+      presences.forEach(p => {
+        if (p && p.roomCode && p.hostUser) {
+          if (!rooms.some(r => r.roomCode === p.roomCode)) {
+            rooms.push(p);
+          }
+        }
+      });
+    });
+
+    if (badgeEl) badgeEl.textContent = `${rooms.length} Sala${rooms.length === 1 ? '' : 's'}`;
+
+    if (rooms.length === 0) {
+      listEl.innerHTML = `
+        <div class="pvp-no-rooms">
+          <div class="pvp-no-rooms-icon">💤</div>
+          <h4>No hay salas de duelo abiertas en este momento</h4>
+          <p>¡Sé el primero en crear una sala y desafiar a otros duelistas!</p>
+          <button type="button" class="phase-btn btn-confirm" id="btn-create-first-room">➕ Crear Sala Ahora</button>
+        </div>
+      `;
+      const btnFirst = document.getElementById('btn-create-first-room');
+      if (btnFirst) btnFirst.onclick = () => this.crearSalaPrivada();
+      return;
+    }
+
+    listEl.innerHTML = '';
+    rooms.forEach(r => {
+      const isMe = r.hostUser.toLowerCase() === myUsername;
+      const card = document.createElement('div');
+      card.className = `pvp-room-card ${isMe ? 'pvp-room-card-mine' : ''}`;
+      card.innerHTML = `
+        <div class="pvp-room-avatar">${r.hostAvatar || '👤'}</div>
+        <div class="pvp-room-info">
+          <div class="pvp-room-host">${escapeHtml(r.hostUser)} ${isMe ? '<span class="pvp-room-tag-mine">(Tu Sala)</span>' : ''}</div>
+          <div class="pvp-room-meta">
+            <span class="pvp-room-code-badge">#${r.roomCode}</span>
+            <span class="pvp-room-time">Esperando retador</span>
+          </div>
+        </div>
+        <div class="pvp-room-action">
+          ${isMe
+            ? `<button class="phase-btn btn-cancel btn-join-room-card" disabled>Esperando...</button>`
+            : `<button class="phase-btn btn-confirm btn-join-room-card" data-code="${r.roomCode}">⚔️ Unirse al Duelo</button>`}
+        </div>
+      `;
+      listEl.appendChild(card);
+    });
+
+    listEl.querySelectorAll('.btn-join-room-card[data-code]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const code = btn.getAttribute('data-code');
+        this.unirseConCodigo(code);
+      });
+    });
   },
 
   async comprobarEstadoServidor() {
@@ -7935,6 +9205,7 @@ const MultiplayerManager = {
           const code = Math.random().toString(36).substring(2, 6).toUpperCase();
           await lobby.track({ waitingRoom: code, hostUser: user.username });
           this.roomCode = code;
+          this.publicarSalaEnLobby(code, user);
           const adapter = new SupabaseRoomAdapter(sb, {
             roomCode: code,
             isHost: true,
@@ -7985,6 +9256,7 @@ const MultiplayerManager = {
     if (this.usarSupabaseRealtime) {
       try {
         const sb = SupabaseCloud.getClient();
+        this.publicarSalaEnLobby(code, user);
         const adapter = new SupabaseRoomAdapter(sb, {
           roomCode: code,
           isHost: true,
@@ -8149,6 +9421,7 @@ const MultiplayerManager = {
   },
 
   iniciarDueloOnline(data) {
+    this.despublicarSalaEnLobby();
     if (this.lobbyChannel) {
       const sb = SupabaseCloud.getClient();
       if (sb) {
@@ -8224,7 +9497,10 @@ const MultiplayerManager = {
         haAtacado: !!m.haAtacado,
         atkMod: m.atkMod || 0,
         defMod: m.defMod || 0,
-        equipos: m.equipos ? m.equipos.slice() : []
+        equipos: m.equipos ? m.equipos.slice() : [],
+        efectoUsado: !!m.efectoUsado,
+        efectoSilenciado: !!m.efectoSilenciado,
+        bloqueadoAtaqueTurnos: m.bloqueadoAtaqueTurnos || 0
       } : null),
       // Solo sincronizar trampas colocadas boca abajo que sigan sin usarse
       zonaMagiasTrampas: estadoJugador.zonaMagiasTrampas.map(t => (t && t.bocaAbajo) ? {
@@ -8452,7 +9728,10 @@ const MultiplayerManager = {
         haAtacado: !!m.haAtacado,
         atkMod: m.atkMod || 0,
         defMod: m.defMod || 0,
-        equipos: m.equipos ? m.equipos.slice() : []
+        equipos: m.equipos ? m.equipos.slice() : [],
+        efectoUsado: !!m.efectoUsado,
+        efectoSilenciado: !!m.efectoSilenciado,
+        bloqueadoAtaqueTurnos: m.bloqueadoAtaqueTurnos || 0
       } : null);
 
       estadoOponente.zonaMagiasTrampas = accion.zonaMagiasTrampas.map(t => (t && t.bocaAbajo) ? {
@@ -8594,7 +9873,251 @@ const MultiplayerManager = {
       renderizarManoOponente();
       actualizarContadoresMazoYCementerio();
       mostrarMensajeToast(`${estadoOponente.nombre} descartó ${count} carta(s) al cementerio por límite de mano.`);
+    } else if (accion.tipo === 'MEGAEVOLUCIONAR_MONSTRUO') {
+      const slotIdx = accion.slotIndex;
+      const megaId = accion.megaId;
+      const megaData = bdCartas[megaId];
+      if (estadoOponente.zonaMonstruos[slotIdx] && megaData) {
+        estadoOponente.zonaMonstruos[slotIdx].id = megaId;
+        const oppSlot = document.querySelector(`#opponent-side .monsters-row .monster-slot[data-slot-index="${slotIdx}"]`);
+        if (oppSlot) {
+          lanzarEfectoVisual('vortice', oppSlot);
+          crearNumeroFlotante("¡MEGAEVOLUCIÓN!", oppSlot, 'buff');
+        }
+        AudioManager.reproducirSFX('hit-super');
+        if (megaData.slug) AudioManager.reproducirGrito(megaData.slug);
+        renderizarCampoOponente();
+        mostrarMensajeToast(`✨ ¡${estadoOponente.nombre} ha Megaevolucionado a ${megaData.nombre}!`);
+        registrarAccionBatalla({ actor: 'rival', icono: '✨', texto: `El Rival Megaevolucionó a ${megaData.nombre}.` });
+      }
+    } else if (accion.tipo === 'ACTIVAR_EFECTO_MONSTRUO') {
+      this.aplicarEfectoMonstruoRival(accion);
     }
+  },
+
+  aplicarEfectoMonstruoRival(accion) {
+    const slotOrigen = accion.slotOrigen;
+    const targetSlotIndex = accion.slotObjetivo;
+    const efecto = accion.efecto;
+    if (!efecto) return;
+
+    if (estadoOponente.zonaMonstruos[slotOrigen]) {
+      estadoOponente.zonaMonstruos[slotOrigen].efectoUsado = true;
+    }
+
+    const rivalSlotElem = document.querySelector(`#opponent-side .monsters-row .monster-slot[data-slot-index="${slotOrigen}"]`);
+    const myTargetSlotElem = (targetSlotIndex !== null && targetSlotIndex !== undefined)
+      ? document.querySelector(`#player-side .monsters-row .monster-slot[data-slot-index="${targetSlotIndex}"]`)
+      : null;
+
+    let logRival = `${estadoOponente.nombre} activó "${efecto.nombre}".`;
+
+    switch (efecto.tipo) {
+      case 'reducir_atk_y_curar': {
+        const myM = estadoJugador.zonaMonstruos[targetSlotIndex];
+        if (myM) {
+          myM.atkMod = (myM.atkMod || 0) - efecto.valor;
+          estadoOponente.lp = Math.min(configuracionJuego.lpMax || 8000, estadoOponente.lp + efecto.valor);
+          const oppLpVal = document.getElementById('opponent-lp-val');
+          if (oppLpVal) oppLpVal.textContent = estadoOponente.lp;
+          if (myTargetSlotElem) {
+            lanzarEfectoVisual('fuego', myTargetSlotElem);
+            crearNumeroFlotante(`-${efecto.valor} ATK`, myTargetSlotElem, 'damage');
+          }
+          if (rivalSlotElem) {
+            lanzarEfectoVisual('luz', rivalSlotElem);
+            crearNumeroFlotante(`+${efecto.valor} LP`, rivalSlotElem, 'heal');
+          }
+          logRival = `${estadoOponente.nombre} usó ${efecto.nombre}: drenó ${efecto.valor} ATK y curó ${efecto.valor} LP.`;
+        }
+        break;
+      }
+      case 'danar_lp': {
+        estadoJugador.lp = Math.max(0, estadoJugador.lp - efecto.valor);
+        document.getElementById('player-lp-val').textContent = estadoJugador.lp;
+        crearNumeroFlotante(`-${efecto.valor} LP`, document.getElementById('player-lp-val'), 'damage');
+        if (rivalSlotElem) lanzarEfectoVisual('fuego', rivalSlotElem);
+        logRival = `${estadoOponente.nombre} usó ${efecto.nombre}: te causó ${efecto.valor} de daño directo.`;
+        comprobarFinDelDuelo();
+        break;
+      }
+      case 'curar_lp': {
+        estadoOponente.lp = Math.min(configuracionJuego.lpMax || 8000, estadoOponente.lp + efecto.valor);
+        const oppLpVal = document.getElementById('opponent-lp-val');
+        if (oppLpVal) oppLpVal.textContent = estadoOponente.lp;
+        if (rivalSlotElem) {
+          lanzarEfectoVisual('luz', rivalSlotElem);
+          crearNumeroFlotante(`+${efecto.valor} LP`, rivalSlotElem, 'heal');
+        }
+        logRival = `${estadoOponente.nombre} usó ${efecto.nombre}: recuperó +${efecto.valor} LP.`;
+        break;
+      }
+      case 'reducir_atk': {
+        const myM = estadoJugador.zonaMonstruos[targetSlotIndex];
+        if (myM) {
+          myM.atkMod = (myM.atkMod || 0) - efecto.valor;
+          if (myTargetSlotElem) {
+            lanzarEfectoVisual('fuego', myTargetSlotElem);
+            crearNumeroFlotante(`-${efecto.valor} ATK`, myTargetSlotElem, 'damage');
+          }
+        }
+        break;
+      }
+      case 'reducir_def': {
+        const myM = estadoJugador.zonaMonstruos[targetSlotIndex];
+        if (myM) {
+          myM.defMod = (myM.defMod || 0) - efecto.valor;
+          if (myTargetSlotElem) {
+            lanzarEfectoVisual('fuego', myTargetSlotElem);
+            crearNumeroFlotante(`-${efecto.valor} DEF`, myTargetSlotElem, 'damage');
+          }
+        }
+        break;
+      }
+      case 'reducir_atk_todos_rival': {
+        estadoJugador.zonaMonstruos.forEach((m, idx) => {
+          if (m) {
+            m.atkMod = (m.atkMod || 0) - efecto.valor;
+            const sEl = document.querySelector(`#player-side .monsters-row .monster-slot[data-slot-index="${idx}"]`);
+            if (sEl) {
+              lanzarEfectoVisual('fuego', sEl);
+              crearNumeroFlotante(`-${efecto.valor} ATK`, sEl, 'damage');
+            }
+          }
+        });
+        break;
+      }
+      case 'bloquear_ataque':
+      case 'paralizar':
+      case 'congelar': {
+        const myM = estadoJugador.zonaMonstruos[targetSlotIndex];
+        if (myM) {
+          myM.bloqueadoAtaqueTurnos = efecto.duracionTurnos || 1;
+          if (myTargetSlotElem) {
+            lanzarEfectoVisual('shield', myTargetSlotElem);
+            crearNumeroFlotante(efecto.tipo.toUpperCase(), myTargetSlotElem, 'damage');
+          }
+        }
+        break;
+      }
+      case 'congelar_todos_ataque': {
+        estadoJugador.zonaMonstruos.forEach((m, idx) => {
+          if (m && m.posicion === 'ataque') {
+            m.bloqueadoAtaqueTurnos = efecto.duracionTurnos || 1;
+            const sEl = document.querySelector(`#player-side .monsters-row .monster-slot[data-slot-index="${idx}"]`);
+            if (sEl) {
+              lanzarEfectoVisual('shield', sEl);
+              crearNumeroFlotante("CONGELADO", sEl, 'damage');
+            }
+          }
+        });
+        break;
+      }
+      case 'devolver_mano': {
+        const myM = estadoJugador.zonaMonstruos[targetSlotIndex];
+        if (myM) {
+          const idM = myM.id;
+          estadoJugador.zonaMonstruos[targetSlotIndex] = null;
+          if (!Array.isArray(estadoJugador.mano)) estadoJugador.mano = [];
+          estadoJugador.mano.push(idM);
+          if (myTargetSlotElem) {
+            lanzarEfectoVisual('vortice', myTargetSlotElem);
+            crearNumeroFlotante("A LA MANO", myTargetSlotElem, 'buff');
+          }
+          renderizarMano(estadoJugador);
+        }
+        break;
+      }
+      case 'destruir_monstruo_debil':
+      case 'destruir_defensa':
+      case 'destruir_menor_atk': {
+        const myM = estadoJugador.zonaMonstruos[targetSlotIndex];
+        if (myM) {
+          const idM = myM.id;
+          estadoJugador.zonaMonstruos[targetSlotIndex] = null;
+          if (!Array.isArray(estadoJugador.cementerio)) estadoJugador.cementerio = [];
+          estadoJugador.cementerio.push(idM);
+          if (myTargetSlotElem) {
+            lanzarEfectoVisual('fuego', myTargetSlotElem);
+            crearNumeroFlotante("DESTRUIDO", myTargetSlotElem, 'damage');
+          }
+        }
+        break;
+      }
+      case 'destruir_equipo_rival':
+      case 'destruir_trampa_rival':
+      case 'destruir_magia_trampa_rival': {
+        const myMT = estadoJugador.zonaMagiasTrampas[targetSlotIndex];
+        if (myMT) {
+          const idM = myMT.id;
+          estadoJugador.zonaMagiasTrampas[targetSlotIndex] = null;
+          if (!Array.isArray(estadoJugador.cementerio)) estadoJugador.cementerio = [];
+          estadoJugador.cementerio.push(idM);
+          const sMT = document.querySelector(`#player-side .spells-row .spell-trap-slot[data-slot-index="${targetSlotIndex}"]`);
+          if (sMT) {
+            lanzarEfectoVisual('fuego', sMT);
+            crearNumeroFlotante("DESTRUIDA", sMT, 'damage');
+          }
+        }
+        break;
+      }
+      case 'devolver_magia_trampa_mano': {
+        const myMT = estadoJugador.zonaMagiasTrampas[targetSlotIndex];
+        if (myMT) {
+          const idM = myMT.id;
+          estadoJugador.zonaMagiasTrampas[targetSlotIndex] = null;
+          if (!Array.isArray(estadoJugador.mano)) estadoJugador.mano = [];
+          estadoJugador.mano.push(idM);
+          renderizarMano(estadoJugador);
+        }
+        break;
+      }
+      case 'robar_carta': {
+        if (!estadoOponente.mano) estadoOponente.mano = [];
+        estadoOponente.mano.push(null);
+        renderizarManoOponente();
+        break;
+      }
+      case 'aumento_atk_propio': {
+        const opM = estadoOponente.zonaMonstruos[slotOrigen];
+        if (opM) opM.atkMod = (opM.atkMod || 0) + efecto.valor;
+        break;
+      }
+      case 'aumento_def_propio': {
+        const opM = estadoOponente.zonaMonstruos[slotOrigen];
+        if (opM) opM.defMod = (opM.defMod || 0) + efecto.valor;
+        break;
+      }
+      case 'aumento_stats_propio': {
+        const opM = estadoOponente.zonaMonstruos[slotOrigen];
+        if (opM) {
+          opM.atkMod = (opM.atkMod || 0) + efecto.valor;
+          opM.defMod = (opM.defMod || 0) + efecto.valor;
+        }
+        break;
+      }
+      case 'descartar_carta_rival': {
+        if (estadoJugador.mano && estadoJugador.mano.length > 0) {
+          const randIdx = Math.floor(Math.random() * estadoJugador.mano.length);
+          const [cDesc] = estadoJugador.mano.splice(randIdx, 1);
+          if (cDesc) {
+            if (!Array.isArray(estadoJugador.cementerio)) estadoJugador.cementerio = [];
+            estadoJugador.cementerio.push(cDesc);
+          }
+          renderizarMano(estadoJugador);
+        }
+        break;
+      }
+    }
+
+    AudioManager.reproducirSFX('hit');
+    mostrarMensajeToast(`⚡ ¡${logRival}`);
+    registrarAccionBatalla({ actor: 'rival', icono: '⚡', texto: logRival });
+
+    renderizarCampoJugador();
+    renderizarCampoOponente();
+    actualizarContadoresMazoYCementerio();
+    actualizarMarcadorLateral();
   },
 
   async rendirseYSalirAlMenu() {
@@ -8641,12 +10164,22 @@ const MultiplayerManager = {
       mostrarMensajeToast("Has abandonado la partida online. Se registró como derrota.");
     }
 
+    this.despublicarSalaEnLobby();
+
     if (this.lobbyChannel) {
       const sb = SupabaseCloud.getClient();
       if (sb) {
         try { sb.removeChannel(this.lobbyChannel); } catch (e) {}
       }
       this.lobbyChannel = null;
+    }
+
+    if (this.browseChannel) {
+      const sb = SupabaseCloud.getClient();
+      if (sb) {
+        try { sb.removeChannel(this.browseChannel); } catch (e) {}
+      }
+      this.browseChannel = null;
     }
 
     if (this.room) {
@@ -8661,6 +10194,10 @@ const MultiplayerManager = {
   initEventListeners() {
     const btnQuick = document.getElementById('btn-pvp-quick');
     const btnCreate = document.getElementById('btn-pvp-create-private');
+    const btnBrowseRooms = document.getElementById('btn-pvp-browse-rooms');
+    const btnCreateFromRooms = document.getElementById('btn-pvp-create-from-rooms');
+    const btnRefreshRooms = document.getElementById('btn-pvp-refresh-rooms');
+    const btnBackOptions = document.getElementById('btn-pvp-back-to-options');
     const btnJoinCode = document.getElementById('btn-pvp-join-code');
     const inputCode = document.getElementById('pvp-room-code-input');
     const btnCancelWait = document.getElementById('btn-pvp-cancel-wait');
@@ -8676,6 +10213,11 @@ const MultiplayerManager = {
 
     if (btnQuick) btnQuick.onclick = () => this.buscarPartidaRapida();
     if (btnCreate) btnCreate.onclick = () => this.crearSalaPrivada();
+    if (btnBrowseRooms) btnBrowseRooms.onclick = () => this.abrirBuscadorSalas();
+    if (btnCreateFromRooms) btnCreateFromRooms.onclick = () => this.crearSalaPrivada();
+    if (btnRefreshRooms) btnRefreshRooms.onclick = () => this.actualizarListaSalas();
+    if (btnBackOptions) btnBackOptions.onclick = () => this.cambiarVista('options');
+
     if (btnJoinCode) {
       btnJoinCode.onclick = () => {
         const c = inputCode ? inputCode.value : '';
@@ -9121,6 +10663,7 @@ function inicializarJuegoCompleto() {
   inicializarMenuPrincipal();
   inicializarModalPrePartida();
   inicializarModalAjustes();
+  inicializarModalesEfectosYMegas();
 
   // Inicializar Sistema de Usuarios y Multijugador
   UserManager.init();

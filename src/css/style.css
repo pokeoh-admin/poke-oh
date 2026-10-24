@@ -5417,6 +5417,581 @@ body.action-log-is-hidden .action-log-floating-toggle {
   text-align: center;
 }
 
+/* ================================================================
+   BOTÓN DE EFECTO ACTIVO EN CARTAS DE MONSTRUO (FASE PRINCIPAL)
+   ================================================================ */
+.monster-action-btn.btn-efecto-activo {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border: 1px solid #fbbf24;
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+  animation: pulse-effect-btn 1.6s infinite ease-in-out;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 2px 5px;
+  font-size: 0.68rem;
+  border-radius: 4px;
+}
+
+.monster-action-btn.btn-efecto-activo:hover {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  transform: scale(1.08);
+  box-shadow: 0 0 16px rgba(251, 191, 36, 0.85);
+}
+
+.monster-action-btn.btn-efecto-usado {
+  background: rgba(75, 85, 99, 0.6);
+  border: 1px solid rgba(156, 163, 175, 0.4);
+  color: #9ca3af;
+  cursor: not-allowed;
+  font-size: 0.64rem;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+@keyframes pulse-effect-btn {
+  0%, 100% { box-shadow: 0 0 6px rgba(245, 158, 11, 0.5); }
+  50% { box-shadow: 0 0 14px rgba(251, 191, 36, 0.9); }
+}
+
+/* ================================================================
+   SELECCIÓN DE BARAJAS INICIALES EN REGISTRO DE CUENTA
+   ================================================================ */
+.starter-deck-selection-group {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.starter-deck-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #feca57;
+}
+
+.starter-deck-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.starter-deck-card {
+  position: relative;
+  background: rgba(15, 23, 42, 0.85);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 9px;
+  padding: 8px 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.starter-deck-card:hover {
+  border-color: rgba(84, 160, 255, 0.7);
+  transform: translateY(-2px);
+  background: rgba(30, 41, 59, 0.95);
+}
+
+.starter-deck-card.active {
+  border-color: #feca57;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(15, 23, 42, 0.95) 100%);
+  box-shadow: 0 0 14px rgba(254, 202, 87, 0.45);
+}
+
+.starter-deck-badge {
+  position: absolute;
+  top: -7px;
+  right: -5px;
+  background: #f59e0b;
+  color: #1e272e;
+  font-size: 0.55rem;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.starter-deck-icon {
+  font-size: 1.4rem;
+}
+
+.starter-deck-name {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #f1f2f6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.starter-deck-sub {
+  font-size: 0.6rem;
+  color: #94a3b8;
+  line-height: 1.2;
+}
+
+.starter-deck-check {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #2ed573;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.starter-deck-card.active .starter-deck-check {
+  opacity: 1;
+}
+
+/* ================================================================
+   PANEL DE ADMINISTRADOR: MÉTRICAS, FILTROS Y ACCIONES
+   ================================================================ */
+.admin-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 10px 0 12px;
+}
+
+.admin-metric-card {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(84, 160, 255, 0.25);
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.admin-metric-num {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #feca57;
+  font-family: 'Chakra Petch', sans-serif;
+}
+
+.admin-metric-lbl {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.admin-filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.admin-search-input {
+  flex: 1 1 200px;
+  padding: 6px 10px;
+  font-size: 0.78rem;
+}
+
+.admin-filter-select {
+  flex: 0 0 160px;
+  padding: 6px 8px;
+  font-size: 0.78rem;
+  background: #1e272e;
+  color: #f1f2f6;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.admin-status-badge {
+  font-size: 0.66rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+  text-transform: uppercase;
+}
+
+.admin-status-active {
+  background: rgba(46, 213, 115, 0.2);
+  color: #2ed573;
+  border: 1px solid rgba(46, 213, 115, 0.4);
+}
+
+.admin-status-banned {
+  background: rgba(255, 71, 87, 0.25);
+  color: #ff4757;
+  border: 1px solid rgba(255, 71, 87, 0.55);
+}
+
+.admin-btn-group {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.btn-admin-action {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 3px 6px;
+  border-radius: 5px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-admin-ban {
+  background: rgba(235, 77, 75, 0.2);
+  color: #ff6b81;
+  border-color: rgba(235, 77, 75, 0.4);
+}
+.btn-admin-ban:hover {
+  background: #eb4d4b;
+  color: #ffffff;
+}
+
+.btn-admin-unban {
+  background: rgba(46, 213, 115, 0.2);
+  color: #2ed573;
+  border-color: rgba(46, 213, 115, 0.4);
+}
+.btn-admin-unban:hover {
+  background: #2ed573;
+  color: #1e272e;
+}
+
+.btn-admin-reset {
+  background: rgba(254, 202, 87, 0.2);
+  color: #feca57;
+  border-color: rgba(254, 202, 87, 0.4);
+}
+.btn-admin-reset:hover {
+  background: #feca57;
+  color: #1e272e;
+}
+
+.btn-admin-role {
+  background: rgba(84, 160, 255, 0.2);
+  color: #54a0ff;
+  border-color: rgba(84, 160, 255, 0.4);
+}
+.btn-admin-role:hover {
+  background: #54a0ff;
+  color: #ffffff;
+}
+
+.btn-admin-del {
+  background: rgba(149, 165, 166, 0.2);
+  color: #ced6e0;
+  border-color: rgba(149, 165, 166, 0.4);
+}
+.btn-admin-del:hover {
+  background: #e74c3c;
+  color: #ffffff;
+  border-color: #c0392b;
+}
+
+/* ================================================================
+   BUSCADOR DE SALAS PVP EN TIEMPO REAL (LOBBY DE SALAS)
+   ================================================================ */
+.pvp-opt-highlight {
+  border-color: #feca57 !important;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(15, 23, 42, 0.95) 100%) !important;
+}
+
+.pvp-rooms-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pvp-rooms-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pvp-rooms-title-wrap h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: #feca57;
+  font-family: 'Chakra Petch', sans-serif;
+}
+
+.pvp-rooms-badge {
+  background: rgba(84, 160, 255, 0.2);
+  color: #54a0ff;
+  border: 1px solid rgba(84, 160, 255, 0.4);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 12px;
+}
+
+.pvp-rooms-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.pvp-rooms-desc {
+  font-size: 0.76rem;
+  color: #94a3b8;
+  margin: 0 0 10px;
+}
+
+.pvp-rooms-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.pvp-room-card {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(84, 160, 255, 0.35);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  transition: all 0.2s ease;
+}
+
+.pvp-room-card:hover {
+  border-color: #feca57;
+  transform: translateY(-2px);
+  background: rgba(30, 41, 59, 0.95);
+}
+
+.pvp-room-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pvp-room-code-badge {
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #feca57;
+  letter-spacing: 1px;
+}
+
+.pvp-room-status-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  background: rgba(46, 213, 115, 0.2);
+  color: #2ed573;
+  border: 1px solid rgba(46, 213, 115, 0.4);
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+.pvp-room-host {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #f1f2f6;
+}
+
+.pvp-room-time {
+  font-size: 0.66rem;
+  color: #94a3b8;
+}
+
+.pvp-btn-join-room {
+  margin-top: 4px;
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 0.78rem;
+}
+
+.pvp-empty-rooms {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 30px 15px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  color: #94a3b8;
+  font-size: 0.82rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ================================================================
+   MODALES DE MEGAEVOLUCIÓN, OBJETIVOS Y RESURRECCIÓN
+   ================================================================ */
+.mega-modal-box {
+  max-width: 600px;
+  width: 92%;
+  border-color: #feca57;
+  box-shadow: 0 0 35px rgba(254, 202, 87, 0.4);
+}
+
+.mega-options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 12px 0 16px;
+}
+
+.mega-option-card {
+  background: rgba(15, 23, 42, 0.9);
+  border: 2px solid rgba(254, 202, 87, 0.4);
+  border-radius: 10px;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mega-option-card:hover {
+  border-color: #feca57;
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(254, 202, 87, 0.6);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(15, 23, 42, 0.95) 100%);
+}
+
+.mega-card-sprite {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(254, 202, 87, 0.5));
+}
+
+.mega-card-name {
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: #feca57;
+  font-family: 'Chakra Petch', sans-serif;
+}
+
+.mega-card-stats {
+  display: flex;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.mega-card-stats .atk { color: #ff6b81; }
+.mega-card-stats .def { color: #54a0ff; }
+
+/* MODAL DE OBJETIVO PARA EFECTOS DE MONSTRUO */
+.effect-target-box {
+  max-width: 580px;
+  width: 92%;
+  border-color: #54a0ff;
+}
+
+.effect-info-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(84, 160, 255, 0.12);
+  border: 1px solid rgba(84, 160, 255, 0.35);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+}
+
+.effect-icon-badge {
+  font-size: 1.5rem;
+}
+
+.effect-info-banner h4 {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #54a0ff;
+  font-family: 'Chakra Petch', sans-serif;
+}
+
+.effect-info-banner p {
+  margin: 2px 0 0;
+  font-size: 0.74rem;
+  color: #dfe4ea;
+}
+
+.effect-targets-grid,
+.gy-resurrect-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px;
+  max-height: 260px;
+  overflow-y: auto;
+  margin: 10px 0 16px;
+  padding: 4px;
+}
+
+.effect-target-card,
+.gy-resurrect-card {
+  background: rgba(15, 23, 42, 0.85);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.effect-target-card:hover,
+.gy-resurrect-card:hover {
+  border-color: #54a0ff;
+  transform: scale(1.05);
+  background: rgba(84, 160, 255, 0.2);
+  box-shadow: 0 0 14px rgba(84, 160, 255, 0.5);
+}
+
+.effect-target-card-sprite,
+.gy-resurrect-card-sprite {
+  width: 54px;
+  height: 54px;
+  object-fit: contain;
+}
+
+.effect-target-card-name,
+.gy-resurrect-card-name {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #f1f2f6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.effect-target-card-pos {
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+.pos-ataque { background: rgba(255, 71, 87, 0.25); color: #ff6b81; }
+.pos-defensa { background: rgba(84, 160, 255, 0.25); color: #54a0ff; }
+
+
 
 
 

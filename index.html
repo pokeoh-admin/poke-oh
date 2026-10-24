@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="src/css/style.css?v=20261023_7">
+  <link rel="stylesheet" href="src/css/style.css?v=20261024_1">
 </head>
 <body>
   <!-- ============================================== -->
@@ -1045,6 +1045,39 @@
               <label for="reg-password-confirm">Confirmar Contraseña:</label>
               <input type="password" id="reg-password-confirm" class="user-input" placeholder="Repite la contraseña" required autocomplete="new-password">
             </div>
+
+            <!-- Selección de Baraja Inicial de 40 Cartas -->
+            <div class="user-form-group starter-deck-selection-group">
+              <label class="starter-deck-label">🔥💧🌿 Elige tu Baraja Inicial (40 Cartas Equilibradas):</label>
+              <div class="starter-deck-options" id="reg-starter-deck-options">
+                <div class="starter-deck-card active" data-deck="fuego">
+                  <div class="starter-deck-badge">RECOMENDADO</div>
+                  <div class="starter-deck-icon">🔥</div>
+                  <div class="starter-deck-info">
+                    <div class="starter-deck-name">Llama Carmesí</div>
+                    <div class="starter-deck-sub">Línea Charmander / Charizard • Fuego Ofensivo & Daño Directo</div>
+                  </div>
+                  <div class="starter-deck-check">✓</div>
+                </div>
+                <div class="starter-deck-card" data-deck="agua">
+                  <div class="starter-deck-icon">💧</div>
+                  <div class="starter-deck-info">
+                    <div class="starter-deck-name">Marea Azul</div>
+                    <div class="starter-deck-sub">Línea Squirtle / Blastoise • Control, Congelación & Alta Defensa</div>
+                  </div>
+                  <div class="starter-deck-check">✓</div>
+                </div>
+                <div class="starter-deck-card" data-deck="planta">
+                  <div class="starter-deck-icon">🌿</div>
+                  <div class="starter-deck-info">
+                    <div class="starter-deck-name">Bosque Primigenio</div>
+                    <div class="starter-deck-sub">Línea Bulbasaur / Venusaur • Drenadoras, Parálisis & Desgaste</div>
+                  </div>
+                  <div class="starter-deck-check">✓</div>
+                </div>
+              </div>
+            </div>
+
             <div class="user-msg-banner hidden" id="reg-msg"></div>
             <div class="user-form-actions">
               <button class="phase-btn btn-confirm" id="btn-submit-register" type="button">✨ Registrar Nueva Cuenta</button>
@@ -1059,7 +1092,39 @@
               <h4>👑 Panel de Administración de Usuarios</h4>
               <span class="admin-total-badge" id="admin-user-count">Total: 1 usuarios</span>
             </div>
-            <p class="user-form-desc">Conectado en tiempo real con la base de datos en la nube de <b>Supabase (PostgreSQL)</b>.</p>
+            <p class="user-form-desc">Gestión integral en la nube con <b>Supabase PostgreSQL</b>. Administra sanciones, reseteos, roles y seguridad.</p>
+
+            <!-- Métricas Globales del Servidor -->
+            <div class="admin-metrics-grid">
+              <div class="admin-metric-card">
+                <span class="admin-metric-num" id="admin-metric-total-users">0</span>
+                <span class="admin-metric-lbl">👥 Usuarios Totales</span>
+              </div>
+              <div class="admin-metric-card">
+                <span class="admin-metric-num" id="admin-metric-admins">0</span>
+                <span class="admin-metric-lbl">👑 Administradores</span>
+              </div>
+              <div class="admin-metric-card">
+                <span class="admin-metric-num" id="admin-metric-banned">0</span>
+                <span class="admin-metric-lbl">🚫 Usuarios Bloqueados</span>
+              </div>
+              <div class="admin-metric-card">
+                <span class="admin-metric-num" id="admin-metric-matches">0</span>
+                <span class="admin-metric-lbl">⚔️ Duelos Totales</span>
+              </div>
+            </div>
+
+            <!-- Barra de Búsqueda y Filtros -->
+            <div class="admin-filter-bar">
+              <input type="text" id="admin-user-search" class="user-input admin-search-input" placeholder="🔍 Buscar por nombre de usuario...">
+              <select id="admin-user-filter" class="user-input admin-filter-select">
+                <option value="todos">Todos los Usuarios</option>
+                <option value="activos">Solo Activos</option>
+                <option value="bloqueados">Solo Bloqueados 🚫</option>
+                <option value="admins">Solo Administradores 👑</option>
+              </select>
+              <button type="button" class="settings-btn" id="btn-admin-refresh">🔄 Actualizar</button>
+            </div>
             
             <div class="admin-table-scroll">
               <table class="admin-table" id="admin-users-table">
@@ -1067,8 +1132,8 @@
                   <tr>
                     <th>Usuario</th>
                     <th>Rol</th>
-                    <th>Duelos</th>
-                    <th>Victorias</th>
+                    <th>Estado</th>
+                    <th>Duelos (V/D)</th>
                     <th>Puntos</th>
                     <th>Fecha</th>
                     <th>Acciones</th>
@@ -1122,6 +1187,14 @@
           </div>
 
           <div class="pvp-options-grid">
+            <!-- Explorar / Buscar Salas Disponibles -->
+            <div class="pvp-option-card pvp-opt-highlight">
+              <div class="pvp-opt-icon">🔍</div>
+              <h4>Buscar Salas Abiertas</h4>
+              <p>Explora las salas creadas por otros jugadores y únete en 1 clic para batallar.</p>
+              <button class="phase-btn btn-confirm" id="btn-pvp-browse-rooms" type="button">📋 Ver Salas Disponibles</button>
+            </div>
+
             <!-- Partida Rápida -->
             <div class="pvp-option-card">
               <div class="pvp-opt-icon">⚡</div>
@@ -1133,8 +1206,8 @@
             <!-- Crear Sala Privada -->
             <div class="pvp-option-card">
               <div class="pvp-opt-icon">🏠</div>
-              <h4>Crear Sala Privada</h4>
-              <p>Genera un código de sala exclusivo para invitar a un amigo a jugar 1v1.</p>
+              <h4>Crear Sala</h4>
+              <p>Genera una sala esperando rival con código exclusivo para invitar a un amigo.</p>
               <button class="phase-btn btn-confirm" id="btn-pvp-create-private" type="button">🔑 Generar Sala</button>
             </div>
 
@@ -1151,12 +1224,31 @@
           </div>
         </div>
 
-        <!-- Vista 2: Esperando Rival (Lobby de Sala) -->
+        <!-- Vista 2: Buscador / Lista de Salas Disponibles (Lobby de Salas) -->
+        <div class="pvp-view" id="pvp-view-rooms">
+          <div class="pvp-rooms-header-row">
+            <div class="pvp-rooms-title-wrap">
+              <h4>📋 Salas de Duelo Disponibles</h4>
+              <span class="pvp-rooms-badge" id="pvp-rooms-count-badge">0 Salas</span>
+            </div>
+            <div class="pvp-rooms-actions">
+              <button type="button" class="settings-btn" id="btn-pvp-create-from-rooms">➕ Crear Sala</button>
+              <button type="button" class="settings-btn" id="btn-pvp-refresh-rooms">🔄 Actualizar</button>
+              <button type="button" class="settings-btn" id="btn-pvp-back-to-options">⬅️ Opciones</button>
+            </div>
+          </div>
+          <p class="pvp-rooms-desc">Salas creadas en tiempo real por otros duelistas. Haz clic en <b>"⚔️ Unirse al Duelo"</b> para jugar.</p>
+          <div class="pvp-rooms-list" id="pvp-rooms-list">
+            <!-- Renderizado dinámico de salas -->
+          </div>
+        </div>
+
+        <!-- Vista 3: Esperando Rival (Lobby de Sala) -->
         <div class="pvp-view" id="pvp-view-waiting">
           <div class="pvp-waiting-box">
             <div class="pvp-spinner">🌀</div>
             <h4>Esperando al Rival...</h4>
-            <p>Comparte este código de sala con tu amigo para que se una:</p>
+            <p>Tu sala está abierta y visible en el <b>Buscador de Salas</b>. También puedes compartir el código:</p>
             <div class="pvp-code-display" id="pvp-waiting-code">POKE</div>
             <p class="pvp-subnote">El duelo comenzará automáticamente cuando el rival ingrese.</p>
             <button class="settings-btn" id="btn-pvp-cancel-wait" type="button">Cancelar Espera</button>
@@ -1166,6 +1258,64 @@
 
       <div class="modal-actions">
         <button class="phase-btn" id="btn-close-pvp" type="button">Volver al Menú</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Selección de Megaevolución -->
+  <div class="modal-overlay hidden" id="mega-evolucion-modal">
+    <div class="modal-box mega-modal-box">
+      <div class="modal-header-with-close">
+        <h3 class="modal-title" style="color: #feca57;">✨ Megaevolución Suprema (Side Deck)</h3>
+        <button class="modal-close-x" id="btn-close-mega-modal-x" type="button" title="Cerrar">&times;</button>
+      </div>
+      <p class="modal-desc" id="mega-modal-prompt">Selecciona qué Pokémon deseas Megaevolucionar:</p>
+      <div class="mega-options-grid" id="mega-modal-options-grid">
+        <!-- Renderizado dinámico de opciones -->
+      </div>
+      <div class="modal-actions">
+        <button class="phase-btn btn-cancel" id="btn-cancel-mega-modal" type="button">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Selección de Objetivo para Efectos de Monstruo -->
+  <div class="modal-overlay hidden" id="effect-target-modal">
+    <div class="modal-box effect-target-box">
+      <div class="modal-header-with-close">
+        <h3 class="modal-title" id="effect-target-title">✨ Activar Efecto Especial</h3>
+        <button class="modal-close-x" id="btn-close-effect-target-x" type="button" title="Cerrar">&times;</button>
+      </div>
+      <div class="effect-info-banner" id="effect-info-banner">
+        <span class="effect-icon-badge" id="effect-target-icon">✨</span>
+        <div>
+          <h4 id="effect-target-name">Nombre del Efecto</h4>
+          <p id="effect-target-desc">Descripción del efecto...</p>
+        </div>
+      </div>
+      <p class="modal-desc" id="effect-target-prompt">Selecciona la carta objetivo en el campo rival:</p>
+      <div class="effect-targets-grid" id="effect-targets-grid">
+        <!-- Tarjetas interactivas de objetivos -->
+      </div>
+      <div class="modal-actions">
+        <button class="phase-btn btn-cancel" id="btn-cancel-effect-target" type="button">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Resurrección del Cementerio (Ceniza Sagrada) -->
+  <div class="modal-overlay hidden" id="gy-resurrect-modal">
+    <div class="modal-box gy-resurrect-box">
+      <div class="modal-header-with-close">
+        <h3 class="modal-title" style="color: #54a0ff;">🔮 Resucitar del Cementerio (Ceniza Sagrada)</h3>
+        <button class="modal-close-x" id="btn-close-gy-resurrect-x" type="button" title="Cerrar">&times;</button>
+      </div>
+      <p class="modal-desc">Elige 1 Pokémon de tu Cementerio para invocarlo de inmediato al campo de batalla:</p>
+      <div class="gy-resurrect-grid" id="gy-resurrect-grid">
+        <!-- Monstruos en el Cementerio -->
+      </div>
+      <div class="modal-actions">
+        <button class="phase-btn btn-cancel" id="btn-cancel-gy-resurrect" type="button">Cancelar</button>
       </div>
     </div>
   </div>
@@ -1194,9 +1344,9 @@
   <!-- SDK Cliente de Colyseus para Multijugador Online -->
   <script src="lib/colyseus.js"></script>
   <!-- Base de Datos de Cartas (151 Pokémon + Ítems de todas las generaciones) -->
-  <script src="src/js/cartas.js?v=20261023_7"></script>
+  <script src="src/js/cartas.js?v=20261024_1"></script>
   <!-- Lógica del Duelo -->
-  <script src="src/js/logica.js?v=20261023_7"></script>
+  <script src="src/js/logica.js?v=20261024_1"></script>
 </body>
 </html>
 

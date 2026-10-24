@@ -20,7 +20,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/1.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png",
     descripcion: "Pokémon Básico. La semilla en su lomo crece absorbiendo la luz del sol.",
-    descripcionCorta: "Semilla tenaz y resistente"
+    descripcionCorta: "Semilla tenaz y resistente",
+    efectoActivo: {
+        "id": "drenadoras",
+        "nombre": "Drenadoras",
+        "tipo": "reducir_atk_y_curar",
+        "requiereObjetivoRival": true,
+        "valor": 400,
+        "descripcion": "1 vez en campo: Drena a 1 monstruo rival reduciéndole 400 ATK y tú recuperas 400 LP."
+    }
   },
   2: {
     id: 2,
@@ -58,7 +66,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/3.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/3.png",
     descripcion: "Evolución Suprema. Su enorme flor absorbe energía solar para liberar Rayo Solar.",
-    descripcionCorta: "Fase 2: Requiere 2 Sacrificios"
+    descripcionCorta: "Fase 2: Requiere 2 Sacrificios",
+    efectoActivo: {
+        "id": "rayo_solar",
+        "nombre": "Rayo Solar",
+        "tipo": "danar_lp",
+        "requiereObjetivoRival": false,
+        "valor": 700,
+        "descripcion": "1 vez en campo: Condensa energía solar e inflige 700 LP de daño directo al rival."
+    }
   },
   4: {
     id: 4,
@@ -77,7 +93,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/4.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png",
     descripcion: "Pokémon Básico. La llama de su cola arde con vigor según sus emociones.",
-    descripcionCorta: "Fuego equilibrado y rápido"
+    descripcionCorta: "Fuego equilibrado y rápido",
+    efectoActivo: {
+        "id": "fuego_fatuo",
+        "nombre": "Fuego Fatuo",
+        "tipo": "danar_lp",
+        "requiereObjetivoRival": false,
+        "valor": 500,
+        "descripcion": "1 vez en campo: Lanza una llama ardiente que inflige 500 LP de daño directo al rival."
+    }
   },
   5: {
     id: 5,
@@ -115,7 +139,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/6.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png",
     descripcion: "Evolución Suprema. Escupe llamaradas capaces de derretir rocas enormes.",
-    descripcionCorta: "Fase 2: Requiere 2 Sacrificios"
+    descripcionCorta: "Fase 2: Requiere 2 Sacrificios",
+    efectoActivo: {
+        "id": "llamarada_temeraria",
+        "nombre": "Llamarada Voraz",
+        "tipo": "destruir_monstruo_debil",
+        "requiereObjetivoRival": true,
+        "valorAtkMax": 1800,
+        "descripcion": "1 vez en campo: Calcina y destruye 1 monstruo del rival con 1800 ATK o menos."
+    }
   },
   7: {
     id: 7,
@@ -134,7 +166,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/7.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png",
     descripcion: "Pokémon Básico. Dispara chorros de agua y se guarece en su duro caparazón.",
-    descripcionCorta: "Alta defensa de caparazón"
+    descripcionCorta: "Alta defensa de caparazón",
+    efectoActivo: {
+        "id": "pistola_agua",
+        "nombre": "Pistola Agua",
+        "tipo": "reducir_atk",
+        "requiereObjetivoRival": true,
+        "valor": 300,
+        "descripcion": "1 vez en campo: Dispara un chorro a presión reduciendo 300 ATK al monstruo rival."
+    }
   },
   8: {
     id: 8,
@@ -172,7 +212,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/9.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/9.png",
     descripcion: "Evolución Suprema. Dispara potentes cañones de agua capaces de perforar acero.",
-    descripcionCorta: "Fase 2: Muralla marina y cañones"
+    descripcionCorta: "Fase 2: Muralla marina y cañones",
+    efectoActivo: {
+        "id": "hidrocanon",
+        "nombre": "Hidrocañón",
+        "tipo": "danar_lp",
+        "requiereObjetivoRival": false,
+        "valor": 600,
+        "descripcion": "1 vez en campo: Dispara sus cañones dorsales e inflige 600 LP de daño directo al rival."
+    }
   },
   10: {
     id: 10,
@@ -229,7 +277,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/12.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/12.png",
     descripcion: "Evolución de Metapod. Esparce polvos somníferos y venenosos batiendo sus alas.",
-    descripcionCorta: "Fase 2: Polvos debilitantes"
+    descripcionCorta: "Fase 2: Polvos debilitantes",
+    efectoActivo: {
+        "id": "polvo_somnifero",
+        "nombre": "Polvo Somnífero",
+        "tipo": "bloquear_ataque",
+        "requiereObjetivoRival": true,
+        "duracionTurnos": 1,
+        "descripcion": "1 vez en campo: Esparce polvo sedante; el monstruo rival no podrá atacar en su siguiente turno."
+    }
   },
   13: {
     id: 13,
@@ -286,7 +342,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/15.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/15.png",
     descripcion: "Evolución de Kakuna. Vuela velozmente acribillando con tres potentes aguijones.",
-    descripcionCorta: "Fase 2: Ataque triple aguijón"
+    descripcionCorta: "Fase 2: Ataque triple aguijón",
+    efectoActivo: {
+        "id": "aguijon_letal",
+        "nombre": "Aguijón Perforante",
+        "tipo": "reducir_def",
+        "requiereObjetivoRival": true,
+        "valor": 500,
+        "descripcion": "1 vez en campo: Perfora la armadura rival reduciendo en 500 la DEF de un monstruo enemigo."
+    }
   },
   16: {
     id: 16,
@@ -343,7 +407,14 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/18.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/18.png",
     descripcion: "Evolución Suprema. Vuela a Mach 2 desatando tornados devastadores.",
-    descripcionCorta: "Fase 2: Requiere 1 Sacrificio"
+    descripcionCorta: "Fase 2: Requiere 1 Sacrificio",
+    efectoActivo: {
+        "id": "remolino",
+        "nombre": "Remolino",
+        "tipo": "devolver_mano",
+        "requiereObjetivoRival": true,
+        "descripcion": "1 vez en campo: Bate sus alas creando un torbellino que regresa 1 monstruo rival a su mano."
+    }
   },
   19: {
     id: 19,
@@ -457,7 +528,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/24.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/24.png",
     descripcion: "Evolución de Ekans. El dibujo intimidatorio de su vientre paraliza de terror.",
-    descripcionCorta: "Fase 1: Mirada petrificante"
+    descripcionCorta: "Fase 1: Mirada petrificante",
+    efectoActivo: {
+        "id": "mirada_petrificante",
+        "nombre": "Mirada Glare",
+        "tipo": "paralizar",
+        "requiereObjetivoRival": true,
+        "duracionTurnos": 1,
+        "descripcion": "1 vez en campo: Intimida con su pecho; el monstruo rival queda paralizado por 1 turno."
+    }
   },
   25: {
     id: 25,
@@ -476,7 +555,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png",
     descripcion: "Pokémon Ratón Eléctrico. Almacena electricidad en sus mofletes y lanza rayos.",
-    descripcionCorta: "Eléctrico rápido icónico"
+    descripcionCorta: "Eléctrico rápido icónico",
+    efectoActivo: {
+        "id": "impactrueno",
+        "nombre": "Impactrueno",
+        "tipo": "paralizar",
+        "requiereObjetivoRival": true,
+        "duracionTurnos": 1,
+        "descripcion": "1 vez en campo: Descarga estática que paraliza a 1 monstruo rival (no ataca el próximo turno)."
+    }
   },
   26: {
     id: 26,
@@ -533,7 +620,14 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/28.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/28.png",
     descripcion: "Evolución de Sandshrew. Sus púas dorsales y garras causan cortes desgarradores.",
-    descripcionCorta: "Fase 1: Púas de combate"
+    descripcionCorta: "Fase 1: Púas de combate",
+    efectoActivo: {
+        "id": "cuchillada_terrestre",
+        "nombre": "Cuchillada Taladro",
+        "tipo": "destruir_defensa",
+        "requiereObjetivoRival": true,
+        "descripcion": "1 vez en campo: Rasga con garras curvas y destruye a 1 monstruo rival en Posición de Defensa."
+    }
   },
   29: {
     id: 29,
@@ -647,7 +741,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/34.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/34.png",
     descripcion: "Evolución Suprema. Su colosal cola es capaz de derribar torres de transmisión.",
-    descripcionCorta: "Fase 2: Requiere 2 Sacrificios"
+    descripcionCorta: "Fase 2: Requiere 2 Sacrificios",
+    efectoActivo: {
+        "id": "megacuerno_toxico",
+        "nombre": "Púa Venenosa",
+        "tipo": "danar_lp",
+        "requiereObjetivoRival": false,
+        "valor": 600,
+        "descripcion": "1 vez en campo: Lanza púas tóxicas infligiendo 600 LP de daño directo al rival."
+    }
   },
   35: {
     id: 35,
@@ -685,7 +787,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/36.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/36.png",
     descripcion: "Evolución de Clefairy. Se desplaza dando ligeros saltos flotantes sobre el agua.",
-    descripcionCorta: "Fase 1: Resonancia mágica"
+    descripcionCorta: "Fase 1: Resonancia mágica",
+    efectoActivo: {
+        "id": "luz_lunar",
+        "nombre": "Luz Lunar",
+        "tipo": "curar_lp",
+        "requiereObjetivoRival": false,
+        "valor": 900,
+        "descripcion": "1 vez en campo: Absorbe la radiancia lunar restaurando 900 LP a tus Puntos de Vida."
+    }
   },
   37: {
     id: 37,
@@ -723,7 +833,14 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/38.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/38.png",
     descripcion: "Evolución de Vulpix. Cuenta la leyenda que sus 9 colas encierran poderes místicos eternos.",
-    descripcionCorta: "Fase 1: Fuego místico milenario"
+    descripcionCorta: "Fase 1: Fuego místico milenario",
+    efectoActivo: {
+        "id": "llama_maldita",
+        "nombre": "Llama Purificadora",
+        "tipo": "destruir_equipo_rival",
+        "requiereObjetivoRival": false,
+        "descripcion": "1 vez en campo: Destruye todas las cartas de equipo equipadas a monstruos rivales."
+    }
   },
   39: {
     id: 39,
@@ -856,7 +973,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/45.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/45.png",
     descripcion: "Evolución Suprema. Posee los pétalos más grandes del mundo cargados de polen venenoso.",
-    descripcionCorta: "Fase 2: Requiere 2 Sacrificios"
+    descripcionCorta: "Fase 2: Requiere 2 Sacrificios",
+    efectoActivo: {
+        "id": "polvo_venenoso",
+        "nombre": "Polvo Tóxico",
+        "tipo": "reducir_atk",
+        "requiereObjetivoRival": true,
+        "valor": 500,
+        "descripcion": "1 vez en campo: Esparce esporas nocivas reduciendo en 500 el ATK de un monstruo rival."
+    }
   },
   46: {
     id: 46,
@@ -970,7 +1095,14 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/51.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/51.png",
     descripcion: "Evolución de Diglett. Un trío formidable que desencadena sismos de magnitud colosal.",
-    descripcionCorta: "Fase 1: Triple terremoto"
+    descripcionCorta: "Fase 1: Triple terremoto",
+    efectoActivo: {
+        "id": "terremoto_tactico",
+        "nombre": "Fisura Subterránea",
+        "tipo": "destruir_trampa_rival",
+        "requiereObjetivoRival": false,
+        "descripcion": "1 vez en campo: Sacude el subsuelo destruyendo 1 carta Trampa colocada del rival."
+    }
   },
   52: {
     id: 52,
@@ -989,7 +1121,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/52.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/52.png",
     descripcion: "Pokémon Gato. Adora los objetos brillantes y lanza su ataque Día de Pago.",
-    descripcionCorta: "Garras y monedas brillantes"
+    descripcionCorta: "Garras y monedas brillantes",
+    efectoActivo: {
+        "id": "dia_de_pago",
+        "nombre": "Día de Pago",
+        "tipo": "robar_carta",
+        "requiereObjetivoRival": false,
+        "valor": 1,
+        "descripcion": "1 vez en campo: Lanza monedas brillantes y te permite robar 1 carta adicional de tu mazo."
+    }
   },
   53: {
     id: 53,
@@ -1027,7 +1167,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/54.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/54.png",
     descripcion: "Pokémon Pato. Cuando su jaqueca se vuelve insoportable, desata poderes telequinéticos.",
-    descripcionCorta: "Dolor de cabeza psíquico"
+    descripcionCorta: "Dolor de cabeza psíquico",
+    efectoActivo: {
+        "id": "jaque_psiquico",
+        "nombre": "Jaque Psíquico",
+        "tipo": "bloquear_ataque",
+        "requiereObjetivoRival": true,
+        "duracionTurnos": 1,
+        "descripcion": "1 vez en campo: Su jaqueca emite ondas que impiden atacar a 1 monstruo rival este turno."
+    }
   },
   55: {
     id: 55,
@@ -1179,7 +1327,14 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/62.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/62.png",
     descripcion: "Evolución Suprema. Músculos de puro acero que jamás se agotan nadando.",
-    descripcionCorta: "Fase 2: Puño dinámico"
+    descripcionCorta: "Fase 2: Puño dinámico",
+    efectoActivo: {
+        "id": "sumision",
+        "nombre": "Sumisión Acuática",
+        "tipo": "destruir_defensa",
+        "requiereObjetivoRival": true,
+        "descripcion": "1 vez en campo: Arremete y destruye 1 monstruo rival que esté en Posición de Defensa."
+    }
   },
   63: {
     id: 63,
@@ -1236,7 +1391,14 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/65.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/65.png",
     descripcion: "Evolución Suprema. Su cerebro descomunal tiene un coeficiente intelectual de 5000.",
-    descripcionCorta: "Fase 2: Mente suprema"
+    descripcionCorta: "Fase 2: Mente suprema",
+    efectoActivo: {
+        "id": "teletransporte_alakazam",
+        "nombre": "Teletransporte Cósmico",
+        "tipo": "devolver_mano",
+        "requiereObjetivoRival": true,
+        "descripcion": "1 vez en campo: Utiliza sus poderes psicoquinéticos para regresar 1 monstruo rival a su mano."
+    }
   },
   66: {
     id: 66,
@@ -1293,7 +1455,14 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/68.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/68.png",
     descripcion: "Evolución Suprema. Sus cuatro brazos musculosos lanzan 1000 golpes en dos segundos.",
-    descripcionCorta: "Fase 2: Ráfaga de cuatro puños"
+    descripcionCorta: "Fase 2: Ráfaga de cuatro puños",
+    efectoActivo: {
+        "id": "golpe_sismico",
+        "nombre": "Golpe K.O.",
+        "tipo": "destruir_defensa",
+        "requiereObjetivoRival": true,
+        "descripcion": "1 vez en campo: Rompe defensas colosales destruyendo a 1 monstruo rival en modo defensa."
+    }
   },
   69: {
     id: 69,
@@ -1445,7 +1614,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/76.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/76.png",
     descripcion: "Evolución Suprema. Ni siquiera la dinamita puede perforar su coraza pétrea.",
-    descripcionCorta: "Fase 2: Terremoto macizo"
+    descripcionCorta: "Fase 2: Terremoto macizo",
+    efectoActivo: {
+        "id": "lanza_rocas",
+        "nombre": "Rueda Rocosa",
+        "tipo": "danar_lp",
+        "requiereObjetivoRival": false,
+        "valor": 600,
+        "descripcion": "1 vez en campo: Lanza una roca gigantesca causando 600 LP de daño directo al rival."
+    }
   },
   77: {
     id: 77,
@@ -1692,7 +1869,14 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/89.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/89.png",
     descripcion: "Evolución de Grimer. El olor pútrido de su cuerpo marchita plantas a su paso.",
-    descripcionCorta: "Fase 1: Bomba de fango letal"
+    descripcionCorta: "Fase 1: Bomba de fango letal",
+    efectoActivo: {
+        "id": "lodo_corrosivo",
+        "nombre": "Lodo Corrosivo",
+        "tipo": "destruir_magia_trampa_rival",
+        "requiereObjetivoRival": true,
+        "descripcion": "1 vez en campo: Rocía ácido destructor sobre 1 carta mágica o trampa rival y la destruye."
+    }
   },
   90: {
     id: 90,
@@ -1730,7 +1914,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/91.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/91.png",
     descripcion: "Evolución de Shellder. Su concha diamantina dispara pinchos gigantes de hielo.",
-    descripcionCorta: "Fase 1: Muralla carámbano"
+    descripcionCorta: "Fase 1: Muralla carámbano",
+    efectoActivo: {
+        "id": "caparazon_espinoso",
+        "nombre": "Refugio Acorazado",
+        "tipo": "aumento_def_propio",
+        "requiereObjetivoRival": false,
+        "valor": 600,
+        "descripcion": "1 vez en campo: Cierra su caparazón otorgándose +600 DEF durante este turno."
+    }
   },
   92: {
     id: 92,
@@ -1787,7 +1979,14 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/94.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/94.png",
     descripcion: "Evolución Suprema. Se oculta en las sombras de las habitaciones para asustar.",
-    descripcionCorta: "Fase 2: Sombra siniestra"
+    descripcionCorta: "Fase 2: Sombra siniestra",
+    efectoActivo: {
+        "id": "pesadilla_devoradora",
+        "nombre": "Pesadilla Umbría",
+        "tipo": "descartar_carta_rival",
+        "requiereObjetivoRival": false,
+        "descripcion": "1 vez en campo: Hace que el rival descarte al azar 1 carta de su mano a su Cementerio."
+    }
   },
   95: {
     id: 95,
@@ -1806,7 +2005,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/95.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/95.png",
     descripcion: "Pokémon Serpiente Roca. Cava a gran velocidad devorando rocas y tierra.",
-    descripcionCorta: "Coloso de piedra macizo"
+    descripcionCorta: "Coloso de piedra macizo",
+    efectoActivo: {
+        "id": "atadura_rocosa",
+        "nombre": "Atadura Serpentina",
+        "tipo": "bloquear_ataque",
+        "requiereObjetivoRival": true,
+        "duracionTurnos": 2,
+        "descripcion": "1 vez en campo: Se enrosca sobre un monstruo rival impidiéndole atacar por 2 turnos."
+    }
   },
   96: {
     id: 96,
@@ -1844,7 +2051,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/97.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/97.png",
     descripcion: "Evolución de Drowzee. El vaivén de su péndulo sume en un trance eterno.",
-    descripcionCorta: "Fase 1: Péndulo hipnótico"
+    descripcionCorta: "Fase 1: Péndulo hipnótico",
+    efectoActivo: {
+        "id": "hipnosis_profunda",
+        "nombre": "Péndulo Hipnótico",
+        "tipo": "bloquear_ataque",
+        "requiereObjetivoRival": true,
+        "duracionTurnos": 2,
+        "descripcion": "1 vez en campo: Balancea su péndulo sumiendo a 1 monstruo rival en sueño por 2 turnos."
+    }
   },
   98: {
     id: 98,
@@ -1996,7 +2211,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/105.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/105.png",
     descripcion: "Evolución de Cubone. Ha superado el dolor blandiendo su hueso con maestría letal.",
-    descripcionCorta: "Fase 1: Hueso veloz diestro"
+    descripcionCorta: "Fase 1: Hueso veloz diestro",
+    efectoActivo: {
+        "id": "huesorang",
+        "nombre": "Huesorang",
+        "tipo": "danar_lp",
+        "requiereObjetivoRival": false,
+        "valor": 500,
+        "descripcion": "1 vez en campo: Lanza su hueso como bumerán infligiendo 500 LP de daño directo al rival."
+    }
   },
   106: {
     id: 106,
@@ -2015,7 +2238,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/106.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/106.png",
     descripcion: "Pokémon Patada. Sus piernas elásticas golpean a distancia con patadas demoledoras.",
-    descripcionCorta: "Especialista en patadas"
+    descripcionCorta: "Especialista en patadas",
+    efectoActivo: {
+        "id": "patada_salto",
+        "nombre": "Patada Salto Alta",
+        "tipo": "aumento_atk_propio",
+        "requiereObjetivoRival": false,
+        "valor": 600,
+        "descripcion": "1 vez en campo: Da un salto prodigioso ganando +600 ATK durante este turno."
+    }
   },
   107: {
     id: 107,
@@ -2091,7 +2322,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/110.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/110.png",
     descripcion: "Evolución de Koffing. Dos cuerpos unidos que mezclan vapores letales de descomposición.",
-    descripcionCorta: "Fase 1: Niebla venenosa doble"
+    descripcionCorta: "Fase 1: Niebla venenosa doble",
+    efectoActivo: {
+        "id": "niebla_toxica",
+        "nombre": "Gas Venenoso",
+        "tipo": "reducir_atk_todos_rival",
+        "requiereObjetivoRival": false,
+        "valor": 300,
+        "descripcion": "1 vez en campo: Expulsa humo sofocante reduciendo en 300 el ATK de todos los monstruos rivales."
+    }
   },
   111: {
     id: 111,
@@ -2148,7 +2387,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/113.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/113.png",
     descripcion: "Pokémon Huevo. Pone huevos deliciosos y cuida con cariño a heridos en combate.",
-    descripcionCorta: "Muralla sanadora colosal"
+    descripcionCorta: "Muralla sanadora colosal",
+    efectoActivo: {
+        "id": "amortiguador",
+        "nombre": "Amortiguador",
+        "tipo": "curar_lp",
+        "requiereObjetivoRival": false,
+        "valor": 1200,
+        "descripcion": "1 vez en campo: Comparte su huevo sanador restaurando 1200 LP a tus Puntos de Vida."
+    }
   },
   114: {
     id: 114,
@@ -2167,7 +2414,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/114.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/114.png",
     descripcion: "Pokémon Enredadera. Su cuerpo está cubierto de lianas azules que atrapan a sus rivales.",
-    descripcionCorta: "Lianas enredaderas densas"
+    descripcionCorta: "Lianas enredaderas densas",
+    efectoActivo: {
+        "id": "amarras_liana",
+        "nombre": "Amarras de Liana",
+        "tipo": "bloquear_ataque",
+        "requiereObjetivoRival": true,
+        "duracionTurnos": 2,
+        "descripcion": "1 vez en campo: Enreda con lianas a 1 monstruo enemigo; no podrá atacar durante 2 turnos."
+    }
   },
   115: {
     id: 115,
@@ -2186,7 +2441,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/115.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/115.png",
     descripcion: "Pokémon Padres. Protege a su cría en la bolsa ventral y combate ferozmente.",
-    descripcionCorta: "Furia maternal implacable"
+    descripcionCorta: "Furia maternal implacable",
+    efectoActivo: {
+        "id": "doble_golpe",
+        "nombre": "Ataque Coordinado",
+        "tipo": "aumento_atk_propio",
+        "requiereObjetivoRival": false,
+        "valor": 400,
+        "descripcion": "1 vez en campo: La cría asiste en el combate otorgando +400 ATK durante este turno."
+    }
   },
   116: {
     id: 116,
@@ -2338,7 +2601,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/123.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/123.png",
     descripcion: "Pokémon Mantis. Sus guadañas afiladas cortan árboles de un tajo con velocidad ninja.",
-    descripcionCorta: "Corte guadaña fulgurante"
+    descripcionCorta: "Corte guadaña fulgurante",
+    efectoActivo: {
+        "id": "corte_furia",
+        "nombre": "Corte Furia",
+        "tipo": "aumento_atk_propio",
+        "requiereObjetivoRival": false,
+        "valor": 500,
+        "descripcion": "1 vez en campo: Afila sus guadañas ganando +500 ATK hasta el final de este turno."
+    }
   },
   124: {
     id: 124,
@@ -2376,7 +2647,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/125.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/125.png",
     descripcion: "Pokémon Eléctrico. Hace girar sus brazos para cargar electricidad de alto voltaje.",
-    descripcionCorta: "Puño trueno atronador"
+    descripcionCorta: "Puño trueno atronador",
+    efectoActivo: {
+        "id": "puno_trueno",
+        "nombre": "Puño Trueno",
+        "tipo": "danar_lp",
+        "requiereObjetivoRival": false,
+        "valor": 500,
+        "descripcion": "1 vez en campo: Carga sus puños e inflige 500 LP de daño directo al rival."
+    }
   },
   126: {
     id: 126,
@@ -2395,7 +2674,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/126.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/126.png",
     descripcion: "Pokémon Escupefuego. Su cuerpo arde a 1200 °C y se cura sumergiéndose en lava.",
-    descripcionCorta: "Llamarada abrasadora pura"
+    descripcionCorta: "Llamarada abrasadora pura",
+    efectoActivo: {
+        "id": "onda_ignea",
+        "nombre": "Onda Ígnea",
+        "tipo": "reducir_atk_todos_rival",
+        "requiereObjetivoRival": false,
+        "valor": 400,
+        "descripcion": "1 vez en campo: Una ráfaga abrasadora reduce en 400 el ATK de todos los monstruos rivales."
+    }
   },
   127: {
     id: 127,
@@ -2414,7 +2701,14 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/127.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/127.png",
     descripcion: "Pokémon Escarabajo. Sus enormes pinzas desgarran troncos y parten a oponentes.",
-    descripcionCorta: "Pinza guillotina brutal"
+    descripcionCorta: "Pinza guillotina brutal",
+    efectoActivo: {
+        "id": "agarre_guillotina",
+        "nombre": "Presa Guillotina",
+        "tipo": "destruir_menor_atk",
+        "requiereObjetivoRival": true,
+        "descripcion": "1 vez en campo: Atrapa y destruye a 1 monstruo rival que tenga menor ATK que Pinsir."
+    }
   },
   128: {
     id: 128,
@@ -2433,7 +2727,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/128.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/128.png",
     descripcion: "Pokémon Toro Bravo. Azota sus tres colas para impulsarse en embestidas furiosas.",
-    descripcionCorta: "Embestida astada demoledora"
+    descripcionCorta: "Embestida astada demoledora",
+    efectoActivo: {
+        "id": "frenesi_cornadas",
+        "nombre": "Frenesí Cornadas",
+        "tipo": "aumento_atk_propio",
+        "requiereObjetivoRival": false,
+        "valor": 500,
+        "descripcion": "1 vez en campo: Azota sus colas enfurecido aumentando en +500 su ATK durante este turno."
+    }
   },
   129: {
     id: 129,
@@ -2471,7 +2773,14 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/130.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/130.png",
     descripcion: "Evolución de Magikarp. Furia destructora desatada que arrasa ciudades enteras.",
-    descripcionCorta: "Fase 1 Suprema: 2 Sacrificios"
+    descripcionCorta: "Fase 1 Suprema: 2 Sacrificios",
+    efectoActivo: {
+        "id": "torbellino_feroz",
+        "nombre": "Torbellino Feroz",
+        "tipo": "devolver_magia_trampa_mano",
+        "requiereObjetivoRival": true,
+        "descripcion": "1 vez en campo: Desata un remolino que regresa 1 carta de Magia/Trampa rival a su mano."
+    }
   },
   131: {
     id: 131,
@@ -2490,7 +2799,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/131.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/131.png",
     descripcion: "Pokémon Transporte. De corazón noble, surca mares gélidos cantando con dulzura.",
-    descripcionCorta: "Canto helado protector"
+    descripcionCorta: "Canto helado protector",
+    efectoActivo: {
+        "id": "rayo_hielo_lapras",
+        "nombre": "Rayo Hielo",
+        "tipo": "congelar",
+        "requiereObjetivoRival": true,
+        "duracionTurnos": 2,
+        "descripcion": "1 vez en campo: Congela a un monstruo rival; no podrá atacar durante 2 turnos."
+    }
   },
   132: {
     id: 132,
@@ -2528,7 +2845,16 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/133.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/133.png",
     descripcion: "Pokémon Evolución. Su ADN inestable le permite evolucionar en diversas formas elementales.",
-    descripcionCorta: "Potencial evolutivo infinito"
+    descripcionCorta: "Potencial evolutivo infinito",
+    efectoActivo: {
+        "id": "adaptacion_veloz",
+        "nombre": "Evolución Flexible",
+        "tipo": "aumento_stats_propio",
+        "requiereObjetivoRival": false,
+        "valorAtk": 300,
+        "valorDef": 300,
+        "descripcion": "1 vez en campo: Se adapta al campo ganando +300 ATK y +300 DEF de manera permanente."
+    }
   },
   134: {
     id: 134,
@@ -2547,7 +2873,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/134.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/134.png",
     descripcion: "Evolución de Eevee. Su estructura celular es similar al agua y puede fundirse en ella.",
-    descripcionCorta: "Fase 1: Hidropulso fundente"
+    descripcionCorta: "Fase 1: Hidropulso fundente",
+    efectoActivo: {
+        "id": "aqua_anillo",
+        "nombre": "Aqua Anillo",
+        "tipo": "curar_lp",
+        "requiereObjetivoRival": false,
+        "valor": 800,
+        "descripcion": "1 vez en campo: Se envuelve en agua pura restaurando 800 LP a tus Puntos de Vida."
+    }
   },
   135: {
     id: 135,
@@ -2699,7 +3033,16 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/142.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/142.png",
     descripcion: "Pokémon Fósil. Terrible reptil alado extinto que dominaba los cielos jurásicos.",
-    descripcionCorta: "Rey volador prehistórico"
+    descripcionCorta: "Rey volador prehistórico",
+    efectoActivo: {
+        "id": "poder_ancestral",
+        "nombre": "Poder Ancestral",
+        "tipo": "aumento_stats_propio",
+        "requiereObjetivoRival": false,
+        "valorAtk": 400,
+        "valorDef": 400,
+        "descripcion": "1 vez en campo: Despierta su ADN prehistórico ganando +400 ATK y +400 DEF permanentemente."
+    }
   },
   143: {
     id: 143,
@@ -2718,7 +3061,14 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/143.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/143.png",
     descripcion: "Pokémon Dormilón. Su estómago procesa cualquier alimento y su peso aplasta rivales.",
-    descripcionCorta: "Coloso durmiente pesado"
+    descripcionCorta: "Coloso durmiente pesado",
+    efectoActivo: {
+        "id": "descanso_pesado",
+        "nombre": "Descanso Muralla",
+        "tipo": "modo_defensa_inmune",
+        "requiereObjetivoRival": false,
+        "descripcion": "1 vez en campo: Cambia a Defensa y ningún monstruo rival puede atacarlo este turno."
+    }
   },
   144: {
     id: 144,
@@ -2737,7 +3087,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/144.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/144.png",
     descripcion: "Ave Legendaria del Frío. Congela la humedad del aire con cada batir de sus alas.",
-    descripcionCorta: "Legendario: Ventisca eterna"
+    descripcionCorta: "Legendario: Ventisca eterna",
+    efectoActivo: {
+        "id": "ventisca_artica",
+        "nombre": "Ventisca Ártica",
+        "tipo": "congelar_todos_ataque",
+        "requiereObjetivoRival": false,
+        "duracionTurnos": 1,
+        "descripcion": "1 vez en campo: Congela el campo; ningún monstruo en posición de ataque rival podrá atacar el siguiente turno."
+    }
   },
   145: {
     id: 145,
@@ -2756,7 +3114,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/145.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/145.png",
     descripcion: "Ave Legendaria del Rayo. Aparece entre nubes de tormenta disparando truenos dorados.",
-    descripcionCorta: "Legendario: Trueno supremo"
+    descripcionCorta: "Legendario: Trueno supremo",
+    efectoActivo: {
+        "id": "trueno_divino",
+        "nombre": "Trueno Tormentoso",
+        "tipo": "destruir_monstruo_debil",
+        "requiereObjetivoRival": true,
+        "valorAtkMax": 2200,
+        "descripcion": "1 vez en campo: Convoca un rayo celestial que destruye 1 monstruo rival con 2200 ATK o menos."
+    }
   },
   146: {
     id: 146,
@@ -2832,7 +3198,15 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/149.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/149.png",
     descripcion: "Evolución Suprema. Da la vuelta al mundo en 16 horas y rescata barcos en zozobra.",
-    descripcionCorta: "Fase 2: Coloso dragón benevolente"
+    descripcionCorta: "Fase 2: Coloso dragón benevolente",
+    efectoActivo: {
+        "id": "hiperrayo_draconico",
+        "nombre": "Hiperrayo Dracónico",
+        "tipo": "destruir_monstruo_debil",
+        "requiereObjetivoRival": true,
+        "valorAtkMax": 2400,
+        "descripcion": "1 vez en campo: Dispara un haz concentrado que destruye 1 monstruo rival con 2400 ATK o menos."
+    }
   },
   150: {
     id: 150,
@@ -2851,7 +3225,14 @@ const bdCartas = {
     spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/150.gif",
     spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/150.png",
     descripcion: "Pokémon Genético Legendario. Creado en laboratorio alterando el ADN original de Mew.",
-    descripcionCorta: "Legendario Supremo: Onda mental destructora"
+    descripcionCorta: "Legendario Supremo: Onda mental destructora",
+    efectoActivo: {
+        "id": "onda_mental",
+        "nombre": "Presión Psíquica",
+        "tipo": "destruir_magia_trampa_rival",
+        "requiereObjetivoRival": true,
+        "descripcion": "1 vez en campo: Desintegra 1 carta Mágica o Trampa en el campo del rival."
+    }
   },
   151: {
     id: 151,
@@ -3301,9 +3682,533 @@ const bdCartas = {
     descripcion: "Carta Trampa (Respuesta). Anticipa el movimiento rival, niega el ataque y roba 1 carta adicional.",
     descripcionCorta: "Niega ataque y roba 1"
   },
+  213: {
+    id: 213,
+    nombre: "Ceniza Sagrada",
+    slug: "sacred-ash",
+    tipoCarta: "magia",
+    subtipo: "Resurrección",
+    claseCss: "spell-card",
+    imagenOficial: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/sacred-ash.png",
+    spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/sacred-ash.png",
+    spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/sacred-ash.png",
+    descripcion: "Carta Mágica de Resurrección (Estilo Monstruo Renacido). Selecciona 1 Pokémon de tu Cementerio e invócalo de inmediato a un espacio vacío de tu campo.",
+    descripcionCorta: "Resucita 1 Pokémon del GY al campo"
+  },
+  214: {
+    id: 214,
+    nombre: "Muro Prismático",
+    slug: "prism-scale",
+    tipoCarta: "magia",
+    subtipo: "Continua",
+    claseCss: "spell-card",
+    imagenOficial: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/prism-scale.png",
+    spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/prism-scale.png",
+    spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/prism-scale.png",
+    descripcion: "Carta Mágica Protectora (Estilo Espadas de Luz). Erige una barrera reluciente: el rival no puede declarar ningún ataque durante los próximos 3 turnos.",
+    descripcionCorta: "El rival no ataca por 3 turnos"
+  },
+  215: {
+    id: 215,
+    nombre: "Viento Feérico",
+    slug: "absorb-bulb",
+    tipoCarta: "magia",
+    subtipo: "Destrucción",
+    claseCss: "spell-card",
+    imagenOficial: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/absorb-bulb.png",
+    spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/absorb-bulb.png",
+    spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/absorb-bulb.png",
+    descripcion: "Carta Mágica Eólica (Estilo Plumero de la Arpía). Una ráfaga huracanada destruye todas las cartas en la Zona de Magias y Trampas de tu rival.",
+    descripcionCorta: "Destruye todas las M/T rivales"
+  },
+  216: {
+    id: 216,
+    nombre: "Fisura Sísmica",
+    slug: "comet-shard",
+    tipoCarta: "magia",
+    subtipo: "Destrucción",
+    claseCss: "spell-card",
+    imagenOficial: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/comet-shard.png",
+    spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/comet-shard.png",
+    spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/comet-shard.png",
+    descripcion: "Carta Mágica Devastadora (Estilo Raigeki). Desata un colapso tectónico que destruye todos los monstruos en el campo del rival.",
+    descripcionCorta: "Destruye todos los monstruos rivales"
+  },
+  217: {
+    id: 217,
+    nombre: "Señuelo Telepático",
+    slug: "odd-incense",
+    tipoCarta: "magia",
+    subtipo: "Control",
+    claseCss: "spell-card",
+    imagenOficial: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/odd-incense.png",
+    spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/odd-incense.png",
+    spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/odd-incense.png",
+    descripcion: "Carta Mágica de Control (Estilo Cambio de Fidelidad). Hipnotiza a 1 monstruo del rival y toma su control en tu campo hasta el final de este turno.",
+    descripcionCorta: "Toma control de 1 monstruo rival"
+  },
+  218: {
+    id: 218,
+    nombre: "Cofre Reliquia",
+    slug: "relic-vase",
+    tipoCarta: "magia",
+    subtipo: "Robo",
+    claseCss: "spell-card",
+    imagenOficial: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/relic-vase.png",
+    spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/relic-vase.png",
+    spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/relic-vase.png",
+    descripcion: "Carta Mágica Legendaria (Estilo Olla de la Codicia). Abre un cofre antiguo y roba inmediatamente 2 cartas adicionales de tu baraja.",
+    descripcionCorta: "Roba 2 cartas del mazo"
+  },
+  219: {
+    id: 219,
+    nombre: "Polvo Inmunológico",
+    slug: "energy-powder",
+    tipoCarta: "magia",
+    subtipo: "Silencio",
+    claseCss: "spell-card",
+    imagenOficial: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/energy-powder.png",
+    spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/energy-powder.png",
+    spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/energy-powder.png",
+    descripcion: "Carta Mágica Táctica. Neutraliza los poderes adversos: silencia y bloquea los efectos activos de todos los monstruos del rival.",
+    descripcionCorta: "Silencia efectos de monstruos rivales"
+  },
+  250: {
+    id: 250,
+    nombre: "Megaevolución",
+    slug: "mega-ring",
+    tipoCarta: "magia",
+    subtipo: "Evolución Suprema",
+    claseCss: "spell-card mega-spell-card",
+    imagenOficial: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/mega-ring.png",
+    spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/mega-ring.png",
+    spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/mega-ring.png",
+    descripcion: "Carta Mágica de Vínculo Supremo. Permite Megaevolucionar a 1 Pokémon en tu campo a su forma suprema desde tu Side Deck, incrementando sus estadísticas a niveles legendarios.",
+    descripcionCorta: "Megaevoluciona 1 Pokémon en tu campo"
+  },
+
 };
 
 // Exportar globalmente para navegador o Node
+
+// ==========================================================
+// CATÁLOGO DE MEGAEVOLUCIONES (SIDE DECK DE SUPREMAS)
+// ==========================================================
+const bdMegaevoluciones = {
+  501: {
+    id: 501,
+    basePokedexId: 3,
+    baseNombre: "Venusaur",
+    nombre: "Mega Venusaur",
+    slug: "venusaur-mega",
+    elemento: "planta",
+    elementoSecundario: "veneno",
+    tipoCarta: "monstruo",
+    etapa: "Mega",
+    atk: 3200,
+    def: 3400,
+    nivel: 9,
+    claseCss: "monster-card mega-monster-card",
+    imagenOficial: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10033.png",
+    spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10033.png",
+    spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10033.png",
+    descripcion: "Forma Megaevolucionada de Venusaur. Su flor gigante se expande y su piel adquiere una coraza impenetrable (Sebo).",
+    descripcionCorta: "Megaevolución: 3200 ATK / 3400 DEF"
+  },
+  502: {
+    id: 502,
+    basePokedexId: 6,
+    baseNombre: "Charizard",
+    nombre: "Mega Charizard X",
+    slug: "charizard-mega-x",
+    elemento: "fuego",
+    elementoSecundario: "dragon",
+    tipoCarta: "monstruo",
+    etapa: "Mega",
+    atk: 3700,
+    def: 2900,
+    nivel: 9,
+    claseCss: "monster-card mega-monster-card",
+    imagenOficial: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10034.png",
+    spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10034.png",
+    spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10034.png",
+    descripcion: "Forma Megaevolucionada X de Charizard. Su cuerpo se tiñe de negro y desata intensas llamaradas azules de tipo Dragón.",
+    descripcionCorta: "Mega X: Fuego/Dragón (3700 ATK)"
+  },
+  503: {
+    id: 503,
+    basePokedexId: 6,
+    baseNombre: "Charizard",
+    nombre: "Mega Charizard Y",
+    slug: "charizard-mega-y",
+    elemento: "fuego",
+    elementoSecundario: "volador",
+    tipoCarta: "monstruo",
+    etapa: "Mega",
+    atk: 3800,
+    def: 2700,
+    nivel: 9,
+    claseCss: "monster-card mega-monster-card",
+    imagenOficial: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10035.png",
+    spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10035.png",
+    spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10035.png",
+    descripcion: "Forma Megaevolucionada Y de Charizard. Sus alas aerodinámicas convocan la Sequía solar quemando a cualquier rival.",
+    descripcionCorta: "Mega Y: Fuego Solar (3800 ATK)"
+  },
+  504: {
+    id: 504,
+    basePokedexId: 9,
+    baseNombre: "Blastoise",
+    nombre: "Mega Blastoise",
+    slug: "blastoise-mega",
+    elemento: "agua",
+    tipoCarta: "monstruo",
+    etapa: "Mega",
+    atk: 3300,
+    def: 3500,
+    nivel: 9,
+    claseCss: "monster-card mega-monster-card",
+    imagenOficial: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10036.png",
+    spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10036.png",
+    spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10036.png",
+    descripcion: "Forma Megaevolucionada de Blastoise. Su cañón dorsal gigantesco tiene el poder de perforar montañas de acero con agua a presión.",
+    descripcionCorta: "Megaevolución: Megacañón Hidráulico (3500 DEF)"
+  },
+  505: {
+    id: 505,
+    basePokedexId: 15,
+    baseNombre: "Beedrill",
+    nombre: "Mega Beedrill",
+    slug: "beedrill-mega",
+    elemento: "bicho",
+    elementoSecundario: "veneno",
+    tipoCarta: "monstruo",
+    etapa: "Mega",
+    atk: 3100,
+    def: 1800,
+    nivel: 8,
+    claseCss: "monster-card mega-monster-card",
+    imagenOficial: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10090.png",
+    spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10090.png",
+    spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10090.png",
+    descripcion: "Forma Megaevolucionada de Beedrill. Sus 5 aguijones colosales inoculan venenos fulminantes a gran velocidad.",
+    descripcionCorta: "Megaevolución: Aguijones Letales (3100 ATK)"
+  },
+  506: {
+    id: 506,
+    basePokedexId: 18,
+    baseNombre: "Pidgeot",
+    nombre: "Mega Pidgeot",
+    slug: "pidgeot-mega",
+    elemento: "normal",
+    elementoSecundario: "volador",
+    tipoCarta: "monstruo",
+    etapa: "Mega",
+    atk: 3000,
+    def: 2600,
+    nivel: 8,
+    claseCss: "monster-card mega-monster-card",
+    imagenOficial: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10073.png",
+    spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10073.png",
+    spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10073.png",
+    descripcion: "Forma Megaevolucionada de Pidgeot. Sus alas desplegadas crean vendavales que derriban rascacielos enteros.",
+    descripcionCorta: "Megaevolución: Tempestad Aérea (3000 ATK)"
+  },
+  507: {
+    id: 507,
+    basePokedexId: 65,
+    baseNombre: "Alakazam",
+    nombre: "Mega Alakazam",
+    slug: "alakazam-mega",
+    elemento: "psiquico",
+    tipoCarta: "monstruo",
+    etapa: "Mega",
+    atk: 3600,
+    def: 2400,
+    nivel: 9,
+    claseCss: "monster-card mega-monster-card",
+    imagenOficial: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10037.png",
+    spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10037.png",
+    spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10037.png",
+    descripcion: "Forma Megaevolucionada de Alakazam. Medita levitando rodeado por 5 cucharas psíquicas capaces de doblar el espacio.",
+    descripcionCorta: "Megaevolución: Omnisciencia Psíquica (3600 ATK)"
+  },
+  508: {
+    id: 508,
+    basePokedexId: 94,
+    baseNombre: "Gengar",
+    nombre: "Mega Gengar",
+    slug: "gengar-mega",
+    elemento: "fantasma",
+    elementoSecundario: "veneno",
+    tipoCarta: "monstruo",
+    etapa: "Mega",
+    atk: 3700,
+    def: 2600,
+    nivel: 9,
+    claseCss: "monster-card mega-monster-card",
+    imagenOficial: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10038.png",
+    spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10038.png",
+    spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10038.png",
+    descripcion: "Forma Megaevolucionada de Gengar. Asoma desde otra dimensión con su tercer ojo abierto para atrapar a sus víctimas en las sombras.",
+    descripcionCorta: "Megaevolución: Sombra Trampa (3700 ATK)"
+  },
+  509: {
+    id: 509,
+    basePokedexId: 115,
+    baseNombre: "Kangaskhan",
+    nombre: "Mega Kangaskhan",
+    slug: "kangaskhan-mega",
+    elemento: "normal",
+    tipoCarta: "monstruo",
+    etapa: "Mega",
+    atk: 3300,
+    def: 3300,
+    nivel: 8,
+    claseCss: "monster-card mega-monster-card",
+    imagenOficial: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10039.png",
+    spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10039.png",
+    spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10039.png",
+    descripcion: "Forma Megaevolucionada de Kangaskhan. La cría salta de la bolsa con energía desbordante para atacar en feroz sincronía filial.",
+    descripcionCorta: "Megaevolución: Amor Filial (3300 ATK / DEF)"
+  },
+  510: {
+    id: 510,
+    basePokedexId: 127,
+    baseNombre: "Pinsir",
+    nombre: "Mega Pinsir",
+    slug: "pinsir-mega",
+    elemento: "bicho",
+    elementoSecundario: "volador",
+    tipoCarta: "monstruo",
+    etapa: "Mega",
+    atk: 3400,
+    def: 2600,
+    nivel: 8,
+    claseCss: "monster-card mega-monster-card",
+    imagenOficial: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10040.png",
+    spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10040.png",
+    spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10040.png",
+    descripcion: "Forma Megaevolucionada de Pinsir. Desarrolla alas gigantescas y vuela a alta velocidad partiendo en dos a sus enemigos.",
+    descripcionCorta: "Megaevolución: Piel Celeste (3400 ATK)"
+  },
+  511: {
+    id: 511,
+    basePokedexId: 130,
+    baseNombre: "Gyarados",
+    nombre: "Mega Gyarados",
+    slug: "gyarados-mega",
+    elemento: "agua",
+    elementoSecundario: "siniestro",
+    tipoCarta: "monstruo",
+    etapa: "Mega",
+    atk: 3700,
+    def: 3100,
+    nivel: 9,
+    claseCss: "monster-card mega-monster-card",
+    imagenOficial: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10041.png",
+    spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10041.png",
+    spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10041.png",
+    descripcion: "Forma Megaevolucionada de Gyarados. Su instinto destructor se exacerba expulsando chorros de agua con la fuerza de un misil.",
+    descripcionCorta: "Megaevolución: Rompemoldes Marino (3700 ATK)"
+  },
+  512: {
+    id: 512,
+    basePokedexId: 142,
+    baseNombre: "Aerodactyl",
+    nombre: "Mega Aerodactyl",
+    slug: "aerodactyl-mega",
+    elemento: "roca",
+    elementoSecundario: "volador",
+    tipoCarta: "monstruo",
+    etapa: "Mega",
+    atk: 3500,
+    def: 2700,
+    nivel: 9,
+    claseCss: "monster-card mega-monster-card",
+    imagenOficial: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10042.png",
+    spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10042.png",
+    spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10042.png",
+    descripcion: "Forma Megaevolucionada de Aerodactyl. Espinas rocosas negras recubren su cuerpo restituyendo su aspecto prehistórico original.",
+    descripcionCorta: "Megaevolución: Garras Duras Ancestrales (3500 ATK)"
+  },
+  513: {
+    id: 513,
+    basePokedexId: 150,
+    baseNombre: "Mewtwo",
+    nombre: "Mega Mewtwo X",
+    slug: "mewtwo-mega-x",
+    elemento: "psiquico",
+    elementoSecundario: "lucha",
+    tipoCarta: "monstruo",
+    etapa: "Mega",
+    atk: 4100,
+    def: 3300,
+    nivel: 10,
+    claseCss: "monster-card mega-monster-card legendary-card",
+    imagenOficial: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10043.png",
+    spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10043.png",
+    spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10043.png",
+    descripcion: "Forma Megaevolucionada X de Mewtwo. Sus músculos se expanden con poder físico psíquico incomparable de tipo Lucha.",
+    descripcionCorta: "Mega X: Fuerza Psico-Física Suprema (4100 ATK)"
+  },
+  514: {
+    id: 514,
+    basePokedexId: 150,
+    baseNombre: "Mewtwo",
+    nombre: "Mega Mewtwo Y",
+    slug: "mewtwo-mega-y",
+    elemento: "psiquico",
+    tipoCarta: "monstruo",
+    etapa: "Mega",
+    atk: 4200,
+    def: 3000,
+    nivel: 10,
+    claseCss: "monster-card mega-monster-card legendary-card",
+    imagenOficial: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10044.png",
+    spriteCampo: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10044.png",
+    spriteEstatico: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10044.png",
+    descripcion: "Forma Megaevolucionada Y de Mewtwo. Su intelecto y poder mental se concentran alcanzando la cúspide de la energía cósmica.",
+    descripcionCorta: "Mega Y: Poder Mental Absoluto (4200 ATK)"
+  }
+};
+
+// ==========================================================
+// BARAJAS INICIALES A ELEGIR AL REGISTRARSE (40 CARTAS EXACTAS)
+// ==========================================================
+const MAZOS_INICIALES_SELECCION = {
+  fuego: {
+    id: 0,
+    slug: "fuego",
+    nombre: "Llama Carmesí (Charmander)",
+    elemento: "fuego",
+    icono: "🔥",
+    descripcion: "Estrategia ofensiva demoledora centrada en la línea de Charmander, Arcanine y Magmar con daño directo y Megaevolución.",
+    cartas: [
+      // 20 Monstruos Básicos (Nivel 1-4)
+      4, 4, 4,       // Charmander x3
+      37, 37, 37,    // Vulpix x3
+      58, 58, 58,    // Growlithe x3
+      77, 77, 77,    // Ponyta x3
+      52, 52,        // Meowth x2 (robo)
+      56, 56,        // Mankey x2
+      133, 133,      // Eevee x2
+      126, 126,      // Magmar x2
+      // 5 Monstruos Tributo
+      5, 5,          // Charmeleon x2 (1 tributo)
+      6,             // Charizard x1 (2 tributos)
+      59,            // Arcanine x1 (1 tributo)
+      136,           // Flareon x1 (1 tributo)
+      // 8 Mágicas Tácticas
+      201, 201,      // Poción Max x2
+      204, 204,      // Oak x2 (robo 2)
+      213,           // Ceniza Sagrada x1 (resucitar)
+      218,           // Cofre Reliquia x1 (roba 2)
+      221,           // Piedra Fuego x1 (+600 ATK)
+      250,           // Megaevolución x1
+      // 7 Trampas & Equipos
+      240, 240,      // Protección x2 (negar ataque)
+      241,           // Manto Espejo x1 (reflejar y destruir)
+      242,           // Contador x1 (-800 LP rival)
+      224,           // Cinta Elegida x1 (+800 ATK)
+      226,           // Restos x1
+      248            // Detección x1
+    ]
+  },
+  agua: {
+    id: 1,
+    slug: "agua",
+    nombre: "Marea Azul (Squirtle)",
+    elemento: "agua",
+    icono: "💧",
+    descripcion: "Estrategia de gran control, congelación y defensas sólidas con Squirtle, Blastoise, Gyarados y Lapras.",
+    cartas: [
+      // 20 Monstruos Básicos (Nivel 1-4)
+      7, 7, 7,       // Squirtle x3
+      60, 60, 60,    // Poliwag x3
+      120, 120, 120, // Staryu x3
+      54, 54,        // Psyduck x2
+      90, 90,        // Shellder x2
+      129, 129,      // Magikarp x2
+      131, 131,      // Lapras x2
+      133, 133,      // Eevee x2
+      113,           // Chansey x1
+      // 5 Monstruos Tributo
+      8, 8,          // Wartortle x2 (1 tributo)
+      9,             // Blastoise x1 (2 tributos)
+      130,           // Gyarados x1 (2 tributos)
+      134,           // Vaporeon x1 (1 tributo)
+      // 8 Mágicas Tácticas
+      201, 201,      // Poción Max x2
+      204, 204,      // Oak x2
+      213,           // Ceniza Sagrada x1 (resucitar)
+      214,           // Muro Prismático x1 (3 turnos sin ataque)
+      222,           // Piedra Agua x1 (+600 DEF)
+      250,           // Megaevolución x1
+      // 7 Trampas & Equipos
+      240, 240,      // Protección x2
+      241,           // Manto Espejo x1
+      243,           // Paralizador x1
+      227,           // Banda Focus x1
+      226,           // Restos x1
+      248            // Detección x1
+    ]
+  },
+  planta: {
+    id: 2,
+    slug: "planta",
+    nombre: "Bosque Primigenio (Bulbasaur)",
+    elemento: "planta",
+    icono: "🌿",
+    descripcion: "Estrategia de desgaste, drenaje de vida y parálisis con la línea de Bulbasaur, Scyther, Tangela y Vileplume.",
+    cartas: [
+      // 20 Monstruos Básicos (Nivel 1-4)
+      1, 1, 1,       // Bulbasaur x3
+      43, 43, 43,    // Oddish x3
+      69, 69, 69,    // Bellsprout x3
+      10, 10, 10,    // Caterpie x3
+      114, 114,      // Tangela x2
+      123, 123,      // Scyther x2
+      133, 133,      // Eevee x2
+      46, 46,        // Paras x2
+      // 5 Monstruos Tributo
+      2, 2,          // Ivysaur x2 (1 tributo)
+      3,             // Venusaur x1 (2 tributos)
+      45,            // Vileplume x1 (2 tributos)
+      12,            // Butterfree x1 (1 tributo)
+      // 8 Mágicas Tácticas
+      201, 201,      // Poción Max x2
+      204, 204,      // Oak x2
+      213,           // Ceniza Sagrada x1 (resucitar)
+      215,           // Viento Feérico x1 (destruye M/T)
+      223,           // Piedra Hoja x1
+      250,           // Megaevolución x1
+      // 7 Trampas & Equipos
+      240, 240,      // Protección x2
+      241,           // Manto Espejo x1
+      245,           // Púas Tóxicas x1
+      228,           // Chaleco Asalto x1
+      226,           // Restos x1
+      248            // Detección x1
+    ]
+  }
+};
+
+
+// Asegurar alias preEvolucionId y registrar las megaevoluciones en el diccionario general bdCartas
+Object.values(bdMegaevoluciones).forEach(m => {
+  if (!m.preEvolucionId && m.basePokedexId) {
+    m.preEvolucionId = m.basePokedexId;
+  }
+  bdCartas[m.id] = m;
+});
+
+if (typeof window !== 'undefined') {
+  window.bdCartas = bdCartas;
+  window.bdMegaevoluciones = bdMegaevoluciones;
+  window.MAZOS_INICIALES_SELECCION = MAZOS_INICIALES_SELECCION;
+}
+
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = bdCartas;
+  module.exports = { bdCartas, bdMegaevoluciones, MAZOS_INICIALES_SELECCION };
 }
