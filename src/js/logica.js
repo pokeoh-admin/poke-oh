@@ -13,7 +13,7 @@
 // ==========================================
 // CONFIGURACIÓN GLOBAL Y BILINGÜE DEL JUEGO
 // ==========================================
-const POKEOH_VERSION = '0.3.1 Beta';
+const POKEOH_VERSION = '0.3.2 Beta';
 
 const configuracionJuego = {
   idioma: 'es',
@@ -1048,6 +1048,189 @@ function abrirModalConfirmacionCarta({
 
   modal.classList.remove('hidden');
   AudioManager.reproducirSFX('enter');
+}
+
+// ==============================================================
+// GESTIÓN Y SELECCIÓN DE CARTAS TRAMPA ANTE ATAQUES
+// ==============================================================
+
+// Obtener todas las cartas de trampa que el jugador tiene colocadas boca abajo en el campo
+function obtenerTrampasJugadorDisponibles() {
+  if (!Array.isArray(estadoJugador.zonaMagiasTrampas)) return [];
+  const trampas = [];
+  estadoJugador.zonaMagiasTrampas.forEach((slot, idx) => {
+    if (slot && slot.bocaAbajo) {
+      const datos = bdCartas[slot.id];
+      if (datos && datos.tipoCarta === 'trampa') {
+        trampas.push({ slotIndex: idx, slotData: slot, datos, id: slot.id });
+      }
+    }
+  });
+  return trampas;
+}
+
+// Modal interactivo cuando el jugador tiene más de 1 trampa disponible ante un ataque
+function abrirModalSeleccionTrampas({
+  trampas,
+  resumenAtaqueHtml = null,
+  datosAtacante,
+  atacanteAtk,
+  esDirecto = false,
+  datosDefensor = null,
+  onActivarTrampa = () => {},
+  onNoActivar = () => {}
+}) {
+  const modal = document.getElementById('trap-select-modal');
+  const summaryElem = document.getElementById('trap-select-attack-summary');
+  const promptElem = document.getElementById('trap-select-prompt');
+  const gridElem = document.getElementById('trap-select-grid');
+  const btnCancel = document.getElementById('btn-cancel-trap-select');
+  const btnCloseX = document.getElementById('btn-close-trap-select-x');
+
+  if (!modal || !gridElem) {
+    if (trampas && trampas.length > 0) {
+      onActivarTrampa(trampas[0].slotIndex, trampas[0].slotData, trampas[0].datos);
+    } else {
+      onNoActivar();
+    }
+    return;
+  }
+
+  const isEn = configuracionJuego.idioma === 'en';
+
+  if (summaryElem) {
+    if (resumenAtaqueHtml) {
+      summaryElem.innerHTML = resumenAtaqueHtml;
+      summaryElem.style.display = 'flex';
+    } else {
+      summaryElem.style.display = 'none';
+    }
+  }
+
+  if (promptElem) {
+    const textoObj = esDirecto
+      ? (isEn ? "attacking your Life Points directly" : "atacando tus Puntos de Vida directamente")
+      : (datosDefensor ? (isEn ? `attacking your ${datosDefensor.nombre}` : `atacando a tu ${datosDefensor.nombre}`) : (isEn ? "attacking your Pokémon" : "atacando a tu Pokémon"));
+    promptElem.textContent = isEn
+      ? `Rival's ${datosAtacante.nombre} (${atacanteAtk} ATK) is ${textoObj}. You have ${trampas.length} Traps set face-down. Select which one to trigger:`
+      : `¡${datosAtacante.nombre} rival (${atacanteAtk} ATK) está ${textoObj}! Tienes ${trampas.length} Trampas colocadas boca abajo. Selecciona cuál deseas activar:`;
+  }
+
+  gridElem.innerHTML = '';
+
+  const cerrarModal = () => {
+    modal.classList.add('hidden');
+    if (btnCloseX) btnCloseX.onclick = null;
+    if (btnCancel) btnCancel.onclick = null;
+  };
+
+  trampas.forEach((t) => {
+    const cardEl = document.createElement('div');
+    cardEl.className = 'trap-select-card';
+    const fallbackSrc = t.datos.spriteEstatico || t.datos.imagenOficial;
+    const desc = t.datos.descripcion || t.datos.descripcionCorta || (isEn ? "Trap card effect" : "Efecto de carta trampa");
+    const subtipo = t.datos.subtipo || (isEn ? "Response" : "Respuesta");
+
+    cardEl.innerHTML = `
+      <div class="trap-select-card-header">
+        <div class="trap-select-card-art">
+          <img src="${t.datos.imagenOficial || fallbackSrc}" alt="${t.datos.nombre}" onerror="this.onerror=null; this.src='${fallbackSrc}';" draggable="false">
+        </div>
+        <div class="trap-select-card-info">
+          <h4 class="trap-select-card-title">${t.datos.nombre}</h4>
+          <div class="trap-select-card-meta">🪤 Zona #${t.slotIndex + 1} • ${subtipo}</div>
+        </div>
+      </div>
+      <p class="trap-select-card-desc">${desc}</p>
+      <button type="button" class="trap-select-btn">⚡ ${isEn ? `Activate ${t.datos.nombre}` : `Activar ${t.datos.nombre}`}</button>
+    `;
+
+    cardEl.onclick = (e) => {
+      e.stopPropagation();
+      cerrarModal();
+      onActivarTrampa(t.slotIndex, t.slotData, t.datos);
+    };
+
+    gridElem.appendChild(cardEl);
+  });
+
+  if (btnCloseX) {
+    btnCloseX.onclick = () => {
+      cerrarModal();
+      onNoActivar();
+    };
+  }
+
+  if (btnCancel) {
+    btnCancel.onclick = () => {
+      cerrarModal();
+      onNoActivar();
+    };
+  }
+
+  modal.classList.remove('hidden');
+  AudioManager.reproducirSFX('enter');
+}
+
+// Orquestador unificado de activación de trampa: pregunta al jugador si tiene 1 o múltiples trampas
+function solicitarActivacionTrampaJugador({
+  resumenAtaqueHtml = null,
+  datosAtacante,
+  atacanteAtk,
+  esDirecto = false,
+  datosDefensor = null,
+  modoTargetTexto = '',
+  onActivarTrampa = () => {},
+  onNoActivar = () => {}
+}) {
+  const trampas = obtenerTrampasJugadorDisponibles();
+  if (!trampas || trampas.length === 0) {
+    onNoActivar();
+    return;
+  }
+
+  const isEn = configuracionJuego.idioma === 'en';
+
+  if (trampas.length === 1) {
+    const tUnica = trampas[0];
+    const textoObjetivo = esDirecto
+      ? (isEn ? 'your Life Points directly' : 'tus Puntos de Vida directamente')
+      : (datosDefensor ? (isEn ? `your ${datosDefensor.nombre} (${modoTargetTexto || 'campo'})` : `tu ${datosDefensor.nombre} (${modoTargetTexto || 'campo'})`) : (isEn ? 'your Pokémon' : 'tu Pokémon'));
+
+    abrirModalConfirmacionCarta({
+      titulo: isEn ? "⚡ Activate Trap Card?" : "⚡ ¿Activar Carta Trampa?",
+      datosCarta: tUnica.datos,
+      cartaId: tUnica.id,
+      slotMTIndex: tUnica.slotIndex,
+      ocultarBtnSet: true,
+      resumenAtaqueHtml: resumenAtaqueHtml,
+      infoTarget: `${datosAtacante.nombre} (ATK ${atacanteAtk}) ➔ ${textoObjetivo}`,
+      preguntaCustom: isEn
+        ? `⚠️ Rival's ${datosAtacante.nombre} (ATK ${atacanteAtk}) is attacking ${textoObjetivo}! Do you want to activate your trap "${tUnica.datos.nombre}"?`
+        : `⚠️ ¡${datosAtacante.nombre} rival (ATK ${atacanteAtk}) ataca a ${textoObjetivo}! ¿Deseas activar tu trampa "${tUnica.datos.nombre}"?`,
+      textoBtnConfirm: isEn ? "⚡ Activate Trap!" : "⚡ ¡Activar Trampa!",
+      textoBtnCancel: isEn ? "🛡️ Keep Set (Do Not Activate)" : "🛡️ No Activar (Guardar)",
+      onConfirm: () => {
+        onActivarTrampa(tUnica.slotIndex, tUnica.slotData, tUnica.datos);
+      },
+      onCancel: () => {
+        onNoActivar();
+      }
+    });
+    return;
+  }
+
+  // Múltiples trampas colocadas: mostrar modal de selección de trampa
+  abrirModalSeleccionTrampas({
+    trampas,
+    resumenAtaqueHtml,
+    datosAtacante,
+    atacanteAtk,
+    esDirecto,
+    datosDefensor,
+    onActivarTrampa,
+    onNoActivar
+  });
 }
 
 // Colocar carta mágica, de equipo o trampa boca abajo en el campo sin usarla
@@ -2612,7 +2795,7 @@ function manejarClickCartaMano(cartaId, datosCarta, indexMano) {
     return;
   }
 
-  // 4. Si es una carta Trampa: pedir confirmación con opción de cancelar
+  // 4. Si es una carta Trampa: pedir confirmación con opción de cancelar (Colocar en campo, no activar)
   if (datosCarta.tipoCarta === 'trampa') {
     const primerSlotMT = estadoJugador.zonaMagiasTrampas.findIndex(s => s === null);
     if (primerSlotMT === -1) {
@@ -2620,12 +2803,21 @@ function manejarClickCartaMano(cartaId, datosCarta, indexMano) {
       return;
     }
     const slotElem = document.querySelector(`#player-side .spells-row .spell-trap-slot[data-slot-index="${primerSlotMT}"]`);
+    const isEn = configuracionJuego.idioma === 'en';
     abrirModalConfirmacionCarta({
-      titulo: configuracionJuego.idioma === 'en' ? "🛡️ Set Trap Card" : "🛡️ Colocar Carta Trampa",
+      titulo: isEn ? "🛡️ Set Trap Card" : "🛡️ Colocar Carta Trampa",
       datosCarta,
       cartaId,
       slotMTIndex: primerSlotMT,
       ocultarBtnSet: true,
+      infoTarget: isEn
+        ? `Spell/Trap Zone #${primerSlotMT + 1} (Face-Down)`
+        : `Zona Mágica/Trampa #${primerSlotMT + 1} (Boca Abajo)`,
+      preguntaCustom: isEn
+        ? `Do you want to set ${datosCarta.nombre} face-down on the field to trigger against rival attacks?`
+        : `¿Deseas colocar ${datosCarta.nombre} boca abajo en el campo para que se active cuando el rival ataque?`,
+      textoBtnConfirm: isEn ? "🃏 Set on Field (Face-down)" : "🃏 Colocar en Campo (Boca abajo)",
+      textoBtnCancel: isEn ? "❌ Keep in Hand" : "❌ Mantener en Mano",
       onConfirm: () => {
         colocarCartaTrampa(datosCarta, cartaId, primerSlotMT, slotElem);
       }
@@ -4840,14 +5032,18 @@ function ejecutarAtaqueDirecto(slotIndexAtacante, ignorarTrampas = false) {
     if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline()) {
       mostrarMensajeToast(`⏳ Ataque declarado con ${datosAtacante.nombre}. Esperando respuesta del rival...`);
       if (_pvpTrapWaitTimeout) clearTimeout(_pvpTrapWaitTimeout);
-      _pvpPendingAttackResolver = (activarTrampa) => {
+      _pvpPendingAttackResolver = (activarTrampa, trampaSlotIndexElegido) => {
         if (_pvpTrapWaitTimeout) {
           clearTimeout(_pvpTrapWaitTimeout);
           _pvpTrapWaitTimeout = null;
         }
         _pvpPendingAttackResolver = null;
         if (activarTrampa) {
-          resolverEfectoTrampaRivalSobreMiAtaque(slotIndexAtacante, null, true, trampaOponenteIndex, trampaData, dano);
+          const slotElegido = (typeof trampaSlotIndexElegido === 'number' && estadoOponente.zonaMagiasTrampas[trampaSlotIndexElegido])
+            ? trampaSlotIndexElegido
+            : trampaOponenteIndex;
+          const trampaElegida = estadoOponente.zonaMagiasTrampas[slotElegido] || trampaData;
+          resolverEfectoTrampaRivalSobreMiAtaque(slotIndexAtacante, null, true, slotElegido, trampaElegida, dano);
         } else {
           ejecutarAtaqueDirecto(slotIndexAtacante, true);
         }
@@ -4967,14 +5163,18 @@ function resolverCombate(slotIndexAtacante, slotIndexObjetivo, ignorarTrampas = 
     if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline()) {
       mostrarMensajeToast(`⏳ ${datosAtacante.nombre} ataca a ${datosObjetivo.nombre}. Esperando respuesta del rival...`);
       if (_pvpTrapWaitTimeout) clearTimeout(_pvpTrapWaitTimeout);
-      _pvpPendingAttackResolver = (activarTrampa) => {
+      _pvpPendingAttackResolver = (activarTrampa, trampaSlotIndexElegido) => {
         if (_pvpTrapWaitTimeout) {
           clearTimeout(_pvpTrapWaitTimeout);
           _pvpTrapWaitTimeout = null;
         }
         _pvpPendingAttackResolver = null;
         if (activarTrampa) {
-          resolverEfectoTrampaRivalSobreMiAtaque(slotIndexAtacante, slotIndexObjetivo, false, trampaOponenteIndex, trampaData, atkAtacante);
+          const slotElegido = (typeof trampaSlotIndexElegido === 'number' && estadoOponente.zonaMagiasTrampas[trampaSlotIndexElegido])
+            ? trampaSlotIndexElegido
+            : trampaOponenteIndex;
+          const trampaElegida = estadoOponente.zonaMagiasTrampas[slotElegido] || trampaData;
+          resolverEfectoTrampaRivalSobreMiAtaque(slotIndexAtacante, slotIndexObjetivo, false, slotElegido, trampaElegida, atkAtacante);
         } else {
           resolverCombate(slotIndexAtacante, slotIndexObjetivo, true);
         }
@@ -5756,13 +5956,8 @@ function ejecutarAtaqueIA(onAtaqueRealizado = null) {
       };
 
       // Comprobar si el jugador tiene una carta de TRAMPA boca abajo para preguntarle si desea activarla
-      const trampaDirIndex = Array.isArray(estadoJugador.zonaMagiasTrampas)
-        ? estadoJugador.zonaMagiasTrampas.findIndex(t => t !== null && t.bocaAbajo && bdCartas[t.id] && bdCartas[t.id].tipoCarta === 'trampa')
-        : -1;
-
-      if (trampaDirIndex !== -1) {
-        const trampaDirData = estadoJugador.zonaMagiasTrampas[trampaDirIndex];
-        const dTrampaDir = bdCartas[trampaDirData.id];
+      const trampasJugadorDir = obtenerTrampasJugadorDisponibles();
+      if (trampasJugadorDir.length > 0) {
         setTimeout(() => {
           pausarWatchdogIA();
           const resumenHtml = `
@@ -5770,25 +5965,19 @@ function ejecutarAtaqueIA(onAtaqueRealizado = null) {
             <span class="trap-vs-arrow">⚔️➔</span>
             <span class="trap-vs-target">🎯 ¡Ataque Directo a tus LP!</span>
           `;
-          abrirModalConfirmacionCarta({
-            titulo: isEn ? "⚡ Activate Trap Card?" : "⚡ ¿Activar Carta Trampa?",
-            datosCarta: dTrampaDir,
-            cartaId: trampaDirData.id,
-            infoTarget: isEn ? `Attacker: ${atacante.datos.nombre} (ATK ${dano})` : `Atacante: ${atacante.datos.nombre} (ATK ${dano})`,
-            preguntaCustom: isEn
-              ? `⚠️ Rival's ${atacante.datos.nombre} (ATK ${dano}) is attacking you directly! Activate trap "${dTrampaDir.nombre}"?`
-              : `⚠️ ¡${atacante.datos.nombre} rival (ATK ${dano}) te ataca directamente! ¿Quieres activar tu trampa "${dTrampaDir.nombre}"?`,
-            textoBtnConfirm: isEn ? '⚡ Activate Trap!' : '⚡ ¡Activar Trampa!',
-            ocultarBtnSet: true,
-            textoBtnCancel: isEn ? '🛡️ Keep Set (Do Not Activate)' : '🛡️ No Activar (Guardar)',
+          solicitarActivacionTrampaJugador({
             resumenAtaqueHtml: resumenHtml,
-            onConfirm: () => {
+            datosAtacante: atacante.datos,
+            atacanteAtk: dano,
+            esDirecto: true,
+            datosDefensor: null,
+            onActivarTrampa: (slotIndexElegido, slotDataElegido, datosTrampaElegida) => {
               renovarWatchdogIA(10000);
-              aplicarTrampaJugadorContraAtaqueIA(trampaDirIndex, atacante.slotIdx, atacante.datos, dano, slotRivalDirElem, isEn, () => {
+              aplicarTrampaJugadorContraAtaqueIA(slotIndexElegido, atacante.slotIdx, atacante.datos, dano, slotRivalDirElem, isEn, () => {
                 if (onAtaqueRealizado) onAtaqueRealizado(true);
               });
             },
-            onCancel: () => {
+            onNoActivar: () => {
               renovarWatchdogIA(10000);
               setTimeout(resolverGolpeDirecto, 550);
             }
@@ -6014,15 +6203,8 @@ function ejecutarAtaqueIA(onAtaqueRealizado = null) {
     };
 
     // Comprobar si el jugador tiene una carta de TRAMPA boca abajo para preguntarle si desea activarla
-    const trampaIndex = Array.isArray(estadoJugador.zonaMagiasTrampas)
-      ? estadoJugador.zonaMagiasTrampas.findIndex(t => t !== null && t.bocaAbajo && bdCartas[t.id] && bdCartas[t.id].tipoCarta === 'trampa')
-      : -1;
-
-    if (trampaIndex !== -1) {
-      const trampaData = estadoJugador.zonaMagiasTrampas[trampaIndex];
-      const dTrampa = bdCartas[trampaData.id];
-
-      // Esperar un instante para que el usuario vea resaltado en el tablero quién ataca a quién antes de abrir el modal
+    const trampasJugadorCombat = obtenerTrampasJugadorDisponibles();
+    if (trampasJugadorCombat.length > 0) {
       setTimeout(() => {
         pausarWatchdogIA();
         const resumenHtml = `
@@ -6030,25 +6212,20 @@ function ejecutarAtaqueIA(onAtaqueRealizado = null) {
           <span class="trap-vs-arrow">⚔️➔</span>
           <span class="trap-vs-target">🔵 Tu ${dTarget.nombre} (${modoTargetTexto})</span>
         `;
-        abrirModalConfirmacionCarta({
-          titulo: isEn ? "⚡ Activate Trap Card?" : "⚡ ¿Activar Carta Trampa?",
-          datosCarta: dTrampa,
-          cartaId: trampaData.id,
-          infoTarget: `${dAtacante.nombre} (ATK ${atkAtacante}) ➔ ${dTarget.nombre} (${modoTargetTexto})`,
-          preguntaCustom: isEn
-            ? `⚠️ Rival's ${dAtacante.nombre} (ATK ${atkAtacante}) is attacking your ${dTarget.nombre} (${modoTargetTexto})! Do you want to activate your trap "${dTrampa.nombre}"?`
-            : `⚠️ ¡${dAtacante.nombre} rival (ATK ${atkAtacante}) está atacando a tu ${dTarget.nombre} (${modoTargetTexto})! ¿Quieres activar tu trampa "${dTrampa.nombre}"?`,
-          textoBtnConfirm: isEn ? '⚡ Activate Trap!' : '⚡ ¡Activar Trampa!',
-          ocultarBtnSet: true,
-          textoBtnCancel: isEn ? '🛡️ Keep Set (Do Not Activate)' : '🛡️ No Activar (Guardar)',
+        solicitarActivacionTrampaJugador({
           resumenAtaqueHtml: resumenHtml,
-          onConfirm: () => {
+          datosAtacante: dAtacante,
+          atacanteAtk: atkAtacante,
+          esDirecto: false,
+          datosDefensor: dTarget,
+          modoTargetTexto: modoTargetTexto,
+          onActivarTrampa: (slotIndexElegido, slotDataElegido, datosTrampaElegida) => {
             renovarWatchdogIA(10000);
-            aplicarTrampaJugadorContraAtaqueIA(trampaIndex, atacanteSlot, dAtacante, atkAtacante, slotRivalElem, isEn, () => {
+            aplicarTrampaJugadorContraAtaqueIA(slotIndexElegido, atacanteSlot, dAtacante, atkAtacante, slotRivalElem, isEn, () => {
               if (onAtaqueRealizado) onAtaqueRealizado(true);
             });
           },
-          onCancel: () => {
+          onNoActivar: () => {
             renovarWatchdogIA(10000);
             setTimeout(resolverCombateMonstruoNormal, 600);
           }
@@ -9079,10 +9256,21 @@ const MultiplayerManager = {
     const viewOptions = document.getElementById('pvp-view-options');
     const viewRooms = document.getElementById('pvp-view-rooms');
     const viewWaiting = document.getElementById('pvp-view-waiting');
+    const btnClose = document.getElementById('btn-close-pvp');
 
     if (viewOptions) viewOptions.classList.toggle('active', vista === 'options');
     if (viewRooms) viewRooms.classList.toggle('active', vista === 'rooms');
     if (viewWaiting) viewWaiting.classList.toggle('active', vista === 'waiting');
+
+    if (btnClose) {
+      if (vista === 'rooms') {
+        btnClose.textContent = '⬅️ Volver a Opciones';
+      } else if (vista === 'waiting') {
+        btnClose.textContent = '❌ Cancelar Espera y Volver';
+      } else {
+        btnClose.textContent = 'Volver al Menú';
+      }
+    }
   },
 
   publicarSalaEnLobby(code, user) {
@@ -9651,31 +9839,35 @@ const MultiplayerManager = {
         statDefensor: mTarget ? obtenerStatEfectivo(mTarget, mTarget.posicion === 'ataque' ? 'atk' : 'def') : undefined
       });
 
-      const indiceTrampa = estadoJugador.zonaMagiasTrampas.findIndex(c => c !== null && c.bocaAbajo);
-      if (indiceTrampa === -1) {
+      const trampasDefensor = obtenerTrampasJugadorDisponibles();
+      if (trampasDefensor.length === 0) {
         setTimeout(() => ocultarIndicadorAtaqueVisual(), 400);
         this.enviarAccion({ tipo: 'RESPUESTA_TRAMPA_RIVAL', activar: false });
         return;
       }
 
-      const trampaSlot = estadoJugador.zonaMagiasTrampas[indiceTrampa];
-      const datosTrampa = bdCartas[trampaSlot.id];
-      const textoObjetivo = accion.esDirecto
-        ? 'tus Puntos de Vida directamente'
-        : (datosDefensor ? `tu ${datosDefensor.nombre}` : 'tu Pokémon');
+      const resumenHtml = `
+        <span class="trap-vs-side">🔴 Rival: ${datosAtacante.nombre} (ATK ${accion.atacanteAtk})</span>
+        <span class="trap-vs-arrow">⚔️➔</span>
+        <span class="trap-vs-target">🔵 ${accion.esDirecto ? '🎯 Directo a tus LP' : `Tu ${datosDefensor ? datosDefensor.nombre : 'Pokémon'}`}</span>
+      `;
 
-      abrirModalConfirmacionCarta({
-        datosCarta: datosTrampa,
-        icono: '🪤',
-        titulo: '¡Activar Carta de Trampa!',
-        pregunta: `¡${datosAtacante.nombre} (${accion.atacanteAtk} ATK) ataca a ${textoObjetivo}! ¿Quieres activar tu trampa "${datosTrampa.nombre}"?`,
-        textoConfirmar: '⚡ ¡Activar Trampa!',
-        textoCancelar: 'No activar',
-        onConfirm: () => {
+      solicitarActivacionTrampaJugador({
+        resumenAtaqueHtml: resumenHtml,
+        datosAtacante,
+        atacanteAtk: accion.atacanteAtk,
+        esDirecto: !!accion.esDirecto,
+        datosDefensor,
+        onActivarTrampa: (slotIndexElegido, slotDataElegido, datosTrampaElegida) => {
           ocultarIndicadorAtaqueVisual();
-          this.enviarAccion({ tipo: 'RESPUESTA_TRAMPA_RIVAL', activar: true, trampaSlotIndex: indiceTrampa });
+          this.enviarAccion({
+            tipo: 'RESPUESTA_TRAMPA_RIVAL',
+            activar: true,
+            trampaSlotIndex: slotIndexElegido,
+            trampaId: datosTrampaElegida.id
+          });
         },
-        onCancel: () => {
+        onNoActivar: () => {
           ocultarIndicadorAtaqueVisual();
           this.enviarAccion({ tipo: 'RESPUESTA_TRAMPA_RIVAL', activar: false });
         }
@@ -9688,7 +9880,7 @@ const MultiplayerManager = {
       if (typeof _pvpPendingAttackResolver === 'function') {
         const resolver = _pvpPendingAttackResolver;
         _pvpPendingAttackResolver = null;
-        resolver(!!accion.activar);
+        resolver(!!accion.activar, accion.trampaSlotIndex);
       }
       return;
     }
@@ -10342,7 +10534,16 @@ const MultiplayerManager = {
       };
     }
     if (btnCloseX) btnCloseX.onclick = cerrar;
-    if (btnClose) btnClose.onclick = cerrar;
+    if (btnClose) {
+      btnClose.onclick = () => {
+        const viewRooms = document.getElementById('pvp-view-rooms');
+        if (viewRooms && viewRooms.classList.contains('active')) {
+          this.cambiarVista('options');
+          return;
+        }
+        cerrar();
+      };
+    }
   }
 };
 

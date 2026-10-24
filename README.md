@@ -1,6 +1,6 @@
 # ⚡ POKÉ-OH! — Duelo de Cartas Estratégico (Pokémon × Yu-Gi-Oh!)
 
-> **Versión Actual:** `v0.3.1 Beta`  
+> **Versión Actual:** `v0.3.2 Beta`  
 > **Juego Web Oficial:** [https://pokeoh-admin.github.io/poke-oh/](https://pokeoh-admin.github.io/poke-oh/)  
 > **Licencia & Motor:** Antigravity Duel Engine (Vanilla JS + HTML5 + CSS3 + Colyseus / Supabase)
 
@@ -63,6 +63,15 @@
 ---
 
 ## 📜 Registro de Cambios (Changelog)
+
+### 🪤 v0.3.2 Beta (24 de Octubre de 2026) — Selección de Múltiples Trampas y Limpieza de UI Online
+- 🪤 **Selección Interactiva de Múltiples Trampas:** Si el jugador defensor tiene 2 o más trampas colocadas boca abajo al momento en que un oponente (IA o rival online) declara un ataque, ahora se abre un diálogo modal interactivo (`#trap-select-modal`) que enumera cada trampa disponible con su nombre, arte, descripción de efecto y zona en campo, permitiendo al jugador escoger con precisión cuál activar o si prefiere no activar ninguna.
+- 🃏 **Claridad de Acción para Trampas en Mano:** Al hacer clic sobre una carta de Trampa en la mano, el modal ahora indica explícitamente `🃏 Colocar en Campo (Boca abajo)` con una descripción didáctica que aclara que las trampas deben prepararse boca abajo para activarse en el turno del rival.
+- 🖥️ **Aislamiento y Corrección de Vistas en 2 Jugadores Online:** Solucionado el problema visual donde las opciones de juego, el explorador de salas y la sala de espera se renderizaban apilados simultáneamente en pantalla. Se aplicó aislamiento estricto por clases de vista (`.pvp-view.active`).
+- 🔄 **Botón de Actualización con Estilo Nativo:** En el lobby de salas abiertas se estilizó el botón `🔄 Actualizar` para coincidir de forma armoniosa y moderna con la paleta visual futurista del juego.
+- 🧹 **Depuración de Botones Redundantes:** Eliminados los botones innecesarios en la cabecera de salas (`Crear Sala` y `Opciones`) y en la sala de espera (`Cancelar Espera`), centralizando la navegación de retorno de forma limpia en el botón principal inferior y el botón de cierre.
+
+---
 
 ### ⚡ v0.3.1 Beta (24 de Octubre de 2026) — Interfaz Horizontal, Indicadores de Efecto y Correcciones
 - 🖥️ **Interfaz Horizontal 2 Jugadores:** Rediseño panorámico del menú multijugador en 2 columnas equilibradas (barajas a la izquierda y modos de juego 2x2 a la derecha), eliminando scroll vertical excesivo en pantallas panorámicas.
