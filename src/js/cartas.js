@@ -2851,6 +2851,7 @@ const bdCartas = {
         "nombre": "Evolución Flexible",
         "tipo": "aumento_stats_propio",
         "requiereObjetivoRival": false,
+        "valor": 300,
         "valorAtk": 300,
         "valorDef": 300,
         "descripcion": "1 vez en campo: Se adapta al campo ganando +300 ATK y +300 DEF de manera permanente."
@@ -3039,6 +3040,7 @@ const bdCartas = {
         "nombre": "Poder Ancestral",
         "tipo": "aumento_stats_propio",
         "requiereObjetivoRival": false,
+        "valor": 400,
         "valorAtk": 400,
         "valorDef": 400,
         "descripcion": "1 vez en campo: Despierta su ADN prehistórico ganando +400 ATK y +400 DEF permanentemente."

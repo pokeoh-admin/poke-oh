@@ -1,6 +1,6 @@
 # ⚡ POKÉ-OH! — Duelo de Cartas Estratégico (Pokémon × Yu-Gi-Oh!)
 
-> **Versión Actual:** `v0.3.0 Beta`  
+> **Versión Actual:** `v0.3.1 Beta`  
 > **Juego Web Oficial:** [https://pokeoh-admin.github.io/poke-oh/](https://pokeoh-admin.github.io/poke-oh/)  
 > **Licencia & Motor:** Antigravity Duel Engine (Vanilla JS + HTML5 + CSS3 + Colyseus / Supabase)
 
@@ -63,6 +63,15 @@
 ---
 
 ## 📜 Registro de Cambios (Changelog)
+
+### ⚡ v0.3.1 Beta (24 de Octubre de 2026) — Interfaz Horizontal, Indicadores de Efecto y Correcciones
+- 🖥️ **Interfaz Horizontal 2 Jugadores:** Rediseño panorámico del menú multijugador en 2 columnas equilibradas (barajas a la izquierda y modos de juego 2x2 a la derecha), eliminando scroll vertical excesivo en pantallas panorámicas.
+- ⚡ **Indicador de Efecto en el Frente de las Cartas:** Las criaturas con habilidades activas lucen ahora un distintivo visible de rayito dorado (`⚡`) con animación de pulso que se atenúa una vez consumido su uso por estancia en campo.
+- 🐛 **Corrección en Efectos de Estadísticas (Eevee y Aerodactyl):** Corregido el bug donde la habilidad *Evolución Flexible* de Eevee asignaba valores nulos (`NaN`) a las estadísticas; ahora calcula y aplica debidamente los aumentos de ATK y DEF.
+- 📖 **Inspector de Cartas Enriquecido:** Guía detallada con modo de uso explícito para cartas Mágicas, de Equipo y Trampas, y bloque destacado de efectos activos en monstruos.
+- 🛡️ **Blindaje de Estadísticas:** Protección contra valores indefinidos o nulos en las funciones de cálculo de estadísticas de combate en el tablero.
+
+---
 
 ### 🌟 v0.3.0 Beta (24 de Octubre de 2026) — Gran Actualización TCG & Tácticas
 - ⚡ **Efectos Activos de Monstruos:** Más del 30% de los Pokémon ahora cuentan con habilidades tácticas de 1 solo uso mediante el botón `EFECTO` en tu Fase Principal.

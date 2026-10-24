@@ -13,7 +13,7 @@
 // ==========================================
 // CONFIGURACIÓN GLOBAL Y BILINGÜE DEL JUEGO
 // ==========================================
-const POKEOH_VERSION = '0.3.0 Beta';
+const POKEOH_VERSION = '0.3.1 Beta';
 
 const configuracionJuego = {
   idioma: 'es',
@@ -669,15 +669,15 @@ function restaurarStatsBase() {
 function obtenerAtkActual(slotData) {
   if (!slotData) return 0;
   const baseAtk = bdCartas[slotData.id] ? bdCartas[slotData.id].atk : 0;
-  const mod = (typeof slotData.atkMod === 'number') ? slotData.atkMod : (slotData.modAtk || 0);
-  return Math.max(0, baseAtk + mod);
+  const mod = (typeof slotData.atkMod === 'number' && !isNaN(slotData.atkMod)) ? slotData.atkMod : (slotData.modAtk || 0);
+  return Math.max(0, baseAtk + (isNaN(mod) ? 0 : mod));
 }
 
 function obtenerDefActual(slotData) {
   if (!slotData) return 0;
   const baseDef = bdCartas[slotData.id] ? bdCartas[slotData.id].def : 0;
-  const mod = (typeof slotData.defMod === 'number') ? slotData.defMod : (slotData.modDef || 0);
-  return Math.max(0, baseDef + mod);
+  const mod = (typeof slotData.defMod === 'number' && !isNaN(slotData.defMod)) ? slotData.defMod : (slotData.modDef || 0);
+  return Math.max(0, baseDef + (isNaN(mod) ? 0 : mod));
 }
 
 // ==========================================
@@ -2051,7 +2051,58 @@ function configurarInspectorHover(elemento, datosCarta, esPropiaBocaAbajo = fals
       statsElem.style.display = 'none';
     }
 
-    descElem.textContent = descTexto;
+    let htmlDesc = `<div class="inspector-base-desc">${escapeHtml(descTexto)}</div>`;
+
+    if (datosCarta.tipoCarta === 'monstruo' && datosCarta.efectoActivo) {
+      const yaUsado = slotCampo ? !!slotCampo.efectoUsado : false;
+      const estadoBadge = yaUsado
+        ? `<span class="inspector-ef-status status-used">${isEn ? "USADO" : "YA USADO"}</span>`
+        : `<span class="inspector-ef-status status-ready">${isEn ? "READY (1-USE)" : "DISPONIBLE (1 USO)"}</span>`;
+      const descEff = datosCarta.efectoActivo.descripcion || '';
+      htmlDesc += `
+        <div class="inspector-effect-panel">
+          <div class="inspector-effect-title">
+            <span>⚡ ${isEn ? "ACTIVE EFFECT" : "EFECTO ACTIVO"}</span>
+            ${estadoBadge}
+          </div>
+          <div class="inspector-effect-name">${escapeHtml(datosCarta.efectoActivo.nombre)}</div>
+          <div class="inspector-effect-text">${escapeHtml(descEff)}</div>
+          <div class="inspector-effect-tip">💡 ${isEn ? "Activate with the ⚡ EFFECT button during your Main Phase." : "Actívalo con el botón ⚡ EFECTO en tu Fase Principal."}</div>
+        </div>
+      `;
+    } else if (datosCarta.tipoCarta === 'magia' || datosCarta.tipoCarta === 'trampa') {
+      let guiaUso = "";
+      if (esCartaEquipo(datosCarta, datosCarta.id)) {
+        guiaUso = isEn
+          ? "Drag or click to equip onto a Pokémon in your field during your Main Phase. Enhancements are permanent while on field."
+          : "Arrástrala o pulsa sobre ella para equiparla a un Pokémon de tu campo en tu Fase Principal. La mejora es permanente.";
+      } else if (datosCarta.tipoCarta === 'trampa') {
+        guiaUso = isEn
+          ? "Place face-down in your Spell/Trap zone during Main Phase. It triggers as a defensive counter when the opponent attacks."
+          : "Colócala boca abajo en tu zona M/T en tu Fase Principal. Se activa como respuesta defensiva cuando el rival declara un ataque.";
+      } else if (datosCarta.id === 250) {
+        guiaUso = isEn
+          ? "Activate in Main Phase with a compatible Pokémon on field to summon its Mega Evolution from your Side Deck."
+          : "Actívala en tu Fase Principal controlando al Pokémon compatible para invocar su Megaevolución desde el Side Deck.";
+      } else if (datosCarta.id === 213) {
+        guiaUso = isEn
+          ? "Activate in Main Phase. Requires at least 1 Monster in your Graveyard and 1 free Monster slot on field."
+          : "Actívala en tu Fase Principal. Requiere al menos 1 Monstruo en tu Cementerio y 1 casilla libre en tu campo.";
+      } else {
+        guiaUso = isEn
+          ? "Activate directly from hand or from your face-down S/T zone during your Main Phase to apply its effect."
+          : "Actívala desde tu mano o boca abajo en tu zona M/T durante tu Fase Principal para aplicar su efecto de inmediato.";
+      }
+
+      htmlDesc += `
+        <div class="inspector-guide-panel">
+          <span class="inspector-guide-label">📌 ${isEn ? "How to Use:" : "Modo de Uso:"}</span>
+          <span class="inspector-guide-text">${guiaUso}</span>
+        </div>
+      `;
+    }
+
+    descElem.innerHTML = htmlDesc;
     inspector.classList.remove('hidden');
 
     if (esTouch) {
@@ -2170,6 +2221,7 @@ function renderizarMano(jugador) {
     let pieCartaHtml = "";
     let badgeTipoHtml = "";
     let tributosBadgeHtml = "";
+    let badgeEfectoHtml = "";
     if (datosCarta.tipoCarta === 'monstruo') {
       if (datosCarta.elemento) {
         const infoT = obtenerInfoTipo(datosCarta.elemento);
@@ -2179,6 +2231,9 @@ function renderizarMano(jugador) {
       }
       if (datosCarta.sacrificios > 0) {
         tributosBadgeHtml = `<div class="card-tribute-badge" title="Requiere ${datosCarta.sacrificios} sacrificio(s)">★${datosCarta.sacrificios}</div>`;
+      }
+      if (datosCarta.efectoActivo) {
+        badgeEfectoHtml = `<div class="card-effect-badge" title="⚡ EFECTO: ${datosCarta.efectoActivo.nombre}\n${datosCarta.efectoActivo.descripcion}">⚡</div>`;
       }
       pieCartaHtml = `
         <div class="card-stats-row">
@@ -2205,6 +2260,7 @@ function renderizarMano(jugador) {
     cartaDiv.innerHTML = `
       ${tributosBadgeHtml}
       ${badgeTipoHtml}
+      ${badgeEfectoHtml}
       <span class="card-name-mini">${datosCarta.nombre}</span>
       ${imagenHtml}
       ${pieCartaHtml}
@@ -3663,6 +3719,7 @@ function renderizarMonstruoEnCampo(slotElement, datosCarta, posicion = 'ataque',
 
   let badgeTipoHtml = "";
   let tributosBadgeHtml = "";
+  let badgeEfectoHtml = "";
   if (datosCarta.tipoCarta === 'monstruo') {
     if (datosCarta.elemento) {
       const infoT = obtenerInfoTipo(datosCarta.elemento);
@@ -3672,6 +3729,12 @@ function renderizarMonstruoEnCampo(slotElement, datosCarta, posicion = 'ataque',
     }
     if (datosCarta.sacrificios > 0) {
       tributosBadgeHtml = `<div class="card-tribute-badge" title="Requiere ${datosCarta.sacrificios} sacrificio(s)">★${datosCarta.sacrificios}</div>`;
+    }
+    if (datosCarta.efectoActivo) {
+      const usado = slotData.efectoUsado ? "usado" : "disponible";
+      const descEf = datosCarta.efectoActivo.descripcion || datosCarta.efectoActivo.nombre;
+      const estadoText = slotData.efectoUsado ? "(Efecto ya usado)" : "(Efecto disponible)";
+      badgeEfectoHtml = `<div class="card-effect-badge ${usado}" title="⚡ EFECTO: ${datosCarta.efectoActivo.nombre} ${estadoText}\n${descEf}">⚡</div>`;
     }
   }
 
@@ -3688,6 +3751,7 @@ function renderizarMonstruoEnCampo(slotElement, datosCarta, posicion = 'ataque',
     <div class="card-on-field preview-card ${datosCarta.claseCss} ${clasePosicion} ${obtenerClaseFrontCarta(datosCarta)}" title="Haz clic en Fase Principal para alternar Ataque / Defensa">
       ${tributosBadgeHtml}
       ${badgeTipoHtml}
+      ${badgeEfectoHtml}
       <span class="card-name-mini">${datosCarta.nombre}</span>
       ${imagenHtml}
       <div class="card-stats-row">
@@ -4105,14 +4169,16 @@ function ejecutarLogicaEfecto(slotIndex, efecto, targetSlotIndex) {
       break;
     }
     case 'aumento_stats_propio': {
-      slotData.atkMod = (slotData.atkMod || 0) + efecto.valor;
-      slotData.defMod = (slotData.defMod || 0) + efecto.valor;
+      const buffAtk = (typeof efecto.valorAtk === 'number') ? efecto.valorAtk : ((typeof efecto.valor === 'number') ? efecto.valor : 300);
+      const buffDef = (typeof efecto.valorDef === 'number') ? efecto.valorDef : ((typeof efecto.valor === 'number') ? efecto.valor : 300);
+      slotData.atkMod = (slotData.atkMod || 0) + buffAtk;
+      slotData.defMod = (slotData.defMod || 0) + buffDef;
       if (slotElem) {
         lanzarEfectoVisual('luz', slotElem);
-        crearNumeroFlotante(`+${efecto.valor} ATK/DEF`, slotElem, 'buff');
+        crearNumeroFlotante(`+${buffAtk} ATK / +${buffDef} DEF`, slotElem, 'buff');
       }
       AudioManager.reproducirSFX('heal');
-      logDesc = `${datosCarta.nombre} usó ${efecto.nombre}: subió +${efecto.valor} ATK y DEF.`;
+      logDesc = `${datosCarta.nombre} usó ${efecto.nombre}: subió +${buffAtk} ATK y +${buffDef} DEF.`;
       break;
     }
     case 'modo_defensa_inmune': {
@@ -4425,6 +4491,7 @@ function renderizarCampoOponente() {
 
       let badgeTipoHtml = "";
       let tributosBadgeHtml = "";
+      let badgeEfectoHtml = "";
       if (datosCarta.tipoCarta === 'monstruo') {
         if (datosCarta.elemento) {
           const infoT = obtenerInfoTipo(datosCarta.elemento);
@@ -4435,6 +4502,11 @@ function renderizarCampoOponente() {
         if (datosCarta.sacrificios > 0) {
           tributosBadgeHtml = `<div class="card-tribute-badge" title="Requiere ${datosCarta.sacrificios} sacrificio(s)">★${datosCarta.sacrificios}</div>`;
         }
+        if (datosCarta.efectoActivo) {
+          const usado = slotData.efectoUsado ? "usado" : "disponible";
+          const descEf = datosCarta.efectoActivo.descripcion || datosCarta.efectoActivo.nombre;
+          badgeEfectoHtml = `<div class="card-effect-badge ${usado}" title="⚡ EFECTO: ${datosCarta.efectoActivo.nombre}\n${descEf}">⚡</div>`;
+        }
       }
 
       slot.classList.add('occupied');
@@ -4442,6 +4514,7 @@ function renderizarCampoOponente() {
         <div class="card-on-field preview-card ${datosCarta.claseCss} ${clasePosicion} ${obtenerClaseFrontCarta(datosCarta)}">
           ${tributosBadgeHtml}
           ${badgeTipoHtml}
+          ${badgeEfectoHtml}
           <span class="card-name-mini">${datosCarta.nombre}</span>
           <div class="card-art-container field-art">
             <img class="card-art-img field-sprite" src="${imagenSrc}" alt="${datosCarta.nombre}" onerror="this.onerror=null; this.src='${fallbackSrc}';" draggable="false">
@@ -7264,6 +7337,7 @@ function renderizarMazoActualDeckBuilder() {
         <span class="card-visual-type-icon">${infoElem ? infoElem.icono : (c.tipoCarta === 'magia' ? '🪄' : '🪤')}</span>
       </div>
       ${c.sacrificios > 0 ? `<div class="card-visual-tribute">⭐${c.sacrificios}</div>` : ''}
+      ${c.efectoActivo ? `<div class="card-effect-badge" title="⚡ EFECTO: ${escapeHtml(c.efectoActivo.nombre)}\n${escapeHtml(c.efectoActivo.descripcion || '')}">⚡</div>` : ''}
       <div class="card-visual-art-wrap">
         <img class="card-visual-art" src="${artSrc}" alt="${escapeHtml(c.nombre)}" onerror="this.onerror=null; this.src='${fallbackSrc}';" draggable="false">
       </div>
@@ -7364,6 +7438,7 @@ function renderizarColeccionDeckBuilder() {
         <span class="card-visual-type-icon">${infoElem ? infoElem.icono : (c.tipoCarta === 'magia' ? '🪄' : '🪤')}</span>
       </div>
       ${c.sacrificios > 0 ? `<div class="card-visual-tribute">⭐${c.sacrificios}</div>` : ''}
+      ${c.efectoActivo ? `<div class="card-effect-badge" title="⚡ EFECTO: ${escapeHtml(c.efectoActivo.nombre)}\n${escapeHtml(c.efectoActivo.descripcion || '')}">⚡</div>` : ''}
       <div class="card-visual-art-wrap">
         <img class="card-visual-art" src="${artSrc}" alt="${escapeHtml(c.nombre)}" onerror="this.onerror=null; this.src='${fallbackSrc}';" draggable="false">
         <span class="collection-copy-pill ${copiasEnMazo >= 3 ? 'pill-full' : ''}">x${copiasEnMazo}/3</span>
@@ -10119,8 +10194,10 @@ const MultiplayerManager = {
       case 'aumento_stats_propio': {
         const opM = estadoOponente.zonaMonstruos[slotOrigen];
         if (opM) {
-          opM.atkMod = (opM.atkMod || 0) + efecto.valor;
-          opM.defMod = (opM.defMod || 0) + efecto.valor;
+          const buffAtk = (typeof efecto.valorAtk === 'number') ? efecto.valorAtk : ((typeof efecto.valor === 'number') ? efecto.valor : 300);
+          const buffDef = (typeof efecto.valorDef === 'number') ? efecto.valorDef : ((typeof efecto.valor === 'number') ? efecto.valor : 300);
+          opM.atkMod = (opM.atkMod || 0) + buffAtk;
+          opM.defMod = (opM.defMod || 0) + buffDef;
         }
         break;
       }

@@ -936,7 +936,9 @@ body {
   position: fixed;
   bottom: 20px;
   left: 20px;
-  width: 230px;
+  width: 275px;
+  max-height: 85vh;
+  overflow-y: auto;
   background: rgba(14, 20, 32, 0.95);
   border: 2px solid rgba(84, 160, 255, 0.5);
   border-radius: 12px;
@@ -949,6 +951,7 @@ body {
   gap: 8px;
   pointer-events: none;
   transition: opacity 0.2s ease, transform 0.2s ease;
+  scrollbar-width: thin;
 }
 
 .card-detail-inspector.hidden {
@@ -3968,10 +3971,57 @@ body {
 /* ESTILOS: MULTIJUGADOR ONLINE (COLYSEUS)                       */
 /* ============================================================== */
 .pvp-box {
-  max-width: 680px;
-  width: 95%;
+  max-width: 980px;
+  width: 95vw;
+  max-height: 88vh;
   border: 2px solid #54a0ff;
-  box-shadow: 0 0 25px rgba(84, 160, 255, 0.4);
+  box-shadow: 0 0 30px rgba(84, 160, 255, 0.45);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 16px 20px;
+}
+
+.pvp-views-container {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.pvp-horizontal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.22fr;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.pvp-col-deck {
+  display: flex;
+  flex-direction: column;
+  background: rgba(10, 16, 32, 0.6);
+  border: 1px solid rgba(84, 160, 255, 0.25);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.pvp-deck-setup-section {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.pvp-deck-selector-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 290px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.pvp-col-actions {
+  display: flex;
+  flex-direction: column;
 }
 
 .pvp-server-status {
@@ -4001,8 +4051,8 @@ body {
 
 .pvp-options-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 14px;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
 .pvp-option-card {
@@ -6187,6 +6237,138 @@ body.action-log-is-hidden .action-log-floating-toggle {
   border-radius: 3px;
   font-size: 0.8rem;
   color: #feca57;
+}
+
+/* ============================================================== */
+/* BADGE DE EFECTO ACTIVO EN CARTAS (RAYITO ⚡)                    */
+/* ============================================================== */
+.card-effect-badge {
+  position: absolute;
+  top: 24px;
+  right: 3px;
+  width: 18px;
+  height: 18px;
+  background: linear-gradient(135deg, #feca57, #ff9f43);
+  border: 1.5px solid #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 900;
+  color: #101a38;
+  box-shadow: 0 0 9px rgba(254, 202, 87, 0.95);
+  z-index: 8;
+  pointer-events: none;
+  animation: pulseEffectBadge 2.2s infinite ease-in-out;
+}
+
+.card-effect-badge.usado {
+  background: rgba(80, 90, 110, 0.65);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: none;
+  filter: grayscale(1);
+  animation: none;
+  opacity: 0.6;
+}
+
+@keyframes pulseEffectBadge {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 6px rgba(254, 202, 87, 0.8); }
+  50% { transform: scale(1.15); box-shadow: 0 0 12px rgba(254, 202, 87, 1); }
+}
+
+/* ============================================================== */
+/* PANELES DE INFORMACIÓN Y DETALLE EN EL INSPECTOR DE CARTAS    */
+/* ============================================================== */
+.inspector-base-desc {
+  font-size: 0.74rem;
+  line-height: 1.4;
+  color: #c8d6e5;
+  margin-bottom: 6px;
+}
+
+.inspector-effect-panel {
+  background: linear-gradient(135deg, rgba(254, 202, 87, 0.15), rgba(16, 26, 56, 0.95));
+  border: 1px solid rgba(254, 202, 87, 0.55);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+.inspector-effect-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #feca57;
+  letter-spacing: 0.5px;
+}
+
+.inspector-ef-status {
+  font-size: 0.58rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.status-ready {
+  background: rgba(46, 213, 115, 0.25);
+  color: #2ed573;
+  border: 1px solid rgba(46, 213, 115, 0.5);
+}
+
+.status-used {
+  background: rgba(120, 120, 120, 0.35);
+  color: #a4b0be;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.inspector-effect-name {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.inspector-effect-text {
+  font-size: 0.7rem;
+  line-height: 1.38;
+  color: #dfe4ea;
+}
+
+.inspector-effect-tip {
+  font-size: 0.62rem;
+  color: #feca57;
+  font-style: italic;
+  margin-top: 2px;
+}
+
+.inspector-guide-panel {
+  background: linear-gradient(135deg, rgba(84, 160, 255, 0.12), rgba(15, 23, 42, 0.9));
+  border: 1px solid rgba(84, 160, 255, 0.4);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-top: 6px;
+  font-size: 0.7rem;
+  line-height: 1.4;
+  color: #c8d6e5;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+.inspector-guide-label {
+  display: block;
+  font-weight: 800;
+  color: #54a0ff;
+  margin-bottom: 2px;
+  font-size: 0.72rem;
+}
+
+.inspector-guide-text {
+  display: block;
 }
 
 
