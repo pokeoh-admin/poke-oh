@@ -1848,7 +1848,7 @@ const AudioManager = {
   musicaIntervalo: null,
   musicaAudioActual: null,
   temaActual: null, // 'menu' | 'batalla' | 'victoria'
-  volumenMaster: 1.0,
+  volumenMaster: 0.5,
   volumenMusica: 0.8,
   volumenSFX: 0.8,
   silenciadoTotal: false,
@@ -2192,27 +2192,59 @@ function guardarConfiguracionesAudio() {
     idioma: configuracionJuego.idioma || 'es'
   };
   try {
-    localStorage.setItem('pokeoh_audio_settings_v1', JSON.stringify(cfg));
-    setCookie('pokeoh_audio_cfg', encodeURIComponent(JSON.stringify(cfg)), 365);
+    localStorage.setItem('pokeoh_audio_settings_v2', JSON.stringify(cfg));
+    setCookie('pokeoh_audio_cfg_v2', encodeURIComponent(JSON.stringify(cfg)), 365);
   } catch (e) {}
 }
 
 function cargarConfiguracionesAudio() {
   let cfg = null;
   try {
-    const raw = localStorage.getItem('pokeoh_audio_settings_v1');
+    const raw = localStorage.getItem('pokeoh_audio_settings_v2');
     if (raw) cfg = JSON.parse(raw);
   } catch (e) {}
   if (!cfg) {
     try {
-      const cRaw = getCookie('pokeoh_audio_cfg');
+      const cRaw = getCookie('pokeoh_audio_cfg_v2');
       if (cRaw) cfg = JSON.parse(decodeURIComponent(cRaw));
+    } catch (e) {}
+  }
+  if (!cfg) {
+    try {
+      const rawV1 = localStorage.getItem('pokeoh_audio_settings_v1');
+      if (rawV1) {
+        const parsedV1 = JSON.parse(rawV1);
+        if (parsedV1 && typeof parsedV1 === 'object') {
+          // Si en v1 tenía el default previo de 100%, actualizar al nuevo default de 50%
+          if (parsedV1.volumenMaster === 1 || parsedV1.volumenMaster === 1.0) {
+            parsedV1.volumenMaster = 0.5;
+          }
+          cfg = parsedV1;
+        }
+      }
+    } catch (e) {}
+  }
+  if (!cfg) {
+    try {
+      const cRawV1 = getCookie('pokeoh_audio_cfg');
+      if (cRawV1) {
+        const parsedCookie = JSON.parse(decodeURIComponent(cRawV1));
+        if (parsedCookie && typeof parsedCookie === 'object') {
+          if (parsedCookie.volumenMaster === 1 || parsedCookie.volumenMaster === 1.0) {
+            parsedCookie.volumenMaster = 0.5;
+          }
+          cfg = parsedCookie;
+        }
+      }
     } catch (e) {}
   }
   if (cfg && typeof cfg === 'object') {
     if (typeof cfg.volumenMaster === 'number') {
       AudioManager.volumenMaster = cfg.volumenMaster;
       configuracionJuego.volumenMaster = cfg.volumenMaster;
+    } else {
+      AudioManager.volumenMaster = 0.5;
+      configuracionJuego.volumenMaster = 0.5;
     }
     if (typeof cfg.volumenMusica === 'number') {
       AudioManager.volumenMusica = cfg.volumenMusica;
@@ -2234,8 +2266,11 @@ function cargarConfiguracionesAudio() {
     if (cfg.idioma && (cfg.idioma === 'es' || cfg.idioma === 'en')) {
       configuracionJuego.idioma = cfg.idioma;
     }
-    AudioManager.actualizarBotonesUI();
+  } else {
+    AudioManager.volumenMaster = 0.5;
+    configuracionJuego.volumenMaster = 0.5;
   }
+  AudioManager.actualizarBotonesUI();
 }
 
 function obtenerTresMazosIniciales() {
@@ -12200,6 +12235,7 @@ if (typeof window !== 'undefined') {
 }
 
 function inicializarJuegoCompleto() {
+  cargarConfiguracionesAudio();
   inicializarAdaptacionMovilYRotacion();
   inicializarPanelRegistroAcciones();
   configurarZonasMonstruo();

@@ -51,7 +51,7 @@
           </button>
           <button class="menu-version-pill" id="btn-menu-changelog" type="button" title="Ver registro de cambios y versiones de Poké-Oh!">
             <span class="version-dot"></span>
-            <span class="version-text">v0.3.5 Beta</span>
+            <span class="version-text">v0.3.6 Beta</span>
             <span class="version-icon">📜</span>
           </button>
           <button class="menu-wallet-pill" id="btn-menu-wallet" type="button" title="Pokédólares disponibles para comprar sobres en la Tienda">
@@ -127,7 +127,7 @@
       </div>
 
       <div class="main-menu-footer">
-        <span>POKÉ-OH! • Antigravity Duel Engine • 2026 • <b class="footer-version-tag">v0.3.5 Beta</b></span>
+        <span>POKÉ-OH! • Antigravity Duel Engine • 2026 • <b class="footer-version-tag">v0.3.6 Beta</b></span>
       </div>
     </div>
   </div>
@@ -142,7 +142,7 @@
       <div class="sidebar-header">
         <div class="logo-box">
           <span class="logo-icon">⚡</span>
-          <h2 class="sidebar-title">POKÉ-OH! <span class="sidebar-version-pill">v0.3.5</span></h2>
+          <h2 class="sidebar-title">POKÉ-OH! <span class="sidebar-version-pill">v0.3.6</span></h2>
         </div>
         <button class="sidebar-user-pill" id="btn-sidebar-user" type="button" title="Perfil de Usuario">
           <span class="user-pill-avatar" id="sidebar-user-avatar">👤</span>
@@ -697,9 +697,9 @@
         <div class="audio-slider-group">
           <div class="audio-slider-header">
             <span data-i18n="masterVolLabel">🔊 Sonido General:</span>
-            <b id="val-vol-master">100%</b>
+            <b id="val-vol-master">50%</b>
           </div>
-          <input type="range" class="setup-slider" id="slider-vol-master" min="0" max="100" value="100">
+          <input type="range" class="setup-slider" id="slider-vol-master" min="0" max="100" value="50">
         </div>
 
         <!-- Música de Batalla -->
@@ -927,7 +927,7 @@
   <div class="modal-overlay hidden" id="rules-modal">
     <div class="modal-box rules-box">
       <div class="modal-header-with-close">
-        <h3 class="modal-title" data-i18n="rulesTitle">📖 Guía y Reglamento de Poké-Oh! <span class="rules-version-badge">v0.3.5 Beta</span></h3>
+        <h3 class="modal-title" data-i18n="rulesTitle">📖 Guía y Reglamento de Poké-Oh! <span class="rules-version-badge">v0.3.6 Beta</span></h3>
         <button class="modal-close-x" id="btn-close-rules-x" type="button" title="Cerrar">&times;</button>
       </div>
 
@@ -1127,13 +1127,28 @@
 
           <div class="changelog-timeline">
             <!-- Versión 0.3.5 Beta (Actual) -->
+            <!-- Versión 0.3.6 Beta (Actual) -->
             <div class="changelog-version-card current-version">
+              <div class="changelog-version-header">
+                <div class="changelog-version-title">
+                  <span class="changelog-tag tag-patch">AJUSTE / MEJORA</span>
+                  <span class="changelog-version-num">v0.3.6 Beta</span>
+                </div>
+                <span class="changelog-version-date">25 Oct 2026 (Actual)</span>
+              </div>
+              <ul class="changelog-items-list">
+                <li>🔊 <b>Sonido General al 50% por Defecto:</b> El volumen maestro de audio se configura predeterminadamente al 50% (en lugar del 100%) en todos los controles y motores de sonido para brindar una experiencia acústica suave, balanceada y agradable desde el primer ingreso a la web.</li>
+              </ul>
+            </div>
+
+            <!-- Versión 0.3.5 Beta -->
+            <div class="changelog-version-card">
               <div class="changelog-version-header">
                 <div class="changelog-version-title">
                   <span class="changelog-tag tag-major">GRAN ACTUALIZACIÓN</span>
                   <span class="changelog-version-num">v0.3.5 Beta</span>
                 </div>
-                <span class="changelog-version-date">25 Oct 2026 (Actual)</span>
+                <span class="changelog-version-date">25 Oct 2026</span>
               </div>
               <ul class="changelog-items-list">
                 <li>🛒 <b>Tienda de Cartas Oficial:</b> Apertura de la tienda con sobres temáticos de 5 cartas por elemento y Sobre Legendario con criatura legendaria garantizada. Ratios ponderados por poder y opción de compra por paquetes múltiples.</li>

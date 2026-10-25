@@ -1,6 +1,6 @@
 # ⚡ POKÉ-OH! — Duelo de Cartas Estratégico (Pokémon × Yu-Gi-Oh!)
 
-> **Versión Actual:** `v0.3.5 Beta`  
+> **Versión Actual:** `v0.3.6 Beta`  
 > **Juego Web Oficial:** [https://pokeoh-admin.github.io/poke-oh/](https://pokeoh-admin.github.io/poke-oh/)  
 > **Licencia & Motor:** Antigravity Duel Engine (Vanilla JS + HTML5 + CSS3 + Colyseus / Supabase)
 
@@ -63,6 +63,11 @@
 ---
 
 ## 📜 Registro de Cambios (Changelog)
+
+### 🔊 v0.3.6 Beta (25 de Octubre de 2026) — Volumen General al 50% por Defecto
+- 🔊 **Volumen Maestro Predeterminado al 50%:** Configuración de volumen general ajustada por defecto al 50% (0.5) en la inicialización del motor de audio, interfaz visual de ajustes y almacenamiento de preferencias, asegurando un inicio acústico equilibrado y confortable para todos los jugadores.
+
+---
 
 ### 🏪 v0.3.5 Beta (25 de Octubre de 2026) — Tienda de Cartas, Economía Pokédólar, Rango de Liga, Colección Dinámica y Autocompletado Evolutivo
 - 🏪 **Tienda de Cartas & Sobres de Refuerzo:** Apertura oficial de la tienda con 9 paquetes temáticos (8 por afinidad elemental/soportes a $5,000 Pokédólares y 1 Sobre Legendario garantizado a $10,000). Cada sobre incluye 5 cartas sin duplicados internos, con probabilidades balanceadas por rareza.
