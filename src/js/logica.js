@@ -13,7 +13,7 @@
 // ==========================================
 // CONFIGURACIÓN GLOBAL Y BILINGÜE DEL JUEGO
 // ==========================================
-const POKEOH_VERSION = '0.3.4 Beta';
+const POKEOH_VERSION = 'v0.3.8 Beta';
 
 const configuracionJuego = {
   idioma: 'es',
@@ -9531,19 +9531,27 @@ var UserManager = {
         : '<span class="admin-status-badge admin-status-active">✅ Activo</span>';
 
       const duelsDetail = `${u.stats?.duelos || 0} (${u.stats?.victorias || 0}V / ${u.stats?.derrotas || 0}D)`;
+      const pokedolaresVal = (u.stats && typeof u.stats.pokedolares === 'number') ? u.stats.pokedolares : 20000;
+      const puntosVal = (u.stats && typeof u.stats.puntos === 'number') ? u.stats.puntos : 0;
+      const expLigaVal = (u.stats && typeof u.stats.expLiga === 'number') ? u.stats.expLiga : 0;
+      const rango = this.calcularRangoLiga(expLigaVal);
 
       tr.innerHTML = `
         <td><b>${u.avatar || '👤'} ${u.username}</b></td>
         <td><span class="user-role-badge" style="background:${u.role === 'admin' ? '#feca57' : '#54a0ff'};color:#1e272e;">${u.role.toUpperCase()}</span></td>
         <td>${statusBadgeHtml}</td>
+        <td><span class="admin-money-pill">$${pokedolaresVal.toLocaleString()}</span></td>
+        <td><span class="admin-rank-pill">${rango.icono} ${rango.nombre}</span><br><small style="color:#a4b0be;">${puntosVal} pts • ${expLigaVal} EXP</small></td>
         <td>${duelsDetail}</td>
-        <td>${u.stats?.puntos || 0} pts</td>
         <td>${fecha}</td>
         <td>
-          ${esAdminPrincipal 
-            ? '<span style="color:#a4b0be;font-size:0.75rem;">(Principal)</span>' 
-            : `
-              <div class="admin-actions-cell" style="display:flex;gap:4px;flex-wrap:wrap;">
+          <div class="admin-actions-cell" style="display:flex;gap:4px;flex-wrap:wrap;">
+            <button type="button" class="btn-admin-act btn-admin-edit-funds" data-user="${u.username}" title="Modificar Dinero ($), Puntos de Duelo y EXP de Liga">
+              ✏️ Dinero/Pts
+            </button>
+            ${esAdminPrincipal 
+              ? '<span style="color:#a4b0be;font-size:0.75rem;align-self:center;">(Principal)</span>' 
+              : `
                 <button type="button" class="btn-admin-act ${esBanned ? 'btn-admin-unban' : 'btn-admin-ban'}" data-user="${u.username}">
                   ${esBanned ? '🔓 Desbloquear' : '🚫 Bloquear'}
                 </button>
@@ -9556,14 +9564,21 @@ var UserManager = {
                 <button type="button" class="btn-admin-act btn-admin-del btn-del-user" data-user="${u.username}">
                   🗑️ Eliminar
                 </button>
-              </div>
-            `}
+              `}
+          </div>
         </td>
       `;
       tbody.appendChild(tr);
     });
 
     // Eventos de botones de acción de administración
+    tbody.querySelectorAll('.btn-admin-edit-funds').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetUser = btn.getAttribute('data-user');
+        this.abrirModalEditarUsuario(targetUser);
+      });
+    });
+
     tbody.querySelectorAll('.btn-admin-ban, .btn-admin-unban').forEach(btn => {
       btn.addEventListener('click', async () => {
         const targetUser = btn.getAttribute('data-user');
@@ -9605,6 +9620,135 @@ var UserManager = {
         }
       });
     });
+  },
+
+  abrirModalEditarUsuario(username) {
+    const user = this.findUser(username);
+    if (!user) {
+      mostrarMensajeToast(`Usuario "${username}" no encontrado.`);
+      return;
+    }
+    this.usuarioEnEdicion = username;
+    const modal = document.getElementById('admin-edit-user-modal');
+    const lblName = document.getElementById('admin-edit-username');
+    const lblRole = document.getElementById('admin-edit-role');
+    const lblAvatar = document.getElementById('admin-edit-avatar');
+    const inputMoney = document.getElementById('admin-input-pokedolares');
+    const inputPts = document.getElementById('admin-input-puntos');
+    const inputExp = document.getElementById('admin-input-exp');
+
+    if (lblName) lblName.textContent = user.username;
+    if (lblRole) lblRole.textContent = (user.role || 'user').toUpperCase();
+    if (lblAvatar) lblAvatar.textContent = user.avatar || '👤';
+
+    const pokedolares = (user.stats && typeof user.stats.pokedolares === 'number') ? user.stats.pokedolares : 20000;
+    const puntos = (user.stats && typeof user.stats.puntos === 'number') ? user.stats.puntos : 0;
+    const expLiga = (user.stats && typeof user.stats.expLiga === 'number') ? user.stats.expLiga : 0;
+
+    if (inputMoney) inputMoney.value = pokedolares;
+    if (inputPts) inputPts.value = puntos;
+    if (inputExp) inputExp.value = expLiga;
+
+    this.actualizarPreviewRangoEdicion(expLiga);
+
+    if (modal) modal.classList.remove('hidden');
+    AudioManager.reproducirSFX('enter');
+  },
+
+  cerrarModalEditarUsuario() {
+    const modal = document.getElementById('admin-edit-user-modal');
+    if (modal) modal.classList.add('hidden');
+    this.usuarioEnEdicion = null;
+  },
+
+  actualizarPreviewRangoEdicion(expVal) {
+    const exp = Math.max(0, parseInt(expVal, 10) || 0);
+    const rango = this.calcularRangoLiga(exp);
+    const iconEl = document.getElementById('admin-preview-icon');
+    const nameEl = document.getElementById('admin-preview-name');
+    const expEl = document.getElementById('admin-preview-exp');
+
+    if (iconEl) iconEl.textContent = rango.icono;
+    if (nameEl) nameEl.textContent = rango.nombre;
+    if (expEl) {
+      if (rango.esMax) {
+        expEl.textContent = `(${exp} EXP - ¡Rango Máximo!)`;
+      } else {
+        expEl.textContent = `(${rango.expEnRango} / ${rango.expNecesaria} EXP del rango)`;
+      }
+    }
+  },
+
+  sumarDineroEdicion(delta) {
+    const inputMoney = document.getElementById('admin-input-pokedolares');
+    if (inputMoney) {
+      const actual = parseInt(inputMoney.value, 10) || 0;
+      inputMoney.value = Math.max(0, actual + delta);
+    }
+  },
+
+  setDineroEdicion(val) {
+    const inputMoney = document.getElementById('admin-input-pokedolares');
+    if (inputMoney) {
+      inputMoney.value = Math.max(0, val);
+    }
+  },
+
+  async guardarEdicionUsuario() {
+    if (!this.usuarioEnEdicion) return;
+    const username = this.usuarioEnEdicion;
+    const user = this.findUser(username);
+    if (!user) {
+      mostrarMensajeToast("Error: Usuario no encontrado.");
+      return;
+    }
+
+    const inputMoney = document.getElementById('admin-input-pokedolares');
+    const inputPts = document.getElementById('admin-input-puntos');
+    const inputExp = document.getElementById('admin-input-exp');
+
+    const nuevoDinero = Math.max(0, parseInt(inputMoney ? inputMoney.value : 0, 10) || 0);
+    const nuevosPuntos = Math.max(0, parseInt(inputPts ? inputPts.value : 0, 10) || 0);
+    const nuevaExp = Math.max(0, parseInt(inputExp ? inputExp.value : 0, 10) || 0);
+
+    if (!user.stats) user.stats = {};
+    user.stats.pokedolares = nuevoDinero;
+    user.stats.puntos = nuevosPuntos;
+    user.stats.expLiga = nuevaExp;
+
+    // Actualizar en array local y persistir
+    const users = this.getAllUsers();
+    const idx = users.findIndex(u => u.username.toLowerCase() === username.toLowerCase());
+    if (idx !== -1) {
+      users[idx] = user;
+      this.saveUsers(users);
+    }
+
+    // Si el usuario editado es el actual o admin, refrescar sesión activa y badges en pantalla
+    if (this.currentUser && this.currentUser.username.toLowerCase() === username.toLowerCase()) {
+      this.currentUser.stats.pokedolares = nuevoDinero;
+      this.currentUser.stats.puntos = nuevosPuntos;
+      this.currentUser.stats.expLiga = nuevaExp;
+      this.saveSession(this.currentUser);
+      this.renderUserUI();
+
+      const menuPokedolares = document.getElementById('menu-user-pokedolares');
+      if (menuPokedolares) menuPokedolares.textContent = `$${nuevoDinero.toLocaleString()}`;
+
+      const shopWallet = document.getElementById('shop-wallet-display');
+      if (shopWallet) shopWallet.textContent = `$${nuevoDinero.toLocaleString()}`;
+    }
+
+    // Sincronizar en Supabase Cloud
+    try {
+      await SupabaseCloud.updateUserByUsername(user.username, { stats: user.stats });
+    } catch (err) {
+      console.warn("[Admin] Datos sincronizados localmente.");
+    }
+
+    this.cerrarModalEditarUsuario();
+    this.renderAdminTable();
+    mostrarMensajeToast(`¡Datos de "${user.username}" actualizados! ($${nuevoDinero.toLocaleString()} | ${nuevosPuntos} pts | ${nuevaExp} EXP)`);
   },
 
   initEventListeners() {
@@ -9771,6 +9915,21 @@ var UserManager = {
         this.renderAdminTable();
         btnRefreshAdmin.disabled = false;
         mostrarMensajeToast("Datos de usuarios actualizados.");
+      });
+    }
+
+    // Modal de Modificación de Datos (Admin)
+    const btnCloseEditX = document.getElementById('btn-close-admin-edit-x');
+    const btnCancelEdit = document.getElementById('btn-admin-cancel-user');
+    const btnSaveEdit = document.getElementById('btn-admin-save-user');
+    const inputEditExp = document.getElementById('admin-input-exp');
+
+    if (btnCloseEditX) btnCloseEditX.onclick = () => this.cerrarModalEditarUsuario();
+    if (btnCancelEdit) btnCancelEdit.onclick = () => this.cerrarModalEditarUsuario();
+    if (btnSaveEdit) btnSaveEdit.onclick = () => this.guardarEdicionUsuario();
+    if (inputEditExp) {
+      inputEditExp.addEventListener('input', (e) => {
+        this.actualizarPreviewRangoEdicion(e.target.value);
       });
     }
 
@@ -10074,9 +10233,18 @@ const MultiplayerManager = {
     const viewWaiting = document.getElementById('pvp-view-waiting');
     const btnClose = document.getElementById('btn-close-pvp');
 
-    if (viewOptions) viewOptions.classList.toggle('active', vista === 'options');
-    if (viewRooms) viewRooms.classList.toggle('active', vista === 'rooms');
-    if (viewWaiting) viewWaiting.classList.toggle('active', vista === 'waiting');
+    if (viewOptions) {
+      viewOptions.classList.toggle('active', vista === 'options');
+      viewOptions.style.display = (vista === 'options') ? 'block' : 'none';
+    }
+    if (viewRooms) {
+      viewRooms.classList.toggle('active', vista === 'rooms');
+      viewRooms.style.display = (vista === 'rooms') ? 'block' : 'none';
+    }
+    if (viewWaiting) {
+      viewWaiting.classList.toggle('active', vista === 'waiting');
+      viewWaiting.style.display = (vista === 'waiting') ? 'block' : 'none';
+    }
 
     if (btnClose) {
       if (vista === 'rooms') {
@@ -10196,14 +10364,11 @@ const MultiplayerManager = {
     if (rooms.length === 0) {
       listEl.innerHTML = `
         <div class="pvp-no-rooms">
-          <div class="pvp-no-rooms-icon">💤</div>
+          <div class="pvp-no-rooms-icon">📭</div>
           <h4>No hay salas de duelo abiertas en este momento</h4>
-          <p>¡Sé el primero en crear una sala y desafiar a otros duelistas!</p>
-          <button type="button" class="phase-btn btn-confirm" id="btn-create-first-room">➕ Crear Sala Ahora</button>
+          <p>Pulsa <b>"🔄 Actualizar"</b> para consultar de nuevo o regresa a las opciones para generar tu propia sala con código.</p>
         </div>
       `;
-      const btnFirst = document.getElementById('btn-create-first-room');
-      if (btnFirst) btnFirst.onclick = () => this.crearSalaPrivada();
       return;
     }
 
@@ -11785,6 +11950,7 @@ const DEFINICION_SOBRES = [
     costo: 5000,
     colorFondo: "linear-gradient(155deg, #78281f 0%, #c0392b 30%, #e74c3c 60%, #d35400 100%)",
     colorBorde: "#e74c3c",
+    colorCrimp: "#8b261b",
     colorAura: "radial-gradient(circle, rgba(231, 76, 60, 0.75) 0%, rgba(211, 84, 0, 0.2) 60%, transparent 70%)",
     mascotaImg: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/6.png",
     mascotaNombre: "Charizard",
@@ -11801,6 +11967,7 @@ const DEFINICION_SOBRES = [
     costo: 5000,
     colorFondo: "linear-gradient(155deg, #154360 0%, #1f618d 30%, #2980b9 60%, #0984e3 100%)",
     colorBorde: "#3498db",
+    colorCrimp: "#1a5276",
     colorAura: "radial-gradient(circle, rgba(52, 152, 219, 0.75) 0%, rgba(41, 128, 185, 0.2) 60%, transparent 70%)",
     mascotaImg: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/9.png",
     mascotaNombre: "Blastoise",
@@ -11817,6 +11984,7 @@ const DEFINICION_SOBRES = [
     costo: 5000,
     colorFondo: "linear-gradient(155deg, #145a32 0%, #1e8449 30%, #27ae60 60%, #2ecc71 100%)",
     colorBorde: "#2ecc71",
+    colorCrimp: "#196f3d",
     colorAura: "radial-gradient(circle, rgba(46, 204, 113, 0.75) 0%, rgba(39, 174, 96, 0.2) 60%, transparent 70%)",
     mascotaImg: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/3.png",
     mascotaNombre: "Venusaur",
@@ -11833,6 +12001,7 @@ const DEFINICION_SOBRES = [
     costo: 5000,
     colorFondo: "linear-gradient(155deg, #7d6608 0%, #b7950b 30%, #f39c12 60%, #f1c40f 100%)",
     colorBorde: "#f1c40f",
+    colorCrimp: "#b7950b",
     colorAura: "radial-gradient(circle, rgba(241, 196, 15, 0.75) 0%, rgba(243, 156, 18, 0.2) 60%, transparent 70%)",
     mascotaImg: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png",
     mascotaNombre: "Pikachu",
@@ -11849,6 +12018,7 @@ const DEFINICION_SOBRES = [
     costo: 5000,
     colorFondo: "linear-gradient(155deg, #4a235a 0%, #6c3483 30%, #8e44ad 60%, #9b59b6 100%)",
     colorBorde: "#9b59b6",
+    colorCrimp: "#5b2c6f",
     colorAura: "radial-gradient(circle, rgba(155, 89, 182, 0.75) 0%, rgba(142, 68, 173, 0.2) 60%, transparent 70%)",
     mascotaImg: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/94.png",
     mascotaNombre: "Gengar",
@@ -11865,6 +12035,7 @@ const DEFINICION_SOBRES = [
     costo: 5000,
     colorFondo: "linear-gradient(155deg, #6e2c00 0%, #a04000 30%, #d35400 60%, #e67e22 100%)",
     colorBorde: "#e67e22",
+    colorCrimp: "#935116",
     colorAura: "radial-gradient(circle, rgba(230, 126, 34, 0.75) 0%, rgba(211, 84, 0, 0.2) 60%, transparent 70%)",
     mascotaImg: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/68.png",
     mascotaNombre: "Machamp",
@@ -11881,6 +12052,7 @@ const DEFINICION_SOBRES = [
     costo: 5000,
     colorFondo: "linear-gradient(155deg, #17202a 0%, #2c3e50 30%, #34495e 60%, #5dade2 100%)",
     colorBorde: "#5dade2",
+    colorCrimp: "#283747",
     colorAura: "radial-gradient(circle, rgba(93, 173, 226, 0.75) 0%, rgba(44, 62, 80, 0.2) 60%, transparent 70%)",
     mascotaImg: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/149.png",
     mascotaNombre: "Dragonite",
@@ -11897,6 +12069,7 @@ const DEFINICION_SOBRES = [
     costo: 5000,
     colorFondo: "linear-gradient(155deg, #0b5345 0%, #117a65 30%, #16a085 60%, #1abc9c 100%)",
     colorBorde: "#1abc9c",
+    colorCrimp: "#117864",
     colorAura: "radial-gradient(circle, rgba(26, 188, 156, 0.75) 0%, rgba(22, 160, 133, 0.2) 60%, transparent 70%)",
     mascotaImg: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/151.png",
     mascotaNombre: "Mew Místico",
@@ -11913,6 +12086,7 @@ const DEFINICION_SOBRES = [
     costo: 10000,
     colorFondo: "linear-gradient(155deg, #5b4600 0%, #b7950b 25%, #f1c40f 50%, #d4ac0d 75%, #f39c12 100%)",
     colorBorde: "#f1c40f",
+    colorCrimp: "#d4ac0d",
     colorAura: "radial-gradient(circle, rgba(241, 196, 15, 0.85) 0%, rgba(243, 156, 18, 0.3) 60%, transparent 70%)",
     mascotaImg: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/150.png",
     mascotaNombre: "Mewtwo",
@@ -12139,7 +12313,7 @@ var TiendaCartas = {
 
       card.innerHTML = `
         <!-- SOBRE DE CARTAS 3D FOIL PACK -->
-        <div class="booster-pack-wrapper ${s.esLegendario ? 'foil-legendary' : ''}" style="--pack-theme-gradient: ${s.colorFondo}; --pack-theme-color: ${s.colorBorde || '#3498db'};">
+        <div class="booster-pack-wrapper ${s.esLegendario ? 'foil-legendary' : ''}" style="--pack-theme-gradient: ${s.colorFondo}; --pack-theme-color: ${s.colorBorde || '#3498db'}; --pack-crimp-color: ${s.colorCrimp || s.colorBorde || '#34495e'};">
           <div class="pack-crimp-top">
             <div class="pack-euro-slot"></div>
           </div>
@@ -12170,7 +12344,7 @@ var TiendaCartas = {
             <span class="pack-serial-code">PKOH-TCG-${s.id.toUpperCase().slice(0, 4)}</span>
           </div>
 
-          ${s.esLegendario ? '<div class="pack-legendary-ribbon">👑 1 LEGENDARIO GARANTIZADO</div>' : ''}
+          ${s.esLegendario ? '<div class="pack-legendary-ribbon">👑 LEGENDARIO</div>' : ''}
         </div>
 
         <!-- DETALLES Y CONTROLES DE COMPRA -->

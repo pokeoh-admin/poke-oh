@@ -64,6 +64,14 @@
 
 ## 📜 Registro de Cambios (Changelog)
 
+### 👑 v0.3.8 Beta (25 de Octubre de 2026) — Gestión de Fondos de Usuario, Rediseño de Tienda e Icono Web
+- 👑 **Control de Fondos y Progreso en Panel de Administración:** Los administradores ahora disponen de herramientas para visualizar y ajustar los saldos en Pokédólares ($), puntos de duelo y experiencia de Liga Clasificatoria de los jugadores, con previsualización dinámica de rangos y sincronización segura en la nube.
+- 🛒 **Rediseño Proporcional de Sobres en Tienda:** Presentación optimizada de paquetes de refuerzo en un formato panorámico de doble columna que combina el sobre foil metalizado con acabados crimpados temáticos, selector de unidades y botón de compra directo, adaptándose a cualquier resolución de pantalla sin desbordamientos.
+- ⚡ **Icono Web Universal (Favicon):** Integración de icono de pestaña de alta fidelidad con soporte multiplataforma en formatos vectorial SVG, PNG y .ico, garantizando su visualización inmediata en todos los navegadores.
+- 🌐 **Optimización de Interfaz en 2 Jugadores Online:** Refinamiento visual y aislamiento estricto de vistas entre las opciones de partida, explorador de salas y sala de espera.
+
+---
+
 ### 🎴 v0.3.7 Beta (25 de Octubre de 2026) — Rediseño 3D de Sobres de Refuerzo en la Tienda
 - 🎴 **Sobres Foil 3D Estilo TCG Profesional:** Rediseño estético completo de los 9 paquetes de la tienda incorporando empaque físico metalizado en 3D, bordes crimpados superior e inferior, ranura de exhibición, reflejos holográficos dinámicos al pasar el cursor y arte oficial en alta definición de las criaturas insignia de cada expansión (Charizard, Blastoise, Venusaur, Pikachu, Gengar, Machamp, Dragonite, Mew y Mewtwo).
 - 🏷️ **Placas de Edición y Sellos de Garantía:** Nombres en tipografía de coleccionista, distintivos elementales y código de serie oficial en cada paquete.

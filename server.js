@@ -25,6 +25,11 @@ const appConfig = config({
     // Servir los archivos estáticos del frontend (HTML, CSS, JS, Assets)
     app.use(express.static(path.resolve(__dirname)));
 
+    // Ruta explícita y directa para servir favicon.ico
+    app.get('/favicon.ico', (req, res) => {
+      res.sendFile(path.resolve(__dirname, 'favicon.ico'));
+    });
+
     // Ruta de estado del servidor
     app.get('/api/status', (req, res) => {
       res.json({
