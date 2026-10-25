@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="src/css/style.css?v=20261025_033">
+  <link rel="stylesheet" href="src/css/style.css?v=20261025_034">
 </head>
 <body>
   <!-- ============================================== -->
@@ -47,7 +47,7 @@
           </button>
           <button class="menu-version-pill" id="btn-menu-changelog" type="button" title="Ver registro de cambios y versiones de Poké-Oh!">
             <span class="version-dot"></span>
-            <span class="version-text">v0.3.3 Beta</span>
+            <span class="version-text">v0.3.4 Beta</span>
             <span class="version-icon">📜</span>
           </button>
           <button class="menu-user-pill" id="btn-menu-user" type="button" title="Gestión de Usuario / Perfil">
@@ -72,29 +72,20 @@
           <span class="menu-btn-arrow">›</span>
         </button>
 
-        <button class="menu-btn btn-primary-action" id="btn-menu-deck" type="button">
-          <span class="menu-btn-icon">🎴</span>
-          <div class="menu-btn-content">
-            <span class="menu-btn-title" data-i18n="menuDeckTitle">DECK BUILDER & COLECCIÓN</span>
-            <span class="menu-btn-desc" data-i18n="menuDeckDesc">Personaliza hasta 5 barajas de 40 cartas y explora los 151 Pokémon</span>
-          </div>
-          <span class="menu-btn-arrow">›</span>
-        </button>
-
-        <button class="menu-btn btn-secondary-action" id="btn-menu-rules" type="button">
-          <span class="menu-btn-icon">📖</span>
-          <div class="menu-btn-content">
-            <span class="menu-btn-title" data-i18n="menuRulesTitle">CÓMO JUGAR / REGLAS</span>
-            <span class="menu-btn-desc" data-i18n="menuRulesDesc">Guía completa de fases, sacrificios, combates y tipos</span>
-          </div>
-          <span class="menu-btn-arrow">›</span>
-        </button>
-
         <button class="menu-btn btn-primary-action" id="btn-menu-pvp" type="button">
           <span class="menu-btn-icon">🌐</span>
           <div class="menu-btn-content">
             <span class="menu-btn-title" data-i18n="menuPvpTitle">2 JUGADORES ONLINE</span>
             <span class="menu-btn-desc" data-i18n="menuPvpDesc">Duelos tácticos en tiempo real con servidor Colyseus</span>
+          </div>
+          <span class="menu-btn-arrow">›</span>
+        </button>
+
+        <button class="menu-btn btn-primary-action" id="btn-menu-deck" type="button">
+          <span class="menu-btn-icon">🎴</span>
+          <div class="menu-btn-content">
+            <span class="menu-btn-title" data-i18n="menuDeckTitle">DECK BUILDER & COLECCIÓN</span>
+            <span class="menu-btn-desc" data-i18n="menuDeckDesc">Personaliza hasta 5 barajas de 40 cartas y explora los 151 Pokémon</span>
           </div>
           <span class="menu-btn-arrow">›</span>
         </button>
@@ -108,6 +99,15 @@
           <span class="menu-badge-soon" data-i18n="badgeSoon">PRÓXIMAMENTE</span>
         </button>
 
+        <button class="menu-btn btn-secondary-action" id="btn-menu-rules" type="button">
+          <span class="menu-btn-icon">📖</span>
+          <div class="menu-btn-content">
+            <span class="menu-btn-title" data-i18n="menuRulesTitle">CÓMO JUGAR / REGLAS</span>
+            <span class="menu-btn-desc" data-i18n="menuRulesDesc">Guía completa de fases, sacrificios, combates y tipos</span>
+          </div>
+          <span class="menu-btn-arrow">›</span>
+        </button>
+
         <button class="menu-btn btn-settings-action" id="btn-menu-settings" type="button">
           <span class="menu-btn-icon">⚙️</span>
           <div class="menu-btn-content">
@@ -119,7 +119,7 @@
       </div>
 
       <div class="main-menu-footer">
-        <span>POKÉ-OH! • Antigravity Duel Engine • 2026 • <b class="footer-version-tag">v0.3.3 Beta</b></span>
+        <span>POKÉ-OH! • Antigravity Duel Engine • 2026 • <b class="footer-version-tag">v0.3.4 Beta</b></span>
       </div>
     </div>
   </div>
@@ -134,7 +134,7 @@
       <div class="sidebar-header">
         <div class="logo-box">
           <span class="logo-icon">⚡</span>
-          <h2 class="sidebar-title">POKÉ-OH! <span class="sidebar-version-pill">v0.3.3</span></h2>
+          <h2 class="sidebar-title">POKÉ-OH! <span class="sidebar-version-pill">v0.3.4</span></h2>
         </div>
         <button class="sidebar-user-pill" id="btn-sidebar-user" type="button" title="Perfil de Usuario">
           <span class="user-pill-avatar" id="sidebar-user-avatar">👤</span>
@@ -818,7 +818,7 @@
   <div class="modal-overlay hidden" id="rules-modal">
     <div class="modal-box rules-box">
       <div class="modal-header-with-close">
-        <h3 class="modal-title" data-i18n="rulesTitle">📖 Guía y Reglamento de Poké-Oh! <span class="rules-version-badge">v0.3.3 Beta</span></h3>
+        <h3 class="modal-title" data-i18n="rulesTitle">📖 Guía y Reglamento de Poké-Oh! <span class="rules-version-badge">v0.3.4 Beta</span></h3>
         <button class="modal-close-x" id="btn-close-rules-x" type="button" title="Cerrar">&times;</button>
       </div>
 
@@ -1017,14 +1017,31 @@
           </div>
 
           <div class="changelog-timeline">
-            <!-- Versión 0.3.3 Beta (Actual) -->
+            <!-- Versión 0.3.4 Beta (Actual) -->
             <div class="changelog-version-card current-version">
+              <div class="changelog-version-header">
+                <div class="changelog-version-title">
+                  <span class="changelog-tag tag-patch">PARCHE / MEJORAS</span>
+                  <span class="changelog-version-num">v0.3.4 Beta</span>
+                </div>
+                <span class="changelog-version-date">25 Oct 2026 (Actual)</span>
+              </div>
+              <ul class="changelog-items-list">
+                <li>🔍 <b>Inspector de Cartas en Deck Builder:</b> El panel detallado de cartas ahora es completamente visible en el constructor de barajas con posicionamiento inteligente para leer cualquier carta sin obstruir la vista.</li>
+                <li>🎴 <b>Estructura de 5 Barajas:</b> Soporte para hasta 5 mazos por usuario. Los perfiles existentes reciben los 3 mazos iniciales temáticos y 2 ranuras libres; los nuevos jugadores inician con su baraja elegida y 4 ranuras personalizables.</li>
+                <li>💚 <b>Curación sin Límite (Overheal):</b> Las cartas mágicas, pociones y efectos que aumentan Puntos de Vida pueden sobrepasar el límite inicial (ej. de 8000 a 10000 LP) tanto para el jugador como para el oponente.</li>
+                <li>🧭 <b>Reorganización del Menú Principal:</b> Orden intuitivo: 1) Jugador VS IA, 2) 2 Jugadores Online, 3) Deck Builder, 4) Tienda de Cartas, 5) Cómo Jugar/Reglas, 6) Configuración & Audio.</li>
+              </ul>
+            </div>
+
+            <!-- Versión 0.3.3 Beta -->
+            <div class="changelog-version-card">
               <div class="changelog-version-header">
                 <div class="changelog-version-title">
                   <span class="changelog-tag tag-patch">PARCHE / MEJORAS</span>
                   <span class="changelog-version-num">v0.3.3 Beta</span>
                 </div>
-                <span class="changelog-version-date">25 Oct 2026 (Actual)</span>
+                <span class="changelog-version-date">25 Oct 2026</span>
               </div>
               <ul class="changelog-items-list">
                 <li>🍪 <b>Persistencia Automática de Sesión:</b> Tu sesión activa se mantiene disponible al recargar o reingresar al juego sin requerir autenticación manual en cada visita.</li>
@@ -1631,9 +1648,9 @@
   <!-- SDK Cliente de Colyseus para Multijugador Online -->
   <script src="lib/colyseus.js"></script>
   <!-- Base de Datos de Cartas (151 Pokémon + Ítems de todas las generaciones) -->
-  <script src="src/js/cartas.js?v=20261025_033"></script>
+  <script src="src/js/cartas.js?v=20261025_034"></script>
   <!-- Lógica del Duelo -->
-  <script src="src/js/logica.js?v=20261025_033"></script>
+  <script src="src/js/logica.js?v=20261025_034"></script>
 </body>
 </html>
 

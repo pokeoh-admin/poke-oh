@@ -1,6 +1,6 @@
 # ⚡ POKÉ-OH! — Duelo de Cartas Estratégico (Pokémon × Yu-Gi-Oh!)
 
-> **Versión Actual:** `v0.3.3 Beta`  
+> **Versión Actual:** `v0.3.4 Beta`  
 > **Juego Web Oficial:** [https://pokeoh-admin.github.io/poke-oh/](https://pokeoh-admin.github.io/poke-oh/)  
 > **Licencia & Motor:** Antigravity Duel Engine (Vanilla JS + HTML5 + CSS3 + Colyseus / Supabase)
 
@@ -63,6 +63,14 @@
 ---
 
 ## 📜 Registro de Cambios (Changelog)
+
+### 🔍 v0.3.4 Beta (25 de Octubre de 2026) — Inspector en Deck Builder, Estructura de 5 Mazos, Curación sin Límite y Menú Reordenado
+- 🔍 **Inspector de Cartas en el Deck Builder:** Visibilidad completa y prioritaria del panel de inspección dentro del constructor de barajas con posicionamiento inteligente que se adapta al cursor y a la columna activa para leer cualquier carta sin tapar elementos.
+- 🎴 **Estructura Ampliada de 5 Mazos:** Todos los usuarios disponen de hasta 5 casillas de barajas. Los perfiles existentes reciben los 3 mazos iniciales temáticos (Fuego, Agua y Planta) junto a 2 ranuras libres; los nuevos entrenadores inician con la baraja elegida y 4 ranuras personalizables.
+- 💚 **Curación sin Límite de Vida (Overheal):** Las cartas mágicas, pociones y efectos que restauran Puntos de Vida ahora pueden sobrepasar el límite inicial (ej. superar 8000 LP hasta 10000 LP o más), aplicando la misma regla táctica para el jugador y el oponente.
+- 🧭 **Reordenamiento Intuitivo del Menú Principal:** Flujo de acceso reorganizado: 1) Jugador VS IA, 2) 2 Jugadores Online, 3) Deck Builder, 4) Tienda de Cartas, 5) Cómo Jugar/Reglas, 6) Configuración & Audio.
+
+---
 
 ### 🍪 v0.3.3 Beta (25 de Octubre de 2026) — Persistencia de Sesión, Configuración de Audio y Optimización de Barajas
 - 🍪 **Persistencia Automática de Sesión:** Mayor comodidad al acceder al juego. Tu sesión activa se mantiene disponible al reabrir o recargar la página, eliminando la necesidad de ingresar credenciales en cada visita.

@@ -13,7 +13,7 @@
 // ==========================================
 // CONFIGURACIÓN GLOBAL Y BILINGÜE DEL JUEGO
 // ==========================================
-const POKEOH_VERSION = '0.3.3 Beta';
+const POKEOH_VERSION = '0.3.4 Beta';
 
 const configuracionJuego = {
   idioma: 'es',
@@ -405,8 +405,80 @@ function obtenerClaveMazosUsuario() {
   return `pokeoh_user_decks_${username}_v1`;
 }
 
+function generarCincoMazosEstandar() {
+  const starters = (typeof obtenerTresMazosIniciales === 'function') ? obtenerTresMazosIniciales() : [];
+  return [
+    {
+      id: 0,
+      nombre: (starters[0] && starters[0].nombre) ? starters[0].nombre : "Mazo 1: Llama Carmesí (Fuego)",
+      cartas: (starters[0] && Array.isArray(starters[0].cartas)) ? [...starters[0].cartas] : []
+    },
+    {
+      id: 1,
+      nombre: (starters[1] && starters[1].nombre) ? starters[1].nombre : "Mazo 2: Marea Azul (Agua)",
+      cartas: (starters[1] && Array.isArray(starters[1].cartas)) ? [...starters[1].cartas] : []
+    },
+    {
+      id: 2,
+      nombre: (starters[2] && starters[2].nombre) ? starters[2].nombre : "Mazo 3: Bosque Primigenio (Planta)",
+      cartas: (starters[2] && Array.isArray(starters[2].cartas)) ? [...starters[2].cartas] : []
+    },
+    {
+      id: 3,
+      nombre: "Mazo 4 (Vacío)",
+      cartas: []
+    },
+    {
+      id: 4,
+      nombre: "Mazo 5 (Vacío)",
+      cartas: []
+    }
+  ];
+}
+
+function generarCincoMazosNuevoUsuario(starterChoice = 'fuego') {
+  let chosen = null;
+  if (typeof MAZOS_INICIALES_SELECCION !== 'undefined' && MAZOS_INICIALES_SELECCION[starterChoice]) {
+    chosen = MAZOS_INICIALES_SELECCION[starterChoice];
+  } else if (typeof MAZOS_INICIALES_SELECCION !== 'undefined' && MAZOS_INICIALES_SELECCION.fuego) {
+    chosen = MAZOS_INICIALES_SELECCION.fuego;
+  }
+  const deck1Name = chosen ? chosen.nombre : "Mazo 1: Inicial";
+  const deck1Cards = chosen ? [...chosen.cartas] : [];
+
+  return [
+    { id: 0, nombre: deck1Name, cartas: deck1Cards },
+    { id: 1, nombre: "Mazo 2 (Vacío)", cartas: [] },
+    { id: 2, nombre: "Mazo 3 (Vacío)", cartas: [] },
+    { id: 3, nombre: "Mazo 4 (Vacío)", cartas: [] },
+    { id: 4, nombre: "Mazo 5 (Vacío)", cartas: [] }
+  ];
+}
+
+function normalizarCincoMazos(arr) {
+  if (!Array.isArray(arr) || arr.length === 0) return generarCincoMazosEstandar();
+  const res = [];
+  for (let i = 0; i < 5; i++) {
+    const existing = arr[i];
+    if (existing && typeof existing === 'object' && Array.isArray(existing.cartas)) {
+      res.push({
+        id: i,
+        nombre: existing.nombre || `Mazo ${i + 1}`,
+        cartas: [...existing.cartas]
+      });
+    } else {
+      res.push({
+        id: i,
+        nombre: `Mazo ${i + 1} (Vacío)`,
+        cartas: []
+      });
+    }
+  }
+  return res;
+}
+
 function esMazosValidos(arr) {
-  return Array.isArray(arr) && arr.length >= 3 && arr.every(m => m && Array.isArray(m.cartas) && m.cartas.length === 40);
+  return Array.isArray(arr) && arr.length === 5 && arr.every(m => m && typeof m.nombre === 'string' && Array.isArray(m.cartas));
 }
 
 function cargarMazos() {
@@ -2271,6 +2343,11 @@ function configurarInspectorHover(elemento, datosCarta, esPropiaBocaAbajo = fals
   if (!inspector || (!datosCarta && !esOponenteBocaAbajo)) return;
 
   const mostrarInspector = (esTouch = false) => {
+    if (elemento && elemento.closest && elemento.closest('.deck-current-panel')) {
+      inspector.classList.add('inspector-on-right');
+    } else {
+      inspector.classList.remove('inspector-on-right');
+    }
     if (inspectorTouchTimeout) {
       clearTimeout(inspectorTouchTimeout);
       inspectorTouchTimeout = null;
@@ -2657,7 +2734,7 @@ function aplicarEquipoAMonstruo(datosCarta, cartaId, targetSlotIndex, slotMTInde
   }
   if (efecto.curaLP) {
     const maxLp = configuracionJuego.lpMax || 8000;
-    estadoJugador.lp = Math.min(maxLp, estadoJugador.lp + efecto.curaLP);
+    estadoJugador.lp = estadoJugador.lp + efecto.curaLP;
     const lpVal = document.getElementById('player-lp-val');
     if (lpVal) lpVal.textContent = estadoJugador.lp;
     crearNumeroFlotante(`+${efecto.curaLP} LP`, lpVal, 'heal');
@@ -3551,26 +3628,26 @@ function activarCartaMagica(datosCarta, cartaId, slotIndex, slotElem) {
 
   // 1. Curación de Vida (LP)
   if (cartaId === 201) { // Poción Max
-    estadoJugador.lp = Math.min(maxLp, estadoJugador.lp + 2000);
+    estadoJugador.lp = estadoJugador.lp + 2000;
     AudioManager.reproducirSFX('heal');
     crearNumeroFlotante("+2000 LP", document.getElementById('player-lp-val'), 'heal');
     sumarPuntosDuelo(150, "Poción Max (+2000 LP)");
     mostrarMensajeToast("¡Poción Max activada! Restauraste 2000 LP.");
   } else if (cartaId === 202) { // Hiperpoción
-    estadoJugador.lp = Math.min(maxLp, estadoJugador.lp + 1500);
+    estadoJugador.lp = estadoJugador.lp + 1500;
     AudioManager.reproducirSFX('heal');
     crearNumeroFlotante("+1500 LP", document.getElementById('player-lp-val'), 'heal');
     sumarPuntosDuelo(150, "Hiperpoción (+1500 LP)");
     mostrarMensajeToast("¡Hiperpoción activada! +1500 LP.");
   } else if (cartaId === 207) { // Restaura Todo
-    estadoJugador.lp = Math.min(maxLp, estadoJugador.lp + 2500);
+    estadoJugador.lp = estadoJugador.lp + 2500;
     AudioManager.reproducirSFX('heal');
     crearNumeroFlotante("+2500 LP", document.getElementById('player-lp-val'), 'heal');
     sumarPuntosDuelo(200, "Restaura Todo (+2500 LP)");
     mostrarMensajeToast("¡Restaura Todo activado! +2500 LP restaurados.");
   } else if (cartaId === 208 || cartaId === 226) { // Baya Zidra o Restos
     const cura = cartaId === 208 ? 1000 : 500;
-    estadoJugador.lp = Math.min(maxLp, estadoJugador.lp + cura);
+    estadoJugador.lp = estadoJugador.lp + cura;
     AudioManager.reproducirSFX('heal');
     crearNumeroFlotante(`+${cura} LP`, document.getElementById('player-lp-val'), 'heal');
     sumarPuntosDuelo(100, `${datosCarta.nombre} (+${cura} LP)`);
@@ -4271,7 +4348,7 @@ function ejecutarLogicaEfecto(slotIndex, efecto, targetSlotIndex) {
       const targetM = estadoOponente.zonaMonstruos[targetSlotIndex];
       if (targetM) {
         targetM.atkMod = (targetM.atkMod || 0) - efecto.valor;
-        estadoJugador.lp = Math.min(configuracionJuego.lpMax || 8000, estadoJugador.lp + efecto.valor);
+        estadoJugador.lp = estadoJugador.lp + efecto.valor;
         document.getElementById('player-lp-val').textContent = estadoJugador.lp;
         if (targetSlotElem) {
           lanzarEfectoVisual('fuego', targetSlotElem);
@@ -4300,7 +4377,7 @@ function ejecutarLogicaEfecto(slotIndex, efecto, targetSlotIndex) {
       break;
     }
     case 'curar_lp': {
-      estadoJugador.lp = Math.min(configuracionJuego.lpMax || 8000, estadoJugador.lp + efecto.valor);
+      estadoJugador.lp = estadoJugador.lp + efecto.valor;
       document.getElementById('player-lp-val').textContent = estadoJugador.lp;
       if (slotElem) {
         lanzarEfectoVisual('luz', slotElem);
@@ -5696,7 +5773,7 @@ function ejecutarTurnoIA() {
         const pocionProb = diff === 'facil' ? 0.35 : (diff === 'medio' ? 0.6 : 0.85);
         if (Math.random() < pocionProb) {
           const cura = diff === 'facil' ? 500 : (diff === 'medio' ? 1000 : 2000);
-          estadoOponente.lp = Math.min(configuracionJuego.lpMax || 8000, estadoOponente.lp + cura);
+          estadoOponente.lp = estadoOponente.lp + cura;
           const opLpElem = document.getElementById('opponent-lp-val');
           if (opLpElem) {
             opLpElem.textContent = estadoOponente.lp;
@@ -5827,7 +5904,7 @@ function ejecutarTurnoIA() {
             m.efectoUsado = true;
             ejecuto = true;
           } else if (ef.tipo === 'curar_lp' && estadoOponente.lp < 6000) {
-            estadoOponente.lp = Math.min(configuracionJuego.lpMax || 8000, estadoOponente.lp + ef.valor);
+            estadoOponente.lp = estadoOponente.lp + ef.valor;
             const opLpElem = document.getElementById('opponent-lp-val');
             if (opLpElem) opLpElem.textContent = estadoOponente.lp;
             m.efectoUsado = true;
@@ -7555,6 +7632,8 @@ function abrirDeckBuilder(tabIdx = null) {
 }
 
 function cerrarDeckBuilder() {
+  const inspector = document.getElementById('card-inspector');
+  if (inspector) inspector.classList.add('hidden');
   const modal = document.getElementById('deck-builder-modal');
   if (modal) modal.classList.add('hidden');
   guardarMazos(mazosJugador);
@@ -8252,7 +8331,7 @@ var UserManager = {
     this.initEventListeners();
     this.sincronizarDesdeSupabase();
 
-    this.sincronizarBarajasInicialesUsuario();
+    this.migrarBarajasUsuariosExistentes();
   },
 
   normalizarUsuario(u) {
@@ -8286,7 +8365,7 @@ var UserManager = {
         const normalized = cloudUsers.map(u => this.normalizarUsuario(u));
         this.saveUsers(normalized);
 
-        this.sincronizarBarajasInicialesUsuario(normalized);
+        this.migrarBarajasUsuariosExistentes(normalized);
 
         const targetName = (this.currentUser && this.currentUser.username)
           ? this.currentUser.username
@@ -8344,40 +8423,39 @@ var UserManager = {
   },
 
 
-  sincronizarBarajasInicialesUsuario(userList = null) {
-    if (typeof obtenerTresMazosIniciales !== 'function') return;
-    const starterDecks = obtenerTresMazosIniciales();
-    if (!Array.isArray(starterDecks) || starterDecks.length === 0) return;
-
-    try {
-      localStorage.setItem('pokeoh_starter_decks_v1', JSON.stringify(starterDecks));
-      localStorage.setItem('pokeoh_user_decks_gianblack_v1', JSON.stringify(starterDecks));
-    } catch (e) {}
-
-    const cuentasDesignadas = ['gianblack'];
+  migrarBarajasUsuariosExistentes(userList = null) {
+    const standardDecks = generarCincoMazosEstandar();
     const users = userList || this.getAllUsers();
     let modificado = false;
+
     users.forEach(u => {
-      if (u && u.username && cuentasDesignadas.includes(u.username.toLowerCase())) {
-        u.mazos = JSON.parse(JSON.stringify(starterDecks));
+      if (u) {
+        u.mazos = JSON.parse(JSON.stringify(standardDecks));
         modificado = true;
+        if (typeof SupabaseCloud !== 'undefined' && typeof SupabaseCloud.updateUserByUsername === 'function') {
+          SupabaseCloud.updateUserByUsername(u.username, { mazos: standardDecks }).catch(() => {});
+        }
       }
     });
-    if (modificado && !userList) this.saveUsers(users);
 
-    if (this.currentUser && this.currentUser.username && cuentasDesignadas.includes(this.currentUser.username.toLowerCase())) {
-      this.currentUser.mazos = JSON.parse(JSON.stringify(starterDecks));
+    if (modificado && !userList) {
+      this.saveUsers(users);
+    }
+
+    if (this.currentUser) {
+      this.currentUser.mazos = JSON.parse(JSON.stringify(standardDecks));
       this.saveCurrentUser(this.currentUser);
       if (typeof mazosJugador !== 'undefined') {
-        mazosJugador = JSON.parse(JSON.stringify(starterDecks));
-        mazoActivoBuilderIdx = 0;
+        mazosJugador = JSON.parse(JSON.stringify(standardDecks));
         if (typeof renderizarSelectorMazosPrePartida === 'function') renderizarSelectorMazosPrePartida();
         if (typeof renderizarPestanasDeckBuilder === 'function') renderizarPestanasDeckBuilder();
       }
-      if (typeof SupabaseCloud !== 'undefined' && typeof SupabaseCloud.updateUserByUsername === 'function') {
-        SupabaseCloud.updateUserByUsername(this.currentUser.username, { mazos: starterDecks }).catch(() => {});
-      }
     }
+
+    try {
+      localStorage.setItem('pokeoh_starter_decks_v1', JSON.stringify(standardDecks));
+      localStorage.setItem('pokeoh_custom_decks_v3', JSON.stringify(standardDecks));
+    } catch (e) {}
   },
   revisarDesconexionPrevia() {
     const abandonoPrevio = localStorage.getItem('pokeoh_active_online_match');
@@ -8539,17 +8617,7 @@ var UserManager = {
 
     const avatars = ['🧢', '⚡', '🔥', '💧', '🌿', '🔮', '🥊', '🎮'];
     const randomAvatar = avatars[Math.floor(Math.random() * avatars.length)];
-    const defaultDecks = JSON.parse(JSON.stringify(MAZOS_DEFAULT));
-
-    // Si el usuario eligió un mazo inicial equilibrado (Fuego, Agua o Planta), configurarlo como Mazo #1
-    if (typeof MAZOS_INICIALES_SELECCION !== 'undefined' && MAZOS_INICIALES_SELECCION[starterChoice]) {
-      const chosenStarter = MAZOS_INICIALES_SELECCION[starterChoice];
-      defaultDecks[0] = {
-        id: 1,
-        nombre: chosenStarter.nombre,
-        cartas: [...chosenStarter.cartas]
-      };
-    }
+    const defaultDecks = generarCincoMazosNuevoUsuario(starterChoice);
 
     const payload = {
       username: cleanUser,
@@ -10476,7 +10544,7 @@ const MultiplayerManager = {
         const myM = estadoJugador.zonaMonstruos[targetSlotIndex];
         if (myM) {
           myM.atkMod = (myM.atkMod || 0) - efecto.valor;
-          estadoOponente.lp = Math.min(configuracionJuego.lpMax || 8000, estadoOponente.lp + efecto.valor);
+          estadoOponente.lp = estadoOponente.lp + efecto.valor;
           const oppLpVal = document.getElementById('opponent-lp-val');
           if (oppLpVal) oppLpVal.textContent = estadoOponente.lp;
           if (myTargetSlotElem) {
@@ -10501,7 +10569,7 @@ const MultiplayerManager = {
         break;
       }
       case 'curar_lp': {
-        estadoOponente.lp = Math.min(configuracionJuego.lpMax || 8000, estadoOponente.lp + efecto.valor);
+        estadoOponente.lp = estadoOponente.lp + efecto.valor;
         const oppLpVal = document.getElementById('opponent-lp-val');
         if (oppLpVal) oppLpVal.textContent = estadoOponente.lp;
         if (rivalSlotElem) {
@@ -11187,7 +11255,7 @@ function inicializarAdaptacionMovilYRotacion() {
   document.addEventListener('touchstart', (e) => {
     const inspector = document.getElementById('card-inspector');
     if (!inspector || inspector.classList.contains('hidden')) return;
-    if (!e.target.closest('.card-slot, .deck-visual-card')) {
+    if (!e.target.closest('.card-slot, .deck-visual-card, .deck-card-row, #card-inspector')) {
       inspector.classList.add('hidden');
     }
   }, { passive: true });
