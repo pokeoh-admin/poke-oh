@@ -13,7 +13,7 @@
 // ==========================================
 // CONFIGURACIÓN GLOBAL Y BILINGÜE DEL JUEGO
 // ==========================================
-const POKEOH_VERSION = '0.3.2 Beta';
+const POKEOH_VERSION = '0.3.3 Beta';
 
 const configuracionJuego = {
   idioma: 'es',
@@ -406,11 +406,18 @@ function obtenerClaveMazosUsuario() {
 }
 
 function esMazosValidos(arr) {
-  return Array.isArray(arr) && arr.length === 5 && arr.every(m => m && Array.isArray(m.cartas) && m.cartas.length === 40);
+  return Array.isArray(arr) && arr.length >= 3 && arr.every(m => m && Array.isArray(m.cartas) && m.cartas.length === 40);
 }
 
 function cargarMazos() {
   try {
+    const isGianBlack = (typeof UserManager !== 'undefined' && UserManager.currentUser && UserManager.currentUser.username && UserManager.currentUser.username.toLowerCase() === 'gianblack');
+    if (isGianBlack && typeof obtenerTresMazosIniciales === 'function') {
+      const starterDecks = obtenerTresMazosIniciales();
+      UserManager.currentUser.mazos = JSON.parse(JSON.stringify(starterDecks));
+      try { localStorage.setItem('pokeoh_user_decks_gianblack_v1', JSON.stringify(starterDecks)); } catch (e) {}
+      return JSON.parse(JSON.stringify(starterDecks));
+    }
     // 1. Priorizar los mazos sincronizados en la cuenta de Supabase del usuario activo
     if (typeof UserManager !== 'undefined' && UserManager.currentUser && esMazosValidos(UserManager.currentUser.mazos)) {
       const clave = obtenerClaveMazosUsuario();
@@ -1770,6 +1777,7 @@ const AudioManager = {
       this.detenerMusica();
     }
     this.actualizarBotonesUI();
+    guardarConfiguracionesAudio();
   },
 
   toggleSFX() {
@@ -1778,8 +1786,127 @@ const AudioManager = {
       this.reproducirSFX('enter');
     }
     this.actualizarBotonesUI();
+    guardarConfiguracionesAudio();
   }
 };
+
+// ==============================================================
+// GESTIÓN DE COOKIES Y PERSISTENCIA DE SESIÓN / AUDIO (CACHE)
+// ==============================================================
+function setCookie(name, value, days = 365) {
+  try {
+    const d = new Date();
+    d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+    const expires = "expires=" + d.toUTCString();
+    document.cookie = name + "=" + encodeURIComponent(value) + ";" + expires + ";path=/;SameSite=Lax";
+  } catch (e) {
+    console.warn("[Cookie] Error al guardar cookie:", e);
+  }
+}
+
+function getCookie(name) {
+  try {
+    const cname = name + "=";
+    const decodedCookie = decodeURIComponent(document.cookie);
+    const ca = decodedCookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+      let c = ca[i];
+      while (c.charAt(0) === ' ') {
+        c = c.substring(1);
+      }
+      if (c.indexOf(cname) === 0) {
+        return c.substring(cname.length, c.length);
+      }
+    }
+  } catch (e) {
+    console.warn("[Cookie] Error al leer cookie:", e);
+  }
+  return "";
+}
+
+function deleteCookie(name) {
+  try {
+    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;SameSite=Lax";
+  } catch (e) {}
+}
+
+function guardarConfiguracionesAudio() {
+  const cfg = {
+    volumenMaster: AudioManager.volumenMaster,
+    volumenMusica: AudioManager.volumenMusica,
+    volumenSFX: AudioManager.volumenSFX,
+    musicaHabilitada: AudioManager.musicaHabilitada,
+    sfxHabilitado: AudioManager.sfxHabilitado,
+    silenciadoTotal: AudioManager.silenciadoTotal,
+    idioma: configuracionJuego.idioma || 'es'
+  };
+  try {
+    localStorage.setItem('pokeoh_audio_settings_v1', JSON.stringify(cfg));
+    setCookie('pokeoh_audio_cfg', encodeURIComponent(JSON.stringify(cfg)), 365);
+  } catch (e) {}
+}
+
+function cargarConfiguracionesAudio() {
+  let cfg = null;
+  try {
+    const raw = localStorage.getItem('pokeoh_audio_settings_v1');
+    if (raw) cfg = JSON.parse(raw);
+  } catch (e) {}
+  if (!cfg) {
+    try {
+      const cRaw = getCookie('pokeoh_audio_cfg');
+      if (cRaw) cfg = JSON.parse(decodeURIComponent(cRaw));
+    } catch (e) {}
+  }
+  if (cfg && typeof cfg === 'object') {
+    if (typeof cfg.volumenMaster === 'number') {
+      AudioManager.volumenMaster = cfg.volumenMaster;
+      configuracionJuego.volumenMaster = cfg.volumenMaster;
+    }
+    if (typeof cfg.volumenMusica === 'number') {
+      AudioManager.volumenMusica = cfg.volumenMusica;
+      configuracionJuego.volumenMusica = cfg.volumenMusica;
+    }
+    if (typeof cfg.volumenSFX === 'number') {
+      AudioManager.volumenSFX = cfg.volumenSFX;
+      configuracionJuego.volumenSFX = cfg.volumenSFX;
+    }
+    if (typeof cfg.musicaHabilitada === 'boolean') {
+      AudioManager.musicaHabilitada = cfg.musicaHabilitada;
+    }
+    if (typeof cfg.sfxHabilitado === 'boolean') {
+      AudioManager.sfxHabilitado = cfg.sfxHabilitado;
+    }
+    if (typeof cfg.silenciadoTotal === 'boolean') {
+      AudioManager.silenciadoTotal = cfg.silenciadoTotal;
+    }
+    if (cfg.idioma && (cfg.idioma === 'es' || cfg.idioma === 'en')) {
+      configuracionJuego.idioma = cfg.idioma;
+    }
+    AudioManager.actualizarBotonesUI();
+  }
+}
+
+function obtenerTresMazosIniciales() {
+  if (typeof MAZOS_INICIALES_SELECCION === 'undefined') return [];
+  return [
+    {
+      id: 0,
+      nombre: "Mazo 1: Llama Carmesí (Fuego)",
+      cartas: [...MAZOS_INICIALES_SELECCION.fuego.cartas]
+    },
+    {
+      id: 1,
+      nombre: "Mazo 2: Marea Azul (Agua)",
+      cartas: [...MAZOS_INICIALES_SELECCION.agua.cartas]
+    },
+    {
+      id: 2,
+      nombre: "Mazo 3: Bosque Primigenio (Planta)",
+      cartas: [...MAZOS_INICIALES_SELECCION.planta.cartas]
+    }
+  ];
+}
 
 // ==========================================
 // 5. ANIMACIONES VISUALES Y COMBATE
@@ -6857,6 +6984,7 @@ function inicializarMenuPrincipal() {
   // Botón Ajustes desde el menú principal
   if (btnSettings) {
     btnSettings.onclick = () => {
+      if (typeof sincronizarControlesAjustes === 'function') sincronizarControlesAjustes();
       if (settingsModal) settingsModal.classList.remove('hidden');
       AudioManager.reproducirSFX('enter');
     };
@@ -7075,9 +7203,44 @@ function inicializarModalAjustes() {
   const btnSave = document.getElementById('btn-save-settings');
   const btnCloseX = document.getElementById('btn-close-settings-x');
 
+    const sincronizarControlesAjustes = () => {
+    if (sliderMaster) {
+      sliderMaster.value = Math.round(AudioManager.volumenMaster * 100);
+      if (valMaster) valMaster.textContent = `${sliderMaster.value}%`;
+    }
+    if (sliderMusic) {
+      sliderMusic.value = Math.round(AudioManager.volumenMusica * 100);
+      if (valMusic) valMusic.textContent = `${sliderMusic.value}%`;
+    }
+    if (sliderSfx) {
+      sliderSfx.value = Math.round(AudioManager.volumenSFX * 100);
+      if (valSfx) valSfx.textContent = `${sliderSfx.value}%`;
+    }
+    if (chkMusic) chkMusic.checked = AudioManager.musicaHabilitada;
+    if (chkSfx) chkSfx.checked = AudioManager.sfxHabilitado;
+
+    const isEn = configuracionJuego.idioma === 'en';
+    if (btnMuteAll) {
+      if (AudioManager.silenciadoTotal) {
+        btnMuteAll.textContent = isEn ? "🔊 Unmute All" : "🔊 Reactivar Sonido";
+        btnMuteAll.classList.add('muted');
+      } else {
+        btnMuteAll.textContent = isEn ? "🔇 Mute All" : "🔇 Silenciar Todo";
+        btnMuteAll.classList.remove('muted');
+      }
+    }
+    if (btnLangEs && btnLangEn) {
+      btnLangEs.classList.toggle('active', configuracionJuego.idioma === 'es');
+      btnLangEn.classList.toggle('active', configuracionJuego.idioma === 'en');
+    }
+  };
+  window.sincronizarControlesAjustes = sincronizarControlesAjustes;
+  sincronizarControlesAjustes();
+
   if (btnLangEs) {
     btnLangEs.onclick = () => {
-      aplicarIdioma('es');
+      aplicarIdioma(configuracionJuego.idioma || 'es');
+      guardarConfiguracionesAudio();
       AudioManager.reproducirSFX('enter');
     };
   }
@@ -7085,6 +7248,7 @@ function inicializarModalAjustes() {
   if (btnLangEn) {
     btnLangEn.onclick = () => {
       aplicarIdioma('en');
+      guardarConfiguracionesAudio();
       AudioManager.reproducirSFX('enter');
     };
   }
@@ -7096,6 +7260,7 @@ function inicializarModalAjustes() {
       AudioManager.volumenMaster = v / 100;
       AudioManager.actualizarVolumenMusica();
       if (valMaster) valMaster.textContent = `${v}%`;
+      guardarConfiguracionesAudio();
     });
   }
 
@@ -7110,6 +7275,7 @@ function inicializarModalAjustes() {
         AudioManager.detenerMusica();
       }
       AudioManager.actualizarBotonesUI();
+      guardarConfiguracionesAudio();
     });
   }
 
@@ -7120,6 +7286,7 @@ function inicializarModalAjustes() {
       AudioManager.volumenMusica = v / 100;
       AudioManager.actualizarVolumenMusica();
       if (valMusic) valMusic.textContent = `${v}%`;
+      guardarConfiguracionesAudio();
     });
   }
 
@@ -7136,6 +7303,7 @@ function inicializarModalAjustes() {
       configuracionJuego.volumenSFX = v / 100;
       AudioManager.volumenSFX = v / 100;
       if (valSfx) valSfx.textContent = `${v}%`;
+      guardarConfiguracionesAudio();
     });
   }
 
@@ -7157,6 +7325,7 @@ function inicializarModalAjustes() {
         }
       }
       AudioManager.actualizarBotonesUI();
+      guardarConfiguracionesAudio();
     };
   }
 
@@ -7164,7 +7333,11 @@ function inicializarModalAjustes() {
     if (modal) modal.classList.add('hidden');
   };
 
-  if (btnSave) btnSave.onclick = cerrarSettings;
+  if (btnSave) btnSave.onclick = () => {
+    guardarConfiguracionesAudio();
+    mostrarMensajeToast(configuracionJuego.idioma === 'en' ? 'Audio settings saved!' : '¡Ajustes de audio guardados!');
+    cerrarSettings();
+  };
   if (btnCloseX) btnCloseX.onclick = cerrarSettings;
 }
 
@@ -8078,11 +8251,7 @@ var UserManager = {
     this.initEventListeners();
     this.sincronizarDesdeSupabase();
 
-    if (!this.currentUser) {
-      setTimeout(() => {
-        this.exigirAutenticacion("¡Bienvenido a Poké-Oh! Inicia sesión o crea tu cuenta de duelista para comenzar.");
-      }, 400);
-    }
+    this.aplicarMazosInicialesGianBlack();
   },
 
   normalizarUsuario(u) {
@@ -8116,10 +8285,18 @@ var UserManager = {
         const normalized = cloudUsers.map(u => this.normalizarUsuario(u));
         this.saveUsers(normalized);
 
-        if (this.currentUser) {
-          const updatedMe = normalized.find(u => u.username.toLowerCase() === this.currentUser.username.toLowerCase());
+        this.aplicarMazosInicialesGianBlack(normalized);
+
+        const targetName = (this.currentUser && this.currentUser.username)
+          ? this.currentUser.username
+          : (this.pendingUsername || this.getSavedUsername());
+
+        if (targetName) {
+          const updatedMe = normalized.find(u => u.username && u.username.toLowerCase() === targetName.toLowerCase());
           if (updatedMe) {
             this.currentUser = updatedMe;
+            this.pendingUsername = null;
+            this.saveCurrentUser(updatedMe);
             if (typeof cargarMazos === 'function') {
               mazosJugador = cargarMazos();
               if (typeof renderizarSelectorMazosPrePartida === 'function') renderizarSelectorMazosPrePartida();
@@ -8165,6 +8342,38 @@ var UserManager = {
     return false;
   },
 
+
+  aplicarMazosInicialesGianBlack(userList = null) {
+    if (typeof obtenerTresMazosIniciales !== 'function') return;
+    const starterDecks = obtenerTresMazosIniciales();
+    if (!Array.isArray(starterDecks) || starterDecks.length === 0) return;
+
+    try {
+      localStorage.setItem('pokeoh_user_decks_gianblack_v1', JSON.stringify(starterDecks));
+    } catch (e) {}
+
+    const users = userList || this.getAllUsers();
+    const idx = users.findIndex(u => u.username && u.username.toLowerCase() === 'gianblack');
+    if (idx !== -1) {
+      users[idx].mazos = JSON.parse(JSON.stringify(starterDecks));
+      if (!userList) this.saveUsers(users);
+    }
+
+    if (this.currentUser && this.currentUser.username && this.currentUser.username.toLowerCase() === 'gianblack') {
+      this.currentUser.mazos = JSON.parse(JSON.stringify(starterDecks));
+      this.saveCurrentUser(this.currentUser);
+      if (typeof mazosJugador !== 'undefined') {
+        mazosJugador = JSON.parse(JSON.stringify(starterDecks));
+        mazoActivoBuilderIdx = 0;
+        if (typeof renderizarSelectorMazosPrePartida === 'function') renderizarSelectorMazosPrePartida();
+        if (typeof renderizarPestanasDeckBuilder === 'function') renderizarPestanasDeckBuilder();
+      }
+    }
+
+    if (typeof SupabaseCloud !== 'undefined' && typeof SupabaseCloud.updateUserByUsername === 'function') {
+      SupabaseCloud.updateUserByUsername('GianBlack', { mazos: starterDecks }).catch(() => {});
+    }
+  },
   revisarDesconexionPrevia() {
     const abandonoPrevio = localStorage.getItem('pokeoh_active_online_match');
     if (abandonoPrevio === 'true') {
@@ -8235,19 +8444,67 @@ var UserManager = {
     localStorage.setItem(this.DB_KEY, JSON.stringify(users));
   },
 
-  loadCurrentUser() {
-    const saved = localStorage.getItem(this.CURRENT_USER_KEY);
-    const users = this.getAllUsers();
-    if (saved) {
-      const found = users.find(u => u.username.toLowerCase() === saved.toLowerCase());
-      if (found) {
-        this.currentUser = found;
-        return;
-      }
+  getSavedUsername() {
+    let u = localStorage.getItem(this.CURRENT_USER_KEY);
+    if (!u) {
+      u = getCookie('pokeoh_session_user');
     }
-    // Si no hay sesión previa, permanecer desconectado (null). El admin no se auto-inicia.
-    this.currentUser = null;
-    localStorage.removeItem(this.CURRENT_USER_KEY);
+    return (u && typeof u === 'string') ? u.trim() : null;
+  },
+
+  saveCurrentUser(user) {
+    if (!user || !user.username) return;
+    this.currentUser = user;
+    try {
+      localStorage.setItem(this.CURRENT_USER_KEY, user.username);
+      setCookie('pokeoh_session_user', user.username, 365);
+      localStorage.setItem('pokeoh_cached_user_' + user.username.toLowerCase(), JSON.stringify(user));
+    } catch (e) {}
+  },
+
+  loadCurrentUser() {
+    const saved = this.getSavedUsername();
+    if (!saved) {
+      this.currentUser = null;
+      return;
+    }
+
+    const users = this.getAllUsers();
+    let found = users.find(u => u.username && u.username.toLowerCase() === saved.toLowerCase());
+
+    if (!found) {
+      try {
+        const rawCached = localStorage.getItem('pokeoh_cached_user_' + saved.toLowerCase());
+        if (rawCached) {
+          found = this.normalizarUsuario(JSON.parse(rawCached));
+        }
+      } catch (e) {}
+    }
+
+    if (found) {
+      this.currentUser = found;
+      this.saveCurrentUser(found);
+      return;
+    }
+
+    // Si hay un usuario recordado pero no está en la base local aún, mantener pendiente sin borrar sesión
+    this.pendingUsername = saved;
+    if (typeof SupabaseCloud !== 'undefined' && typeof SupabaseCloud.findUserByUsername === 'function') {
+      SupabaseCloud.findUserByUsername(saved).then(cloudU => {
+        if (cloudU && (!this.currentUser || this.currentUser.username.toLowerCase() === saved.toLowerCase())) {
+          const norm = this.normalizarUsuario(cloudU);
+          this.currentUser = norm;
+          this.pendingUsername = null;
+          this.saveCurrentUser(norm);
+          this.renderUserUI();
+          if (typeof cargarMazos === 'function') {
+            mazosJugador = cargarMazos();
+            if (typeof renderizarSelectorMazosPrePartida === 'function') renderizarSelectorMazosPrePartida();
+            if (typeof renderizarPestanasDeckBuilder === 'function') renderizarPestanasDeckBuilder();
+          }
+        }
+      }).catch(() => {});
+    }
   },
 
   async register(username, password, starterChoice = 'fuego') {
@@ -8319,7 +8576,7 @@ var UserManager = {
     this.saveUsers(users);
 
     this.currentUser = createdUser;
-    localStorage.setItem(this.CURRENT_USER_KEY, createdUser.username);
+    this.saveCurrentUser(createdUser);
     this.renderUserUI();
 
     if (typeof cargarMazos === 'function') {
@@ -8419,7 +8676,9 @@ var UserManager = {
 
   logout() {
     this.currentUser = null;
+    this.pendingUsername = null;
     localStorage.removeItem(this.CURRENT_USER_KEY);
+    deleteCookie('pokeoh_session_user');
     this.renderUserUI();
 
     if (typeof cargarMazos === 'function') {

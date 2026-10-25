@@ -1,6 +1,6 @@
 # ⚡ POKÉ-OH! — Duelo de Cartas Estratégico (Pokémon × Yu-Gi-Oh!)
 
-> **Versión Actual:** `v0.3.2 Beta`  
+> **Versión Actual:** `v0.3.3 Beta`  
 > **Juego Web Oficial:** [https://pokeoh-admin.github.io/poke-oh/](https://pokeoh-admin.github.io/poke-oh/)  
 > **Licencia & Motor:** Antigravity Duel Engine (Vanilla JS + HTML5 + CSS3 + Colyseus / Supabase)
 
@@ -63,6 +63,14 @@
 ---
 
 ## 📜 Registro de Cambios (Changelog)
+
+### 🍪 v0.3.3 Beta (25 de Octubre de 2026) — Persistencia de Sesión con Cookies/Caché, Memoria de Audio y Barajas de GianBlack
+- 🍪 **Persistencia Automática de Sesión (Cookies + Caché):** Implementado un sistema dual de persistencia mediante cookies (`SameSite=Lax`, expiración a 365 días) y `localStorage`. El usuario activo permanece conectado de forma automática al abrir o recargar la pestaña del navegador, evitando tener que iniciar sesión manualmente cada vez.
+- 🔊 **Memoria Persistente de Ajustes de Audio:** Los volúmenes (Master, Música BGM y Efectos SFX), el estado de activación individual, el silenciamiento global y el idioma preferido ahora se guardan automáticamente tanto en `localStorage` como en cookies, restaurándose fielmente al iniciar el juego.
+- 🎴 **Asignación de Barajas Iniciales para GianBlack:** La cuenta de usuario *GianBlack* ahora tiene asignadas de manera exclusiva las 3 barajas iniciales equilibradas de 40 cartas (*Mazo 1: Llama Carmesí / Fuego*, *Mazo 2: Marea Azul / Agua*, *Mazo 3: Bosque Primigenio / Planta*), eliminando y reemplazando cualquier mazo anterior tanto en la memoria local como en la base de datos de Supabase Cloud.
+- 🚀 **Apertura Limpia sin Popups Intrusivos:** Eliminado el diálogo forzado de inicio de sesión que aparecía a los 400ms al cargar el juego. La autenticación ahora se solicita únicamente bajo demanda (*just-in-time*) al ingresar a modos que la requieran.
+
+---
 
 ### 🪤 v0.3.2 Beta (24 de Octubre de 2026) — Selección de Múltiples Trampas y Limpieza de UI Online
 - 🪤 **Selección Interactiva de Múltiples Trampas:** Si el jugador defensor tiene 2 o más trampas colocadas boca abajo al momento en que un oponente (IA o rival online) declara un ataque, ahora se abre un diálogo modal interactivo (`#trap-select-modal`) que enumera cada trampa disponible con su nombre, arte, descripción de efecto y zona en campo, permitiendo al jugador escoger con precisión cuál activar o si prefiere no activar ninguna.
