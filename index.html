@@ -51,8 +51,12 @@
           </button>
           <button class="menu-version-pill" id="btn-menu-changelog" type="button" title="Ver registro de cambios y versiones de Poké-Oh!">
             <span class="version-dot"></span>
-            <span class="version-text">v0.3.4 Beta</span>
+            <span class="version-text">v0.3.5 Beta</span>
             <span class="version-icon">📜</span>
+          </button>
+          <button class="menu-wallet-pill" id="btn-menu-wallet" type="button" title="Pokédólares disponibles para comprar sobres en la Tienda">
+            <span class="wallet-icon">💵</span>
+            <span class="wallet-val" id="menu-user-pokedolares">$20,000</span>
           </button>
           <button class="menu-user-pill" id="btn-menu-user" type="button" title="Gestión de Usuario / Perfil">
             <span class="user-pill-avatar" id="menu-user-avatar">👤</span>
@@ -94,13 +98,13 @@
           <span class="menu-btn-arrow">›</span>
         </button>
 
-        <button class="menu-btn btn-secondary-action" id="btn-menu-shop" type="button">
+        <button class="menu-btn btn-primary-action" id="btn-menu-shop" type="button">
           <span class="menu-btn-icon">🛒</span>
           <div class="menu-btn-content">
             <span class="menu-btn-title" data-i18n="menuShopTitle">TIENDA DE CARTAS</span>
-            <span class="menu-btn-desc" data-i18n="menuShopDesc">Sobres de refuerzo, cartas raras y cosméticos</span>
+            <span class="menu-btn-desc" data-i18n="menuShopDesc">Sobres de refuerzo por elemento, cartas legendarias y magias</span>
           </div>
-          <span class="menu-badge-soon" data-i18n="badgeSoon">PRÓXIMAMENTE</span>
+          <span class="menu-btn-arrow">›</span>
         </button>
 
         <button class="menu-btn btn-secondary-action" id="btn-menu-rules" type="button">
@@ -123,7 +127,7 @@
       </div>
 
       <div class="main-menu-footer">
-        <span>POKÉ-OH! • Antigravity Duel Engine • 2026 • <b class="footer-version-tag">v0.3.4 Beta</b></span>
+        <span>POKÉ-OH! • Antigravity Duel Engine • 2026 • <b class="footer-version-tag">v0.3.5 Beta</b></span>
       </div>
     </div>
   </div>
@@ -138,12 +142,24 @@
       <div class="sidebar-header">
         <div class="logo-box">
           <span class="logo-icon">⚡</span>
-          <h2 class="sidebar-title">POKÉ-OH! <span class="sidebar-version-pill">v0.3.4</span></h2>
+          <h2 class="sidebar-title">POKÉ-OH! <span class="sidebar-version-pill">v0.3.5</span></h2>
         </div>
         <button class="sidebar-user-pill" id="btn-sidebar-user" type="button" title="Perfil de Usuario">
           <span class="user-pill-avatar" id="sidebar-user-avatar">👤</span>
           <span class="user-pill-name" id="sidebar-user-name">Iniciar Sesión</span>
         </button>
+      </div>
+
+      <!-- Billetera Pokédólares & Rango de Liga -->
+      <div class="sidebar-economy-card">
+        <div class="sidebar-wallet-row">
+          <span class="sidebar-wallet-label">💵 POKÉDÓLARES:</span>
+          <span class="sidebar-wallet-amount" id="sidebar-user-pokedolares">$20,000</span>
+        </div>
+        <div class="sidebar-league-row">
+          <span class="sidebar-league-label">🏆 LIGA:</span>
+          <span class="sidebar-league-tier" id="sidebar-league-tier">Bronce I 🥉</span>
+        </div>
       </div>
 
       <!-- MARCADOR PRINCIPAL DE PUNTOS DE DUELO -->
@@ -496,6 +512,36 @@
       <div class="game-over-badge" id="game-over-icon">🏆</div>
       <h2 class="game-over-title" id="game-over-title">¡VICTORIA!</h2>
       <p class="game-over-desc" id="game-over-desc">Has derrotado al rival en el campo de batalla de Poké-Oh.</p>
+
+      <!-- Recompensas Económicas y Rango de Liga -->
+      <div class="duel-rewards-container" id="game-over-rewards">
+        <!-- Recompensa en Pokédólares -->
+        <div class="reward-box-currency">
+          <div class="reward-currency-header">
+            <span class="reward-currency-title">💵 RECOMPENSA EN POKÉDÓLARES</span>
+            <span class="reward-currency-total" id="reward-pokedolares-total">+$0</span>
+          </div>
+          <div class="reward-currency-breakdown" id="reward-pokedolares-breakdown">
+            <!-- Desglose de jugadas dinámico -->
+          </div>
+        </div>
+
+        <!-- Progreso en Liga de Entrenadores -->
+        <div class="reward-box-league">
+          <div class="reward-league-header">
+            <span class="reward-league-title">🏆 RANGO DE LIGA</span>
+            <span class="reward-league-delta" id="reward-league-exp-delta">+12 EXP</span>
+          </div>
+          <div class="reward-league-tier-info">
+            <span class="reward-league-badge" id="reward-league-badge">Bronce I 🥉</span>
+            <span class="reward-league-exp-text" id="reward-league-exp-text">0 / 50 EXP</span>
+          </div>
+          <div class="reward-league-progress-track">
+            <div class="reward-league-progress-fill" id="reward-league-progress-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+      </div>
+
       <div class="modal-actions game-over-actions">
         <button class="phase-btn btn-restart" id="btn-restart-duel" type="button" data-i18n="btnPlayAgain">Jugar Otra Partida ⚔️</button>
         <button class="phase-btn btn-menu-return" id="btn-game-over-menu" type="button" data-i18n="btnReturnMainMenu">Volver al Menú Principal 🏠</button>
@@ -748,6 +794,11 @@
         </div>
 
         <div class="deck-top-actions">
+          <div class="deck-wallet-indicator" id="deck-wallet-badge" title="Tus Pokédólares disponibles para sobres">
+            <span class="deck-wallet-icon">💵</span>
+            <span class="deck-wallet-val" id="deck-builder-wallet">$20,000</span>
+          </div>
+          <button type="button" class="btn-deck-action btn-deck-shop" id="btn-open-shop-from-deck">🛒 Tienda</button>
           <button type="button" class="btn-deck-action btn-deck-save" id="btn-save-current-deck" data-i18n="btnSaveDeck">💾 Guardar Mazo</button>
           <button type="button" class="btn-deck-action btn-deck-auto" id="btn-autofill-deck" data-i18n="btnAutoFill">🎲 Autocompletar</button>
           <button type="button" class="btn-deck-action btn-deck-clear" id="btn-clear-deck" data-i18n="btnClearDeck">🗑️ Vaciar</button>
@@ -818,11 +869,65 @@
     </div>
   </div>
 
+  <!-- Modal de Tienda de Cartas (Booster Packs) -->
+  <div class="modal-overlay hidden" id="shop-modal">
+    <div class="modal-box shop-box">
+      <div class="modal-header-with-close">
+        <div class="shop-header-left">
+          <h3 class="modal-title">🛒 Tienda de Cartas & Sobres de Refuerzo</h3>
+          <p class="modal-subtitle">Compra sobres temáticos de 5 cartas sin repetir para expandir tu colección y armar barajas únicas.</p>
+        </div>
+        <div class="shop-header-right">
+          <div class="shop-wallet-badge">
+            <span class="shop-wallet-icon">💵</span>
+            <div class="shop-wallet-info">
+              <span class="shop-wallet-label">Tus Pokédólares:</span>
+              <span class="shop-wallet-val" id="shop-wallet-display">$20,000</span>
+            </div>
+          </div>
+          <button class="modal-close-x" id="btn-close-shop-x" type="button" title="Cerrar">&times;</button>
+        </div>
+      </div>
+
+      <!-- Grid de Sobres de Refuerzo Disponibles -->
+      <div class="shop-packs-grid" id="shop-packs-grid">
+        <!-- Renderizado dinámico desde logica.js -->
+      </div>
+
+      <div class="modal-actions shop-modal-actions">
+        <button class="phase-btn btn-secondary-action" id="btn-shop-go-deck" type="button">🎴 Ir al Deck Builder</button>
+        <button class="phase-btn" id="btn-close-shop" type="button">Cerrar Tienda</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Apertura de Sobres (Reveal de Cartas) -->
+  <div class="modal-overlay hidden" id="booster-open-modal">
+    <div class="modal-box booster-open-box">
+      <div class="booster-open-header">
+        <span class="booster-open-icon">✨</span>
+        <h3 class="modal-title" id="booster-open-title">¡Sobres Abiertos!</h3>
+        <p class="modal-subtitle" id="booster-open-subtitle">Has obtenido las siguientes cartas para tu colección:</p>
+      </div>
+
+      <div class="booster-opened-cards-scroll">
+        <div class="booster-opened-cards-grid" id="booster-opened-cards-grid">
+          <!-- Renderizado dinámico de cartas obtenidas -->
+        </div>
+      </div>
+
+      <div class="modal-actions booster-open-actions">
+        <button class="phase-btn btn-secondary-action" id="btn-booster-keep-shopping" type="button">🛒 Volver a la Tienda</button>
+        <button class="phase-btn btn-confirm" id="btn-booster-go-deck" type="button">🎴 Ir al Deck Builder</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal de Reglamento e Instrucciones de Juego -->
   <div class="modal-overlay hidden" id="rules-modal">
     <div class="modal-box rules-box">
       <div class="modal-header-with-close">
-        <h3 class="modal-title" data-i18n="rulesTitle">📖 Guía y Reglamento de Poké-Oh! <span class="rules-version-badge">v0.3.4 Beta</span></h3>
+        <h3 class="modal-title" data-i18n="rulesTitle">📖 Guía y Reglamento de Poké-Oh! <span class="rules-version-badge">v0.3.5 Beta</span></h3>
         <button class="modal-close-x" id="btn-close-rules-x" type="button" title="Cerrar">&times;</button>
       </div>
 
@@ -1021,14 +1126,34 @@
           </div>
 
           <div class="changelog-timeline">
-            <!-- Versión 0.3.4 Beta (Actual) -->
+            <!-- Versión 0.3.5 Beta (Actual) -->
             <div class="changelog-version-card current-version">
+              <div class="changelog-version-header">
+                <div class="changelog-version-title">
+                  <span class="changelog-tag tag-major">GRAN ACTUALIZACIÓN</span>
+                  <span class="changelog-version-num">v0.3.5 Beta</span>
+                </div>
+                <span class="changelog-version-date">25 Oct 2026 (Actual)</span>
+              </div>
+              <ul class="changelog-items-list">
+                <li>🛒 <b>Tienda de Cartas Oficial:</b> Apertura de la tienda con sobres temáticos de 5 cartas por elemento y Sobre Legendario con criatura legendaria garantizada. Ratios ponderados por poder y opción de compra por paquetes múltiples.</li>
+                <li>🎴 <b>Colección Real & Cartas No Obtenidas:</b> El inventario personal refleja con exactitud las cartas que posees. En el Deck Builder, las cartas sin copias se muestran en escala de grises y las cartas obtenidas lucen a color con contador de copias.</li>
+                <li>🤖 <b>Autocompletado Inteligente con Líneas Evolutivas:</b> El recomendador analiza las cartas elegidas en tu baraja, añade sus fases evolutivas disponibles y añade automáticamente la carta mágica <i>Megaevolución</i> si tienes Pokémon con megaforma.</li>
+                <li>💵 <b>Economía de Pokédólares ($) Desacoplada:</b> Ganancia de moneda según tu desempeño en duelo (victorias, turnos récord, invocaciones de Fase 1/2 y Megas, trampas defensivas y efectos activos). Comprar sobres reduce tus Pokédólares pero no afecta tu rango.</li>
+                <li>🏆 <b>Sistema de Rango de Liga con EXP:</b> Progresión continua de 19 divisiones desde Bronce I hasta Maestro Pokémon con barra visual de avance (50 EXP por división; +12 EXP por victoria, -8 EXP por derrota).</li>
+                <li>🔐 <b>Seguridad Reforzada en Registro:</b> Validación estricta de nombres de usuario (mínimo 4 caracteres alfanuméricos) y contraseñas de alta seguridad (mínimo 6 caracteres con letras, números y signos especiales, previniendo inyecciones de código).</li>
+                <li>🔍 <b>Inspector Anclado a la Izquierda:</b> El panel detallado de cartas permanece fijo y ordenado en el lateral izquierdo sin desplazamientos molestos.</li>
+              </ul>
+            </div>
+
+            <!-- Versión 0.3.4 Beta -->
+            <div class="changelog-version-card">
               <div class="changelog-version-header">
                 <div class="changelog-version-title">
                   <span class="changelog-tag tag-patch">PARCHE / MEJORAS</span>
                   <span class="changelog-version-num">v0.3.4 Beta</span>
                 </div>
-                <span class="changelog-version-date">25 Oct 2026 (Actual)</span>
+                <span class="changelog-version-date">25 Oct 2026</span>
               </div>
               <ul class="changelog-items-list">
                 <li>🔍 <b>Inspector de Cartas en Deck Builder:</b> El panel detallado de cartas ahora es completamente visible en el constructor de barajas con posicionamiento inteligente para leer cualquier carta sin obstruir la vista.</li>
@@ -1281,12 +1406,31 @@
                 <span class="p-stat-lbl">% Victoria</span>
               </div>
               <div class="profile-stat-box">
-                <span class="p-stat-val" id="profile-stat-points">0</span>
-                <span class="p-stat-lbl">Puntos Totales</span>
+                <span class="p-stat-val" id="profile-stat-pokedolares" style="color: #2ed573;">$20,000</span>
+                <span class="p-stat-lbl">Pokédólares 💵</span>
               </div>
               <div class="profile-stat-box">
-                <span class="p-stat-val" id="profile-stat-rank">Aspirante</span>
+                <span class="p-stat-val" id="profile-stat-rank">Bronce I 🥉</span>
                 <span class="p-stat-lbl">Rango Liga</span>
+              </div>
+            </div>
+
+            <!-- Progreso de Rango de Liga -->
+            <div class="profile-league-card">
+              <div class="profile-league-header">
+                <div class="profile-league-left">
+                  <span class="profile-league-icon" id="profile-league-icon">🥉</span>
+                  <div>
+                    <div class="profile-league-name" id="profile-league-name">Liga Bronce I</div>
+                    <div class="profile-league-sub" id="profile-league-sub">+12 Victoria / -8 Derrota</div>
+                  </div>
+                </div>
+                <div class="profile-league-right">
+                  <span class="profile-league-exp" id="profile-league-exp-text">0 / 50 EXP</span>
+                </div>
+              </div>
+              <div class="profile-league-track">
+                <div class="profile-league-fill" id="profile-league-fill" style="width: 0%;"></div>
               </div>
             </div>
 
@@ -1299,10 +1443,10 @@
         <!-- Pestaña 2: Iniciar Sesión -->
         <div class="rules-tab-pane" id="tab-user-login">
           <form class="user-form" id="form-user-login" onsubmit="return false;">
-            <p class="user-form-desc">Ingresa con tu usuario y contraseña para sincronizar tus estadísticas y barajas.</p>
+            <p class="user-form-desc">Ingresa con tu usuario y contraseña para sincronizar tus estadísticas, colección y barajas.</p>
             <div class="user-form-group">
               <label for="login-username">Nombre de Usuario:</label>
-              <input type="text" id="login-username" class="user-input" placeholder="Ej: ash_ketchum" required autocomplete="username">
+              <input type="text" id="login-username" class="user-input" placeholder="Tu nombre de usuario" required autocomplete="username">
             </div>
             <div class="user-form-group">
               <label for="login-password">Contraseña:</label>
@@ -1318,18 +1462,20 @@
         <!-- Pestaña 3: Registrarse -->
         <div class="rules-tab-pane" id="tab-user-register">
           <form class="user-form" id="form-user-register" onsubmit="return false;">
-            <p class="user-form-desc">Crea una nueva cuenta de duelista para guardar tu historial, rango y mazos.</p>
+            <p class="user-form-desc">Crea una nueva cuenta de duelista para guardar tu colección, rango de liga, billetera y mazos.</p>
             <div class="user-form-group">
               <label for="reg-username">Nombre de Usuario:</label>
-              <input type="text" id="reg-username" class="user-input" placeholder="Mínimo 3 caracteres" required autocomplete="username">
+              <input type="text" id="reg-username" class="user-input" placeholder="Mínimo 4 caracteres (letras, números y _)" required autocomplete="username" minlength="4" maxlength="20">
+              <small class="user-input-hint">Debe tener al menos 4 caracteres (solo letras, números y guiones bajos).</small>
             </div>
             <div class="user-form-group">
-              <label for="reg-password">Contraseña:</label>
-              <input type="password" id="reg-password" class="user-input" placeholder="Mínimo 3 caracteres" required autocomplete="new-password">
+              <label for="reg-password">Contraseña de Duelista:</label>
+              <input type="password" id="reg-password" class="user-input" placeholder="Mínimo 6 caracteres (letras, números y signos)" required autocomplete="new-password" minlength="6">
+              <small class="user-input-hint">Mínimo 6 caracteres con letras, números y al menos un símbolo especial seguro (!@#$%&*_-+=?).</small>
             </div>
             <div class="user-form-group">
               <label for="reg-password-confirm">Confirmar Contraseña:</label>
-              <input type="password" id="reg-password-confirm" class="user-input" placeholder="Repite la contraseña" required autocomplete="new-password">
+              <input type="password" id="reg-password-confirm" class="user-input" placeholder="Repite exactamente tu contraseña" required autocomplete="new-password">
             </div>
 
             <!-- Selección de Baraja Inicial de 40 Cartas -->
@@ -1652,9 +1798,9 @@
   <!-- SDK Cliente de Colyseus para Multijugador Online -->
   <script src="lib/colyseus.js"></script>
   <!-- Base de Datos de Cartas (151 Pokémon + Ítems de todas las generaciones) -->
-  <script src="src/js/cartas.js?v=20261025_034"></script>
+  <script src="src/js/cartas.js?v=20261025_035"></script>
   <!-- Lógica del Duelo -->
-  <script src="src/js/logica.js?v=20261025_034"></script>
+  <script src="src/js/logica.js?v=20261025_035"></script>
 </body>
 </html>
 

@@ -1,6 +1,6 @@
 # ⚡ POKÉ-OH! — Duelo de Cartas Estratégico (Pokémon × Yu-Gi-Oh!)
 
-> **Versión Actual:** `v0.3.4 Beta`  
+> **Versión Actual:** `v0.3.5 Beta`  
 > **Juego Web Oficial:** [https://pokeoh-admin.github.io/poke-oh/](https://pokeoh-admin.github.io/poke-oh/)  
 > **Licencia & Motor:** Antigravity Duel Engine (Vanilla JS + HTML5 + CSS3 + Colyseus / Supabase)
 
@@ -63,6 +63,17 @@
 ---
 
 ## 📜 Registro de Cambios (Changelog)
+
+### 🏪 v0.3.5 Beta (25 de Octubre de 2026) — Tienda de Cartas, Economía Pokédólar, Rango de Liga, Colección Dinámica y Autocompletado Evolutivo
+- 🏪 **Tienda de Cartas & Sobres de Refuerzo:** Apertura oficial de la tienda con 9 paquetes temáticos (8 por afinidad elemental/soportes a $5,000 Pokédólares y 1 Sobre Legendario garantizado a $10,000). Cada sobre incluye 5 cartas sin duplicados internos, con probabilidades balanceadas por rareza.
+- 🪙 **Economía de Pokédólares ($):** Moneda del juego separada del rango de clasificación. Los duelistas ganan Pokédólares en combate premiando invocaciones de alto nivel, megaevoluciones, trampas efectivas, habilidades activas, victorias rápidas y curación extraordinaria. Nuevos entrenadores inician con $20,000 de bienvenida.
+- 👑 **Escala de Rango de Liga & Barra de EXP:** Sistema competitivo independiente de 19 divisiones desde Bronce I hasta Maestro Pokémon 👑 (50 EXP por división; +12 EXP por victoria, -8 EXP por derrota sin bajar de 0) con barra de progreso visual en el perfil y fin de partida.
+- 🎴 **Colección Dinámica de Cartas:** Las cartas no obtenidas se visualizan en escala de grises con indicador de ausencia; las cartas adquiridas se muestran a todo color con su contador de copias. Máximo 3 copias utilizables por baraja.
+- 🧬 **Autocompletado Inteligente en Deck Builder:** El asistente analiza las cartas elegidas y prioriza incorporar sus líneas evolutivas completas y la carta mágica de Megaevolución (si hay criaturas compatibles), utilizando exclusivamente las cartas que el jugador posee en su colección.
+- 🔍 **Inspector Fijo a la Izquierda:** El panel de inspección de cartas permanece anclado a la izquierda sin solapar listas ni botones.
+- 🛡️ **Seguridad Avanzada en Registro:** Validación estricta para nombres de usuario (mínimo 4 caracteres alfanuméricos) y contraseñas (mínimo 6 caracteres con letras, números y símbolos especiales seguros, bloqueando caracteres propensos a inyecciones).
+
+---
 
 ### 🔍 v0.3.4 Beta (25 de Octubre de 2026) — Inspector en Deck Builder, Estructura de 5 Mazos, Curación sin Límite y Menú Reordenado
 - 🔍 **Inspector de Cartas en el Deck Builder:** Visibilidad completa y prioritaria del panel de inspección dentro del constructor de barajas con posicionamiento inteligente que se adapta al cursor y a la columna activa para leer cualquier carta sin tapar elementos.

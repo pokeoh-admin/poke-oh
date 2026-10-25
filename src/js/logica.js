@@ -334,6 +334,284 @@ function obtenerSlotsPreEvolucion(cartaId, estadoLado) {
   return slots;
 }
 
+// ==========================================================
+// 1.1. LÍNEAS EVOLUTIVAS COMPLETAS & DETECCIÓN DE MEGAEVOLUCIÓN
+// ==========================================================
+const FAMILIAS_EVOLUTIVAS = [
+  [1, 2, 3],       // Bulbasaur -> Ivysaur -> Venusaur
+  [4, 5, 6],       // Charmander -> Charmeleon -> Charizard
+  [7, 8, 9],       // Squirtle -> Wartortle -> Blastoise
+  [10, 11, 12],    // Caterpie -> Metapod -> Butterfree
+  [13, 14, 15],    // Weedle -> Kakuna -> Beedrill
+  [16, 17, 18],    // Pidgey -> Pidgeotto -> Pidgeot
+  [19, 20],        // Rattata -> Raticate
+  [21, 22],        // Spearow -> Fearow
+  [23, 24],        // Ekans -> Arbok
+  [25, 26],        // Pikachu -> Raichu
+  [27, 28],        // Sandshrew -> Sandslash
+  [29, 30, 31],    // Nidoran♀ -> Nidorina -> Nidoqueen
+  [32, 33, 34],    // Nidoran♂ -> Nidorino -> Nidoking
+  [35, 36],        // Clefairy -> Clefable
+  [37, 38],        // Vulpix -> Ninetales
+  [39, 40],        // Jigglypuff -> Wigglytuff
+  [41, 42],        // Zubat -> Golbat
+  [43, 44, 45],    // Oddish -> Gloom -> Vileplume
+  [46, 47],        // Paras -> Parasect
+  [48, 49],        // Venonat -> Venomoth
+  [50, 51],        // Diglett -> Dugtrio
+  [52, 53],        // Meowth -> Persian
+  [54, 55],        // Psyduck -> Golduck
+  [56, 57],        // Mankey -> Primeape
+  [58, 59],        // Growlithe -> Arcanine
+  [60, 61, 62],    // Poliwag -> Poliwhirl -> Poliwrath
+  [63, 64, 65],    // Abra -> Kadabra -> Alakazam
+  [66, 67, 68],    // Machop -> Machoke -> Machamp
+  [69, 70, 71],    // Bellsprout -> Weepinbell -> Victreebel
+  [72, 73],        // Tentacool -> Tentacruel
+  [74, 75, 76],    // Geodude -> Graveler -> Golem
+  [77, 78],        // Ponyta -> Rapidash
+  [79, 80],        // Slowpoke -> Slowbro
+  [81, 82],        // Magnemite -> Magneton
+  [84, 85],        // Doduo -> Dodrio
+  [86, 87],        // Seel -> Dewgong
+  [88, 89],        // Grimer -> Muk
+  [90, 91],        // Shellder -> Cloyster
+  [92, 93, 94],    // Gastly -> Haunter -> Gengar
+  [96, 97],        // Drowzee -> Hypno
+  [98, 99],        // Krabby -> Kingler
+  [100, 101],      // Voltorb -> Electrode
+  [102, 103],      // Exeggcute -> Exeggutor
+  [104, 105],      // Cubone -> Marowak
+  [109, 110],      // Koffing -> Weezing
+  [111, 112],      // Rhyhorn -> Rhydon
+  [116, 117],      // Horsea -> Seadra
+  [118, 119],      // Goldeen -> Seaking
+  [120, 121],      // Staryu -> Starmie
+  [129, 130],      // Magikarp -> Gyarados
+  [133, 134, 135, 136], // Eevee -> Vaporeon / Jolteon / Flareon
+  [138, 139],      // Omanyte -> Omastar
+  [140, 141],      // Kabuto -> Kabutops
+  [147, 148, 149]  // Dratini -> Dragonair -> Dragonite
+];
+
+const MONSTRUOS_MEGA_CAPACES = [
+  1, 2, 3,        // Venusaur y línea
+  4, 5, 6,        // Charizard y línea
+  7, 8, 9,        // Blastoise y línea
+  13, 14, 15,     // Beedrill y línea
+  16, 17, 18,     // Pidgeot y línea
+  63, 64, 65,     // Alakazam y línea
+  92, 93, 94,     // Gengar y línea
+  115,            // Kangaskhan
+  127,            // Pinsir
+  129, 130,       // Gyarados y línea
+  142,            // Aerodactyl
+  150             // Mewtwo
+];
+
+function obtenerFamiliaEvolutiva(cartaId) {
+  const idNum = Number(cartaId);
+  for (const fam of FAMILIAS_EVOLUTIVAS) {
+    if (fam.includes(idNum)) {
+      return [...fam];
+    }
+  }
+  return [idNum];
+}
+
+function puedeMegaevolucionarMonstruo(cartaId) {
+  const idNum = Number(cartaId);
+  return MONSTRUOS_MEGA_CAPACES.includes(idNum);
+}
+
+// ==========================================================
+// 1.2. ESCALA DE RANGO DE LIGA (EXP COMPETITIVA DE 19 DIVISIONES)
+// ==========================================================
+const ESCALA_RANGOS_LIGA = [
+  { nombre: "Bronce I", icono: "🥉", expMin: 0, expMax: 49, color: "#cd7f32" },
+  { nombre: "Bronce II", icono: "🥉", expMin: 50, expMax: 99, color: "#cd7f32" },
+  { nombre: "Bronce III", icono: "🥉", expMin: 100, expMax: 149, color: "#cd7f32" },
+  { nombre: "Plata I", icono: "🥈", expMin: 150, expMax: 199, color: "#bdc3c7" },
+  { nombre: "Plata II", icono: "🥈", expMin: 200, expMax: 249, color: "#bdc3c7" },
+  { nombre: "Plata III", icono: "🥈", expMin: 250, expMax: 299, color: "#bdc3c7" },
+  { nombre: "Oro I", icono: "🥇", expMin: 300, expMax: 349, color: "#f1c40f" },
+  { nombre: "Oro II", icono: "🥇", expMin: 350, expMax: 399, color: "#f1c40f" },
+  { nombre: "Oro III", icono: "🥇", expMin: 400, expMax: 449, color: "#f1c40f" },
+  { nombre: "Esmeralda I", icono: "💎", expMin: 450, expMax: 499, color: "#2ecc71" },
+  { nombre: "Esmeralda II", icono: "💎", expMin: 500, expMax: 549, color: "#2ecc71" },
+  { nombre: "Esmeralda III", icono: "💎", expMin: 550, expMax: 599, color: "#2ecc71" },
+  { nombre: "Platino I", icono: "💠", expMin: 600, expMax: 649, color: "#00d2d3" },
+  { nombre: "Platino II", icono: "💠", expMin: 650, expMax: 699, color: "#00d2d3" },
+  { nombre: "Platino III", icono: "💠", expMin: 700, expMax: 749, color: "#00d2d3" },
+  { nombre: "Diamante I", icono: "🔷", expMin: 750, expMax: 799, color: "#54a0ff" },
+  { nombre: "Diamante II", icono: "🔷", expMin: 800, expMax: 849, color: "#54a0ff" },
+  { nombre: "Diamante III", icono: "🔷", expMin: 850, expMax: 899, color: "#54a0ff" },
+  { nombre: "Maestro Pokémon", icono: "👑", expMin: 900, expMax: Infinity, color: "#ff9f43" }
+];
+
+function obtenerInfoRangoLiga(exp) {
+  const puntos = Math.max(0, Number(exp) || 0);
+  let rangoActual = ESCALA_RANGOS_LIGA[0];
+  let sigRango = ESCALA_RANGOS_LIGA[1];
+
+  for (let i = 0; i < ESCALA_RANGOS_LIGA.length; i++) {
+    const r = ESCALA_RANGOS_LIGA[i];
+    if (puntos >= r.expMin) {
+      rangoActual = r;
+      sigRango = ESCALA_RANGOS_LIGA[i + 1] || null;
+    }
+  }
+
+  let expEnDivision = puntos - rangoActual.expMin;
+  let porcentaje = 100;
+  if (sigRango) {
+    const rangoAncho = 50;
+    expEnDivision = Math.min(rangoAncho, puntos - rangoActual.expMin);
+    porcentaje = Math.min(100, Math.floor((expEnDivision / rangoAncho) * 100));
+  }
+
+  return {
+    rango: rangoActual,
+    siguiente: sigRango,
+    expTotal: puntos,
+    expEnDivision,
+    expRequerida: 50,
+    porcentaje
+  };
+}
+
+// ==========================================================
+// 1.3. GESTIÓN DE COLECCIÓN DE CARTAS DEL USUARIO
+// ==========================================================
+function generarColeccionCompletaAdmin() {
+  const col = {};
+  if (typeof bdCartas !== 'undefined') {
+    Object.keys(bdCartas).forEach(id => {
+      col[id] = 3;
+    });
+  }
+  if (typeof bdMegaevoluciones !== 'undefined') {
+    Object.keys(bdMegaevoluciones).forEach(id => {
+      col[id] = 3;
+    });
+  }
+  return col;
+}
+
+function generarColeccionTresMazosIniciales() {
+  const col = {};
+  if (typeof MAZOS_INICIALES_SELECCION !== 'undefined') {
+    ['fuego', 'agua', 'planta'].forEach(tipo => {
+      const deck = MAZOS_INICIALES_SELECCION[tipo];
+      if (deck && Array.isArray(deck.cartas)) {
+        deck.cartas.forEach(cid => {
+          col[cid] = (col[cid] || 0) + 1;
+        });
+      }
+    });
+  }
+  if (typeof bdMegaevoluciones !== 'undefined') {
+    Object.keys(bdMegaevoluciones).forEach(mid => {
+      col[mid] = 1;
+    });
+  }
+  return col;
+}
+
+function generarColeccionNuevoUsuario(starterChoice = 'fuego') {
+  const col = {};
+  if (typeof MAZOS_INICIALES_SELECCION !== 'undefined') {
+    const deck = MAZOS_INICIALES_SELECCION[starterChoice] || MAZOS_INICIALES_SELECCION['fuego'];
+    if (deck && Array.isArray(deck.cartas)) {
+      deck.cartas.forEach(cid => {
+        col[cid] = (col[cid] || 0) + 1;
+      });
+    }
+  }
+  if (typeof bdMegaevoluciones !== 'undefined') {
+    Object.keys(bdMegaevoluciones).forEach(mid => {
+      col[mid] = 1;
+    });
+  }
+  return col;
+}
+
+function obtenerCopiasColeccion(cartaId) {
+  const cid = Number(cartaId);
+  if (cid >= 501 && cid <= 514) return 1;
+
+  const user = (typeof UserManager !== 'undefined') ? UserManager.currentUser : null;
+  if (!user) {
+    if (!UserManager || !UserManager._coleccionInvitado) {
+      if (typeof UserManager !== 'undefined') UserManager._coleccionInvitado = generarColeccionTresMazosIniciales();
+    }
+    return (UserManager && UserManager._coleccionInvitado) ? (UserManager._coleccionInvitado[cid] || 0) : 1;
+  }
+
+  if (user.role === 'admin' || user.username.toLowerCase() === 'admin') {
+    return 3;
+  }
+
+  const col = user.coleccion || (user.stats && user.stats.coleccion) || null;
+  if (!col) {
+    const nuevaCol = generarColeccionTresMazosIniciales();
+    user.coleccion = nuevaCol;
+    if (user.stats) user.stats.coleccion = nuevaCol;
+    return nuevaCol[cid] || 0;
+  }
+
+  return Number(col[cid] || col[String(cid)] || 0);
+}
+
+// ==========================================================
+// 1.4. VALIDACIONES DE SEGURIDAD PARA REGISTRO
+// ==========================================================
+function validarUsernameSeguro(username) {
+  if (!username || typeof username !== 'string') {
+    return { ok: false, error: "Ingresa un nombre de usuario válido." };
+  }
+  const clean = username.trim();
+  if (clean.length < 4) {
+    return { ok: false, error: "El nombre de usuario debe tener al menos 4 caracteres." };
+  }
+  if (clean.length > 20) {
+    return { ok: false, error: "El nombre de usuario no puede exceder los 20 caracteres." };
+  }
+  if (!/^[a-zA-Z0-9_]+$/.test(clean)) {
+    return { ok: false, error: "El usuario solo puede contener letras, números y guiones bajos (_) sin espacios ni símbolos especiales." };
+  }
+  return { ok: true, username: clean };
+}
+
+function validarPasswordSegura(password) {
+  if (!password || typeof password !== 'string') {
+    return { ok: false, error: "Ingresa una contraseña válida." };
+  }
+  if (password.length < 6) {
+    return { ok: false, error: "La contraseña debe tener al menos 6 caracteres." };
+  }
+  if (password.length > 50) {
+    return { ok: false, error: "La contraseña no puede exceder los 50 caracteres." };
+  }
+  const forbiddenChars = /[<>'";\\/{}\(\)]/;
+  if (forbiddenChars.test(password)) {
+    return { ok: false, error: "La contraseña contiene caracteres no permitidos por seguridad (<, >, ', \", ;, \\, /, {, }, (, ))." };
+  }
+  if (!/[a-zA-Z]/.test(password)) {
+    return { ok: false, error: "La contraseña debe contener al menos una letra (a-z o A-Z)." };
+  }
+  if (!/[0-9]/.test(password)) {
+    return { ok: false, error: "La contraseña debe contener al menos un número (0-9)." };
+  }
+  const safeSpecial = /[!@#$%^&*_\-+=\[\]?]/;
+  if (!safeSpecial.test(password)) {
+    return { ok: false, error: "La contraseña debe contener al menos un signo especial seguro (! @ # $ % ^ & * _ - + = ?)." };
+  }
+  return { ok: true };
+}
+
+
+
 // 5 Sets de Cartas Temáticos con Composición Exacta: 20 Básicos, 5 Invocaciones/Evoluciones, 15 Hechizos/Equipos/Trampas (40 cartas totales, máx 3 copias)
 const MAZOS_DEFAULT = [
   {
@@ -4341,6 +4619,9 @@ function ejecutarLogicaEfecto(slotIndex, efecto, targetSlotIndex) {
     : null;
 
   slotData.efectoUsado = true;
+  if (typeof metricasRecompensasDuelo !== 'undefined') {
+    metricasRecompensasDuelo.effectsUsed++;
+  }
   let logDesc = "";
 
   switch (efecto.tipo) {
@@ -7811,7 +8092,7 @@ function renderizarColeccionDeckBuilder() {
   const totalCartas = mazoActual ? mazoActual.cartas.length : 0;
   const isEn = configuracionJuego.idioma === 'en';
 
-  let todas = Object.values(bdCartas);
+  let todas = Object.values(bdCartas).filter(c => !c.esMegaEvolucion);
 
   // Filtro por Categoría
   if (filtroColeccionCat === 'basico') {
@@ -7851,7 +8132,12 @@ function renderizarColeccionDeckBuilder() {
   }
 
   todas.forEach(c => {
-    const copiasEnMazo = mazoActual.cartas.filter(id => id === c.id).length;
+    const copiasColeccion = obtenerCopiasColeccion(c.id);
+    const esNoObtenida = copiasColeccion <= 0;
+    const copiasEnMazo = mazoActual ? mazoActual.cartas.filter(id => id === c.id).length : 0;
+    const maxPermitidoEnMazo = Math.min(3, copiasColeccion);
+    const estaMaxeada = copiasEnMazo >= maxPermitidoEnMazo;
+
     const infoElem = c.tipoCarta === 'monstruo' ? (obtenerInfoTipo(c.elemento) || { icono: '⚪' }) : null;
     const elemCls = obtenerClaseFrontCarta(c);
 
@@ -7859,8 +8145,24 @@ function renderizarColeccionDeckBuilder() {
     const artSrc = c.imagenOficial || c.spriteCampo || c.spriteEstatico || fallbackSrc;
 
     const cardEl = document.createElement('div');
-    cardEl.className = `deck-visual-card card-tipo-${c.tipoCarta} ${elemCls} ${copiasEnMazo >= 3 ? 'card-maxed' : ''}`;
+    cardEl.className = `deck-visual-card card-tipo-${c.tipoCarta} ${elemCls} ${esNoObtenida ? 'card-unowned' : (estaMaxeada ? 'card-maxed' : '')}`;
     cardEl.setAttribute('data-id', c.id);
+
+    let badgeText = '';
+    let btnText = '';
+    if (esNoObtenida) {
+      badgeText = isEn ? 'Unowned (0)' : 'No obtenida (0)';
+      btnText = isEn ? 'Unowned' : 'No obtenida';
+    } else {
+      badgeText = `x${copiasEnMazo}/3 (${isEn ? 'Own' : 'Tienes'} ${copiasColeccion})`;
+      if (copiasEnMazo >= 3) {
+        btnText = isEn ? 'Max 3' : 'Máx. 3';
+      } else if (copiasEnMazo >= copiasColeccion) {
+        btnText = isEn ? 'Depleted' : 'Agotada';
+      } else {
+        btnText = isEn ? '+ Add' : '+ Añadir';
+      }
+    }
 
     cardEl.innerHTML = `
       <div class="card-visual-header">
@@ -7871,7 +8173,7 @@ function renderizarColeccionDeckBuilder() {
       ${c.efectoActivo ? `<div class="card-effect-badge" title="⚡ EFECTO: ${escapeHtml(c.efectoActivo.nombre)}\n${escapeHtml(c.efectoActivo.descripcion || '')}">⚡</div>` : ''}
       <div class="card-visual-art-wrap">
         <img class="card-visual-art" src="${artSrc}" alt="${escapeHtml(c.nombre)}" onerror="this.onerror=null; this.src='${fallbackSrc}';" draggable="false">
-        <span class="collection-copy-pill ${copiasEnMazo >= 3 ? 'pill-full' : ''}">x${copiasEnMazo}/3</span>
+        <span class="collection-copy-pill ${esNoObtenida ? 'pill-unowned' : (estaMaxeada ? 'pill-full' : '')}">${badgeText}</span>
       </div>
       <div class="card-visual-footer">
         ${c.tipoCarta === 'monstruo'
@@ -7879,20 +8181,29 @@ function renderizarColeccionDeckBuilder() {
           : `<span class="card-stat-spell">${c.tipoCarta === 'magia' ? (isEn ? 'SPELL' : 'MAGIA') : (isEn ? 'TRAP' : 'TRAMPA')}</span>`
         }
       </div>
-      <button type="button" class="btn-visual-add ${copiasEnMazo >= 3 ? 'btn-maxed' : ''}" data-id="${c.id}" ${copiasEnMazo >= 3 || totalCartas >= 40 ? 'disabled' : ''}>
-        ${copiasEnMazo >= 3 ? (isEn ? 'Max 3' : 'Máx. 3') : (isEn ? '+ Add' : '+ Añadir')}
+      <button type="button" class="btn-visual-add ${esNoObtenida ? 'btn-unowned' : (estaMaxeada ? 'btn-maxed' : '')}" data-id="${c.id}" ${esNoObtenida || estaMaxeada || totalCartas >= 40 ? 'disabled' : ''}>
+        ${btnText}
       </button>
     `;
 
     const btnAdd = cardEl.querySelector('.btn-visual-add');
-    btnAdd.onclick = (e) => {
-      e.stopPropagation();
-      agregarCartaAMazo(c.id);
-    };
+    if (btnAdd) {
+      btnAdd.onclick = (e) => {
+        e.stopPropagation();
+        if (esNoObtenida) {
+          mostrarMensajeToast(isEn ? `You do not own ${c.nombre} in your collection. Buy packs in the Shop!` : `No posees ninguna copia de ${c.nombre} en tu colección. ¡Cómprala en la Tienda!`);
+          return;
+        }
+        agregarCartaAMazo(c.id);
+      };
+    }
 
-    // Al hacer clic en la tarjeta también agrega si es posible
     cardEl.onclick = () => {
-      if (copiasEnMazo < 3 && totalCartas < 40) {
+      if (esNoObtenida) {
+        mostrarMensajeToast(isEn ? `You do not own ${c.nombre} in your collection. Buy packs in the Shop!` : `No posees ninguna copia de ${c.nombre} en tu colección. ¡Cómprala en la Tienda!`);
+        return;
+      }
+      if (!estaMaxeada && totalCartas < 40) {
         agregarCartaAMazo(c.id);
       }
     };
@@ -7913,9 +8224,20 @@ function agregarCartaAMazo(cartaId) {
     return;
   }
 
+  const copiasColeccion = obtenerCopiasColeccion(cartaId);
+  if (copiasColeccion <= 0) {
+    mostrarMensajeToast(isEn ? "You do not own this card in your collection. Buy packs in the Shop!" : "No posees esta carta en tu colección. ¡Consíguela abriendo sobres en la Tienda!");
+    return;
+  }
+
   const conteo = mazoActual.cartas.filter(id => id === cartaId).length;
   if (conteo >= 3) {
-    mostrarMensajeToast(isEn ? "Limit reached: Maximum 3 copies of this card in a deck." : "Límite alcanzado: Máximo 3 copias de esta carta en el mazo.");
+    mostrarMensajeToast(isEn ? "Limit reached: Maximum 3 copies of this card in a deck." : "Límite alcanzado: Máximo 3 copias de esta carta en una baraja.");
+    return;
+  }
+
+  if (conteo >= copiasColeccion) {
+    mostrarMensajeToast(isEn ? `You do not have more copies available in your collection (${copiasColeccion} owned). Get more in the Shop!` : `No tienes más copias disponibles de esta carta en tu colección (${copiasColeccion} obtenida(s)). ¡Consigue más en la Tienda!`);
     return;
   }
 
@@ -7951,13 +8273,44 @@ function autocompletarMazoActual() {
     return;
   }
 
-  const todasLasCartas = Object.values(bdCartas);
+  // 1. REVISAR SI EL MAZO TIENE MONSTRUOS CAPACES DE MEGAEVOLUCIONAR
+  // Si contiene monstruos compatibles con megaevolución y el mazo no tiene la carta mágica 250, agregarla si el usuario la posee
+  const tieneMegaMonstruo = mazoActual.cartas.some(id => puedeMegaevolucionarMonstruo(id));
+  if (tieneMegaMonstruo && !mazoActual.cartas.includes(250) && obtenerCopiasColeccion(250) > 0 && mazoActual.cartas.length < 40) {
+    mazoActual.cartas.push(250);
+  }
+
+  // 2. REVISAR LÍNEAS EVOLUTIVAS DE LAS CARTAS ESCOGIDAS
+  // Para cada monstruo en el mazo, intentar agregar sus pre-evoluciones y evoluciones compatibles desde la colección
+  const monstruosEnMazo = [...new Set(mazoActual.cartas.filter(id => {
+    const c = bdCartas[id];
+    return c && c.tipoCarta === 'monstruo' && !c.esMegaEvolucion;
+  }))];
+
+  for (const mid of monstruosEnMazo) {
+    if (mazoActual.cartas.length >= 40) break;
+    const familia = obtenerFamiliaEvolutiva(mid);
+    for (const famId of familia) {
+      if (mazoActual.cartas.length >= 40) break;
+      const owned = obtenerCopiasColeccion(famId);
+      if (owned > 0) {
+        const inDeck = mazoActual.cartas.filter(x => x === famId).length;
+        const maxPermitido = Math.min(3, owned);
+        if (inDeck < maxPermitido) {
+          mazoActual.cartas.push(famId);
+        }
+      }
+    }
+  }
+
+  // 3. COMPLETAR HASTA 40 CARTAS RESPETANDO COLECCIÓN Y PROPORCIÓN (20 Básicos, 5 Invocaciones, 15 Magias/Trampas)
+  const todasLasCartas = Object.values(bdCartas).filter(c => !c.esMegaEvolucion && obtenerCopiasColeccion(c.id) > 0);
   const basicos = todasLasCartas.filter(c => c.tipoCarta === 'monstruo' && c.sacrificios === 0 && c.etapa === 'Básico').map(c => c.id);
   const evoluciones = todasLasCartas.filter(c => c.tipoCarta === 'monstruo' && (c.sacrificios > 0 || c.etapa !== 'Básico')).map(c => c.id);
   const magiasYEquipos = todasLasCartas.filter(c => c.tipoCarta === 'magia' || c.tipoCarta === 'trampa').map(c => c.id);
 
   let intentos = 0;
-  while (mazoActual.cartas.length < 40 && intentos < 800) {
+  while (mazoActual.cartas.length < 40 && intentos < 1200) {
     intentos++;
     const countBasicos = mazoActual.cartas.filter(id => {
       const c = bdCartas[id];
@@ -7974,21 +8327,23 @@ function autocompletarMazoActual() {
       return c && (c.tipoCarta === 'magia' || c.tipoCarta === 'trampa');
     }).length;
 
-    // Proporción requerida: 20 Básicos, 5 Invocaciones/Evoluciones, 15 Magias/Equipos/Trampas
     let pool = basicos;
-    if (countBasicos < 20) {
+    if (countBasicos < 20 && basicos.length > 0) {
       pool = basicos;
-    } else if (countInvocaciones < 5) {
+    } else if (countInvocaciones < 5 && evoluciones.length > 0) {
       pool = evoluciones;
-    } else if (countMagias < 15) {
+    } else if (countMagias < 15 && magiasYEquipos.length > 0) {
       pool = magiasYEquipos;
     } else {
-      pool = basicos;
+      pool = todasLasCartas.map(c => c.id);
     }
 
+    if (!pool || pool.length === 0) break;
+
     const candId = pool[Math.floor(Math.random() * pool.length)];
+    const owned = obtenerCopiasColeccion(candId);
     const copies = mazoActual.cartas.filter(id => id === candId).length;
-    if (copies < 3) {
+    if (copies < Math.min(3, owned)) {
       mazoActual.cartas.push(candId);
     }
   }
@@ -8000,7 +8355,9 @@ function autocompletarMazoActual() {
   renderizarColeccionDeckBuilder();
   renderizarSelectorMazosPrePartida();
 
-  mostrarMensajeToast(isEn ? "Deck completed to 40 cards (20 Monsters, 5 Summons, 15 Spells/Traps)!" : "¡Mazo autocompletado a 40 cartas (20 Monstruos, 5 Invocaciones, 15 Hechizos/Equipos/Trampas)!");
+  mostrarMensajeToast(isEn
+    ? `Deck auto-completed (${mazoActual.cartas.length}/40 cards) using your collection and evolutionary lines!`
+    : `¡Mazo autocompletado (${mazoActual.cartas.length}/40 cartas) con líneas evolutivas y tu colección!`);
 }
 
 function vaciarMazoActual() {
@@ -8337,6 +8694,24 @@ var UserManager = {
   normalizarUsuario(u) {
     if (!u) return null;
     const rawPass = u.password || '';
+    const stats = u.stats || {};
+    const isAdmin = (u.role === 'admin' || (u.username && u.username.toLowerCase() === 'admin'));
+
+    if (typeof stats.pokedolares !== 'number') {
+      stats.pokedolares = isAdmin ? 999999 : 20000;
+    }
+    if (typeof stats.expLiga !== 'number') {
+      stats.expLiga = isAdmin ? 950 : Math.max(0, (stats.victorias || 0) * 12 - (stats.derrotas || 0) * 8);
+    }
+    const infoRango = obtenerInfoRangoLiga(stats.expLiga);
+    stats.rango = infoRango.rango.nombre;
+
+    let col = u.coleccion || stats.coleccion;
+    if (!col || typeof col !== 'object') {
+      col = isAdmin ? generarColeccionCompletaAdmin() : generarColeccionTresMazosIniciales();
+    }
+    stats.coleccion = col;
+
     return {
       id: u.id || ('usr_' + Date.now().toString(36)),
       username: u.username,
@@ -8344,8 +8719,9 @@ var UserManager = {
       role: u.role || 'user',
       avatar: u.avatar || '🧢',
       createdAt: u.created_at || u.createdAt || new Date().toISOString(),
-      stats: u.stats || { duelos: 0, victorias: 0, derrotas: 0, puntos: 0, rango: 'Aspirante' },
-      mazos: Array.isArray(u.mazos) ? u.mazos : []
+      stats: stats,
+      mazos: Array.isArray(u.mazos) ? u.mazos : [],
+      coleccion: col
     };
   },
 
@@ -8490,6 +8866,7 @@ var UserManager = {
     // Asegurar cuenta admin en caché local con hash SHA-256
     const hasAdmin = users.some(u => u.username && u.username.toLowerCase() === 'admin');
     if (!hasAdmin) {
+      const adminCol = generarColeccionCompletaAdmin();
       users.unshift({
         id: 'usr_admin',
         username: 'admin',
@@ -8502,9 +8879,13 @@ var UserManager = {
           victorias: 0,
           derrotas: 0,
           puntos: 0,
-          rango: 'Maestro Pokémon'
+          pokedolares: 999999,
+          expLiga: 950,
+          rango: 'Maestro Pokémon 👑',
+          coleccion: adminCol
         },
-        mazos: []
+        mazos: [],
+        coleccion: adminCol
       });
       modificado = true;
     }
@@ -8591,12 +8972,15 @@ var UserManager = {
   },
 
   async register(username, password, starterChoice = 'fuego') {
-    const cleanUser = username.trim();
-    if (cleanUser.length < 3) {
-      return { ok: false, error: "El nombre de usuario debe tener al menos 3 caracteres." };
+    const valUser = validarUsernameSeguro(username);
+    if (!valUser.ok) {
+      return valUser;
     }
-    if (!password || password.length < 3) {
-      return { ok: false, error: "La contraseña debe tener al menos 3 caracteres." };
+    const cleanUser = valUser.username;
+
+    const valPass = validarPasswordSegura(password);
+    if (!valPass.ok) {
+      return valPass;
     }
 
     const passwordHash = hashPasswordSHA256(password);
@@ -8618,6 +9002,7 @@ var UserManager = {
     const avatars = ['🧢', '⚡', '🔥', '💧', '🌿', '🔮', '🥊', '🎮'];
     const randomAvatar = avatars[Math.floor(Math.random() * avatars.length)];
     const defaultDecks = generarCincoMazosNuevoUsuario(starterChoice);
+    const initialCollection = generarColeccionNuevoUsuario(starterChoice);
 
     const payload = {
       username: cleanUser,
@@ -8629,10 +9014,14 @@ var UserManager = {
         victorias: 0,
         derrotas: 0,
         puntos: 0,
-        rango: 'Aspirante',
-        bloqueado: false
+        pokedolares: 20000,
+        expLiga: 0,
+        rango: 'Bronce I 🥉',
+        bloqueado: false,
+        coleccion: initialCollection
       },
-      mazos: defaultDecks
+      mazos: defaultDecks,
+      coleccion: initialCollection
     };
 
     let createdUser = null;
@@ -8871,14 +9260,14 @@ var UserManager = {
     return { ok: true };
   },
 
-  registrarResultadoDuelo(esVictoria, puntosGanados) {
+  registrarResultadoDuelo(esVictoria, puntosGanados, recompensaCalc = null) {
     if (!this.currentUser) return;
 
     const users = this.getAllUsers();
     let user = users.find(u => u.username.toLowerCase() === this.currentUser.username.toLowerCase()) || this.currentUser;
 
     if (!user.stats) {
-      user.stats = { duelos: 0, victorias: 0, derrotas: 0, puntos: 0 };
+      user.stats = { duelos: 0, victorias: 0, derrotas: 0, puntos: 0, pokedolares: 20000, expLiga: 0 };
     }
 
     user.stats.duelos = (user.stats.duelos || 0) + 1;
@@ -8889,25 +9278,35 @@ var UserManager = {
     }
     user.stats.puntos = (user.stats.puntos || 0) + (puntosGanados || 0);
 
-    // Calcular rango
-    user.stats.rango = this.calcularRango(user.stats.puntos);
+    // Actualizar Pokédólares ($) y EXP de Liga
+    if (recompensaCalc) {
+      user.stats.pokedolares = (user.stats.pokedolares || 20000) + (recompensaCalc.totalPokedolares || 0);
+      const delta = (typeof recompensaCalc.deltaExp === 'number') ? recompensaCalc.deltaExp : (esVictoria ? 12 : -8);
+      user.stats.expLiga = Math.max(0, (user.stats.expLiga || 0) + delta);
+    } else {
+      user.stats.pokedolares = (user.stats.pokedolares || 20000) + (esVictoria ? 1800 : 600);
+      user.stats.expLiga = Math.max(0, (user.stats.expLiga || 0) + (esVictoria ? 12 : -8));
+    }
+
+    const infoRango = obtenerInfoRangoLiga(user.stats.expLiga);
+    user.stats.rango = infoRango.rango.nombre;
 
     this.saveUsers(users);
     this.currentUser = user;
     this.renderUserUI();
 
     // Sincronizar estadísticas en Supabase
-    SupabaseCloud.updateUserByUsername(user.username, { stats: user.stats }).catch(err => {
+    SupabaseCloud.updateUserByUsername(user.username, {
+      stats: user.stats,
+      coleccion: user.coleccion || user.stats.coleccion
+    }).catch(err => {
       console.warn("[Sincronización] Progreso guardado localmente.");
     });
   },
 
-  calcularRango(puntos) {
-    if (puntos >= 15000) return "Leyenda de la Liga 👑";
-    if (puntos >= 8000) return "Maestro Poké-Oh 🌟";
-    if (puntos >= 4000) return "Entrenador Avanzado ⚡";
-    if (puntos >= 1500) return "Duelista Promesa ⚔️";
-    return "Aspirante 🧢";
+  calcularRango(exp) {
+    const info = obtenerInfoRangoLiga(exp);
+    return info.rango.nombre;
   },
 
   renderUserUI() {
@@ -8944,6 +9343,32 @@ var UserManager = {
       if (avatarElSide) avatarElSide.textContent = "👤";
       estadoJugador.nombre = "Invitado";
     }
+
+    // Actualizar Billetera de Pokédólares en Menú, Barra Lateral, Deck Builder y Tienda
+    const saldo = user && user.stats && typeof user.stats.pokedolares === 'number' ? user.stats.pokedolares : 20000;
+    const saldoTxt = `${saldo.toLocaleString()}`;
+
+    const elMenuWallet = document.getElementById('menu-user-pokedolares');
+    if (elMenuWallet) elMenuWallet.textContent = saldoTxt;
+
+    const elSideWallet = document.getElementById('sidebar-user-pokedolares');
+    if (elSideWallet) elSideWallet.textContent = saldoTxt;
+
+    const elDeckWallet = document.getElementById('deck-builder-wallet');
+    if (elDeckWallet) elDeckWallet.textContent = saldoTxt;
+
+    const elShopWallet = document.getElementById('shop-wallet-display');
+    if (elShopWallet) elShopWallet.textContent = saldoTxt;
+
+    // Actualizar Rango de Liga
+    const expLiga = user && user.stats && typeof user.stats.expLiga === 'number' ? user.stats.expLiga : 0;
+    const infoRango = obtenerInfoRangoLiga(expLiga);
+
+    const elSideTier = document.getElementById('sidebar-league-tier');
+    if (elSideTier) elSideTier.textContent = `${infoRango.rango.nombre} ${infoRango.rango.icono}`;
+
+    const elScoreTier = document.getElementById('scoreboard-tier');
+    if (elScoreTier) elScoreTier.textContent = `Rango: ${infoRango.rango.nombre}`;
 
     this.renderProfileTab();
     this.renderAdminTable();
@@ -8991,10 +9416,34 @@ var UserManager = {
     if (elLosses) elLosses.textContent = losses;
     const elRate = document.getElementById('profile-stat-rate');
     if (elRate) elRate.textContent = `${winrate}%`;
-    const elPts = document.getElementById('profile-stat-points');
-    if (elPts) elPts.textContent = user.stats?.puntos || 0;
+
+    const elPokedolares = document.getElementById('profile-stat-pokedolares');
+    if (elPokedolares) elPokedolares.textContent = `${(user.stats?.pokedolares || 20000).toLocaleString()}`;
+
+    const expLiga = typeof user.stats?.expLiga === 'number' ? user.stats.expLiga : 0;
+    const infoRango = obtenerInfoRangoLiga(expLiga);
+
     const elRank = document.getElementById('profile-stat-rank');
-    if (elRank) elRank.textContent = user.stats?.rango || 'Aspirante';
+    if (elRank) elRank.textContent = `${infoRango.rango.nombre} ${infoRango.rango.icono}`;
+
+    const elIcon = document.getElementById('profile-league-icon');
+    if (elIcon) elIcon.textContent = infoRango.rango.icono;
+
+    const elLeagueName = document.getElementById('profile-league-name');
+    if (elLeagueName) elLeagueName.textContent = infoRango.rango.nombre;
+
+    const elLeagueExp = document.getElementById('profile-league-exp-text');
+    if (elLeagueExp) elLeagueExp.textContent = `${infoRango.expEnDivision} / 50 EXP (Total: ${infoRango.expTotal})`;
+
+    const elLeagueFill = document.getElementById('profile-league-fill');
+    if (elLeagueFill) elLeagueFill.style.width = `${infoRango.porcentaje}%`;
+
+    const elLeagueSub = document.getElementById('profile-league-sub');
+    if (elLeagueSub) {
+      elLeagueSub.textContent = infoRango.siguiente
+        ? `Siguiente: ${infoRango.siguiente.nombre} (+12 Victoria / -8 Derrota)`
+        : '¡Rango Máximo de Liga Alcanzado! 👑';
+    }
   },
 
   renderAdminTable() {
@@ -11286,6 +11735,470 @@ function inicializarAdaptacionMovilYRotacion() {
 }
 
 // Inicialización de la aplicación completa
+
+// ==========================================================
+// 21. SISTEMA DE TIENDA DE CARTAS & SOBRES DE REFUERZO (v0.3.5)
+// ==========================================================
+const DEFINICION_SOBRES = [
+  {
+    id: "fuego",
+    nombre: "Sobre Fuego Voraz",
+    elemento: "fuego",
+    icono: "🔥",
+    costo: 5000,
+    colorFondo: "linear-gradient(135deg, #e74c3c, #c0392b)",
+    descripcion: "Contiene 5 cartas distintas de tipo Fuego. Posibilidad de Charizard, Arcanine, Magmar y Llamarada.",
+    filtro: (c) => c.tipoCarta === 'monstruo' && c.elemento === 'fuego'
+  },
+  {
+    id: "agua",
+    nombre: "Sobre Marea Abisal",
+    elemento: "agua",
+    icono: "💧",
+    costo: 5000,
+    colorFondo: "linear-gradient(135deg, #0984e3, #2980b9)",
+    descripcion: "Contiene 5 cartas distintas de tipo Agua. Posibilidad de Blastoise, Gyarados, Lapras y Vaporeon.",
+    filtro: (c) => c.tipoCarta === 'monstruo' && c.elemento === 'agua'
+  },
+  {
+    id: "planta",
+    nombre: "Sobre Selva Eterna",
+    elemento: "planta",
+    icono: "🌿",
+    costo: 5000,
+    colorFondo: "linear-gradient(135deg, #27ae60, #2ecc71)",
+    descripcion: "Contiene 5 cartas distintas de tipo Planta y Bicho. Posibilidad de Venusaur, Scyther, Pinsir y Vileplume.",
+    filtro: (c) => c.tipoCarta === 'monstruo' && (c.elemento === 'planta' || c.elemento === 'bicho')
+  },
+  {
+    id: "electrico",
+    nombre: "Sobre Trueno Salvaje",
+    elemento: "electrico",
+    icono: "⚡",
+    costo: 5000,
+    colorFondo: "linear-gradient(135deg, #f39c12, #f1c40f)",
+    descripcion: "Contiene 5 cartas distintas de tipo Eléctrico. Posibilidad de Raichu, Electabuzz, Jolteon y Magneton.",
+    filtro: (c) => c.tipoCarta === 'monstruo' && c.elemento === 'electrico'
+  },
+  {
+    id: "psiquico",
+    nombre: "Sobre Mente Cósmica",
+    elemento: "psiquico",
+    icono: "🔮",
+    costo: 5000,
+    colorFondo: "linear-gradient(135deg, #8e44ad, #9b59b6)",
+    descripcion: "Contiene 5 cartas distintas de tipo Psíquico y Fantasma. Posibilidad de Alakazam, Gengar, Hypno y Haunter.",
+    filtro: (c) => c.tipoCarta === 'monstruo' && (c.elemento === 'psiquico' || c.elemento === 'fantasma')
+  },
+  {
+    id: "combate",
+    nombre: "Sobre Puño de Roca",
+    elemento: "lucha",
+    icono: "🥊",
+    costo: 5000,
+    colorFondo: "linear-gradient(135deg, #d35400, #e67e22)",
+    descripcion: "Contiene 5 cartas distintas de tipo Lucha, Tierra y Roca. Posibilidad de Machamp, Golem, Rhydon y Onix.",
+    filtro: (c) => c.tipoCarta === 'monstruo' && (c.elemento === 'lucha' || c.elemento === 'tierra' || c.elemento === 'roca')
+  },
+  {
+    id: "normal_dragon",
+    nombre: "Sobre Dragón & Viento",
+    elemento: "dragon",
+    icono: "🐉",
+    costo: 5000,
+    colorFondo: "linear-gradient(135deg, #34495e, #2c3e50)",
+    descripcion: "Contiene 5 cartas distintas de tipo Dragón, Hielo, Hada y Normal. Posibilidad de Snorlax, Dragonair, Tauros y Chansey.",
+    filtro: (c) => c.tipoCarta === 'monstruo' && (c.elemento === 'dragon' || c.elemento === 'hielo' || c.elemento === 'hada' || c.elemento === 'normal')
+  },
+  {
+    id: "magias_trampas",
+    nombre: "Sobre Arcano & Trampas",
+    elemento: "magia",
+    icono: "🪄",
+    costo: 5000,
+    colorFondo: "linear-gradient(135deg, #16a085, #1abc9c)",
+    descripcion: "Contiene 5 cartas mágicas, equipos y trampas secretas. Posibilidad de Poción Max, Protección, Manto Espejo y Ceniza Sagrada.",
+    filtro: (c) => (c.tipoCarta === 'magia' || c.tipoCarta === 'trampa') && c.id !== 250
+  },
+  {
+    id: "legendario",
+    nombre: "Sobre Leyendas Primigenias",
+    elemento: "legendario",
+    icono: "👑",
+    costo: 10000,
+    colorFondo: "linear-gradient(135deg, #f1c40f, #d4ac0d, #f39c12)",
+    esLegendario: true,
+    descripcion: "¡SOBRE SUPREMO! Garantiza 1 Pokémon Legendario (Mewtwo, Mew, Articuno, Zapdos, Moltres o Dragonite) + 4 cartas raras, tácticas o de Megaevolución.",
+    filtro: null
+  }
+];
+
+function calcularPesoRarezaCarta(c) {
+  if (!c) return 1;
+  if (c.esLegendario || [144, 145, 146, 149, 150, 151].includes(c.id)) {
+    return 2;
+  }
+  if (c.id === 250) {
+    return 3;
+  }
+  if (c.etapa === 'Fase 2' || c.sacrificios >= 2) {
+    return 8;
+  }
+  if (c.etapa === 'Fase 1' || c.sacrificios === 1) {
+    return 22;
+  }
+  if (c.tipoCarta === 'magia' || c.tipoCarta === 'trampa') {
+    if ([213, 214, 215, 241].includes(c.id)) return 10;
+    return 25;
+  }
+  if (c.etapa === 'Básico') {
+    if (c.atk >= 1500) return 25;
+    return 60;
+  }
+  return 30;
+}
+
+function seleccionarCartasPonderadas(pool, count, excludeIds = []) {
+  const seleccionadas = [];
+  const excluidos = new Set(excludeIds);
+
+  for (let s = 0; s < count; s++) {
+    const disponibles = pool.filter(c => c && !excluidos.has(c.id));
+    if (disponibles.length === 0) break;
+
+    const totalPeso = disponibles.reduce((acc, c) => acc + calcularPesoRarezaCarta(c), 0);
+    let r = Math.random() * totalPeso;
+    let elegida = disponibles[0];
+
+    for (const c of disponibles) {
+      r -= calcularPesoRarezaCarta(c);
+      if (r <= 0) {
+        elegida = c;
+        break;
+      }
+    }
+
+    seleccionadas.push(elegida);
+    excluidos.add(elegida.id);
+  }
+
+  return seleccionadas;
+}
+
+function generarContenidoSobre(sobreDef) {
+  if (sobreDef.id === 'legendario') {
+    const legendarios = [150, 151, 144, 145, 146, 149].map(id => bdCartas[id]).filter(Boolean);
+    const legElegido = legendarios[Math.floor(Math.random() * legendarios.length)];
+
+    const secundarioPool = Object.values(bdCartas).filter(c => {
+      if (!c || c.esMegaEvolucion) return false;
+      if (legendarios.some(lg => lg.id === c.id)) return false;
+      return c.etapa === 'Fase 2' || c.sacrificios >= 2 || c.tipoCarta === 'magia' || c.tipoCarta === 'trampa' || c.id === 250;
+    });
+
+    const elegidas = [legElegido];
+    const restantes = seleccionarCartasPonderadas(secundarioPool, 4, [legElegido.id]);
+    return [...elegidas, ...restantes];
+  } else {
+    const pool = Object.values(bdCartas).filter(c => {
+      if (!c || c.esMegaEvolucion) return false;
+      return sobreDef.filtro(c);
+    });
+    return seleccionarCartasPonderadas(pool, 5);
+  }
+}
+
+var TiendaCartas = {
+  cantidades: {},
+
+  init() {
+    DEFINICION_SOBRES.forEach(s => {
+      this.cantidades[s.id] = 1;
+    });
+
+    const btnShopMenu = document.getElementById('btn-menu-shop');
+    if (btnShopMenu) {
+      btnShopMenu.onclick = () => this.abrirTienda();
+    }
+
+    const btnWalletMenu = document.getElementById('btn-menu-wallet');
+    if (btnWalletMenu) {
+      btnWalletMenu.onclick = () => this.abrirTienda();
+    }
+
+    const btnShopDeck = document.getElementById('btn-open-shop-from-deck');
+    if (btnShopDeck) {
+      btnShopDeck.onclick = () => this.abrirTienda();
+    }
+
+    const btnClose = document.getElementById('btn-close-shop');
+    const btnCloseX = document.getElementById('btn-close-shop-x');
+    if (btnClose) btnClose.onclick = () => this.cerrarTienda();
+    if (btnCloseX) btnCloseX.onclick = () => this.cerrarTienda();
+
+    const btnGoDeck = document.getElementById('btn-shop-go-deck');
+    if (btnGoDeck) {
+      btnGoDeck.onclick = () => {
+        this.cerrarTienda();
+        if (typeof abrirDeckBuilder === 'function') abrirDeckBuilder();
+      };
+    }
+
+    const btnKeepShopping = document.getElementById('btn-booster-keep-shopping');
+    if (btnKeepShopping) {
+      btnKeepShopping.onclick = () => {
+        const modalBooster = document.getElementById('booster-open-modal');
+        if (modalBooster) modalBooster.classList.add('hidden');
+        this.abrirTienda();
+      };
+    }
+
+    const btnBoosterDeck = document.getElementById('btn-booster-go-deck');
+    if (btnBoosterDeck) {
+      btnBoosterDeck.onclick = () => {
+        const modalBooster = document.getElementById('booster-open-modal');
+        if (modalBooster) modalBooster.classList.add('hidden');
+        this.cerrarTienda();
+        if (typeof abrirDeckBuilder === 'function') abrirDeckBuilder();
+      };
+    }
+
+    this.renderizarSobres();
+  },
+
+  obtenerSaldoUsuario() {
+    const user = UserManager ? UserManager.currentUser : null;
+    if (user && user.stats && typeof user.stats.pokedolares === 'number') {
+      return user.stats.pokedolares;
+    }
+    return 20000;
+  },
+
+  abrirTienda() {
+    this.renderizarSobres();
+    const modal = document.getElementById('shop-modal');
+    if (modal) modal.classList.remove('hidden');
+    AudioManager.reproducirSFX('enter');
+  },
+
+  cerrarTienda() {
+    const modal = document.getElementById('shop-modal');
+    if (modal) modal.classList.add('hidden');
+  },
+
+  ajustarCantidad(sobreId, delta) {
+    const sobre = DEFINICION_SOBRES.find(s => s.id === sobreId);
+    if (!sobre) return;
+    const saldo = this.obtenerSaldoUsuario();
+    const maxPossible = Math.max(1, Math.floor(saldo / sobre.costo));
+
+    let actual = this.cantidades[sobreId] || 1;
+    actual = Math.max(1, Math.min(maxPossible, actual + delta));
+    this.cantidades[sobreId] = actual;
+    this.actualizarTarjetaSobre(sobreId);
+  },
+
+  fijarMaxCantidad(sobreId) {
+    const sobre = DEFINICION_SOBRES.find(s => s.id === sobreId);
+    if (!sobre) return;
+    const saldo = this.obtenerSaldoUsuario();
+    const maxPossible = Math.max(1, Math.floor(saldo / sobre.costo));
+    this.cantidades[sobreId] = maxPossible;
+    this.actualizarTarjetaSobre(sobreId);
+  },
+
+  actualizarTarjetaSobre(sobreId) {
+    const sobre = DEFINICION_SOBRES.find(s => s.id === sobreId);
+    if (!sobre) return;
+    const qty = this.cantidades[sobreId] || 1;
+    const costoTotal = qty * sobre.costo;
+    const saldo = this.obtenerSaldoUsuario();
+
+    const displayEl = document.getElementById(`shop-qty-val-${sobreId}`);
+    if (displayEl) displayEl.textContent = qty;
+
+    const btnBuy = document.getElementById(`shop-btn-buy-${sobreId}`);
+    if (btnBuy) {
+      btnBuy.textContent = `Comprar (${qty}) - ${costoTotal.toLocaleString()}`;
+      btnBuy.disabled = (saldo < costoTotal);
+    }
+  },
+
+  renderizarSobres() {
+    const grid = document.getElementById('shop-packs-grid');
+    const walletDisplay = document.getElementById('shop-wallet-display');
+    const saldo = this.obtenerSaldoUsuario();
+
+    if (walletDisplay) {
+      walletDisplay.textContent = `${saldo.toLocaleString()}`;
+    }
+
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    DEFINICION_SOBRES.forEach(s => {
+      const qty = this.cantidades[s.id] || 1;
+      const costoTotal = qty * s.costo;
+      const puedeComprar = saldo >= costoTotal;
+
+      const card = document.createElement('div');
+      card.className = `shop-pack-card ${s.esLegendario ? 'pack-legendary' : ''}`;
+      card.id = `shop-pack-${s.id}`;
+
+      card.innerHTML = `
+        <div class="shop-pack-header">
+          <div class="shop-pack-icon-wrap" style="background: ${s.colorFondo};">
+            ${s.icono}
+          </div>
+          <div class="shop-pack-title-box">
+            <span class="shop-pack-title">${escapeHtml(s.nombre)}</span>
+            <span class="shop-pack-price">${s.costo.toLocaleString()} Pokédólares</span>
+          </div>
+        </div>
+        <p class="shop-pack-desc">${escapeHtml(s.descripcion)}</p>
+        ${s.esLegendario ? '<div class="shop-pack-guarantee">✨ ¡1 Legendario Garantizado por Sobre!</div>' : ''}
+        <div class="shop-pack-footer">
+          <div class="shop-qty-row">
+            <span class="shop-qty-label">Cantidad:</span>
+            <div class="shop-qty-controls">
+              <button type="button" class="btn-qty-adj" onclick="TiendaCartas.ajustarCantidad('${s.id}', -1)">-</button>
+              <span class="shop-qty-display" id="shop-qty-val-${s.id}">${qty}</span>
+              <button type="button" class="btn-qty-adj" onclick="TiendaCartas.ajustarCantidad('${s.id}', 1)">+</button>
+              <button type="button" class="btn-qty-max" onclick="TiendaCartas.fijarMaxCantidad('${s.id}')">Máx</button>
+            </div>
+          </div>
+          <button type="button" class="shop-btn-buy" id="shop-btn-buy-${s.id}" onclick="TiendaCartas.comprarSobres('${s.id}')" ${!puedeComprar ? 'disabled' : ''}>
+            Comprar (${qty}) - ${costoTotal.toLocaleString()}
+          </button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  },
+
+  comprarSobres(sobreId) {
+    const sobre = DEFINICION_SOBRES.find(s => s.id === sobreId);
+    if (!sobre) return;
+
+    const user = UserManager ? UserManager.currentUser : null;
+    if (!user) {
+      if (typeof UserManager !== 'undefined') {
+        UserManager.exigirAutenticacion("Debes iniciar sesión para comprar sobres y guardar tu colección.");
+      }
+      return;
+    }
+
+    const qty = this.cantidades[sobreId] || 1;
+    const costoTotal = qty * sobre.costo;
+    const saldo = this.obtenerSaldoUsuario();
+
+    if (saldo < costoTotal) {
+      mostrarMensajeToast(`No posees suficientes Pokédólares (${saldo.toLocaleString()} de ${costoTotal.toLocaleString()}). ¡Gana duelos para obtener más!`);
+      return;
+    }
+
+    // Descontar Pokédólares (el Rango de Liga y EXP NO se reducen)
+    user.stats.pokedolares = saldo - costoTotal;
+
+    if (!user.coleccion) {
+      user.coleccion = generarColeccionTresMazosIniciales();
+    }
+
+    const cartasObtenidas = [];
+    for (let p = 0; p < qty; p++) {
+      const packCartas = generarContenidoSobre(sobre);
+      packCartas.forEach(c => {
+        if (c) {
+          const eraNueva = (user.coleccion[c.id] || 0) === 0;
+          user.coleccion[c.id] = (user.coleccion[c.id] || 0) + 1;
+          cartasObtenidas.push({
+            carta: c,
+            esNueva: eraNueva,
+            totalPoseidas: user.coleccion[c.id]
+          });
+        }
+      });
+    }
+
+    user.stats.coleccion = user.coleccion;
+
+    // Guardar usuario
+    const users = UserManager.getAllUsers();
+    const idx = users.findIndex(u => u.username.toLowerCase() === user.username.toLowerCase());
+    if (idx !== -1) users[idx] = user;
+    UserManager.saveUsers(users);
+    UserManager.saveCurrentUser(user);
+
+    SupabaseCloud.updateUserByUsername(user.username, {
+      stats: user.stats,
+      coleccion: user.coleccion
+    }).catch(err => {
+      console.warn("[Tienda] Colección guardada localmente.");
+    });
+
+    UserManager.renderUserUI();
+    if (typeof renderizarColeccionDeckBuilder === 'function') {
+      renderizarColeccionDeckBuilder();
+    }
+
+    AudioManager.reproducirSFX('hit-super');
+    this.cerrarTienda();
+    this.mostrarModalApertura(sobre, qty, cartasObtenidas);
+  },
+
+  mostrarModalApertura(sobre, qty, cartasObtenidas) {
+    const modal = document.getElementById('booster-open-modal');
+    const title = document.getElementById('booster-open-title');
+    const sub = document.getElementById('booster-open-subtitle');
+    const grid = document.getElementById('booster-opened-cards-grid');
+
+    if (!modal || !grid) return;
+
+    if (title) {
+      title.textContent = `¡${qty}x ${sobre.nombre} Abierto${qty > 1 ? 's' : ''}!`;
+    }
+    if (sub) {
+      sub.textContent = `Has obtenido ${cartasObtenidas.length} cartas para tu colección (sin duplicados dentro de cada sobre):`;
+    }
+
+    grid.innerHTML = '';
+
+    cartasObtenidas.forEach((item, idx) => {
+      const c = item.carta;
+      const cardEl = document.createElement('div');
+      cardEl.className = 'booster-revealed-card';
+      cardEl.style.animationDelay = `${idx * 0.04}s`;
+
+      const fallbackSrc = c.spriteEstatico || c.imagenOficial || 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';
+      const artSrc = c.imagenOficial || c.spriteCampo || c.spriteEstatico || fallbackSrc;
+
+      cardEl.innerHTML = `
+        <div class="booster-card-badge-status ${item.esNueva ? 'badge-new-card' : 'badge-extra-card'}">
+          ${item.esNueva ? '✨ ¡NUEVA!' : '+1 Copia'}
+        </div>
+        <div class="booster-card-art-box">
+          <img class="booster-card-art" src="${artSrc}" alt="${escapeHtml(c.nombre)}" onerror="this.onerror=null; this.src='${fallbackSrc}';" draggable="false">
+        </div>
+        <span class="booster-card-name">${escapeHtml(c.nombre)}</span>
+        <span class="booster-card-type-tag" style="background: rgba(255,255,255,0.1); font-size: 0.72rem; font-weight:700;">${c.tipoCarta === 'monstruo' ? (c.elemento || 'monstruo').toUpperCase() : c.tipoCarta.toUpperCase()}</span>
+        ${c.tipoCarta === 'monstruo' ? `<div class="booster-card-stats"><span>⚔️${c.atk}</span><span>🛡️${c.def}</span></div>` : ''}
+        <span class="booster-card-owned-count">Tienes: ${item.totalPoseidas} copias</span>
+      `;
+
+      configurarInspectorHover(cardEl, c, false, false);
+      grid.appendChild(cardEl);
+    });
+
+    modal.classList.remove('hidden');
+  }
+};
+
+if (typeof window !== 'undefined') {
+  window.DEFINICION_SOBRES = DEFINICION_SOBRES;
+  window.generarContenidoSobre = generarContenidoSobre;
+  window.TiendaCartas = TiendaCartas;
+}
+
 function inicializarJuegoCompleto() {
   inicializarAdaptacionMovilYRotacion();
   inicializarPanelRegistroAcciones();
@@ -11305,6 +12218,7 @@ function inicializarJuegoCompleto() {
 
   // Inicializar Sistema de Usuarios y Multijugador
   UserManager.init();
+  TiendaCartas.init();
   MultiplayerManager.init();
 
   aplicarIdioma('es');
