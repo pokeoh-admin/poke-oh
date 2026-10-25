@@ -21,7 +21,7 @@ const configuracionJuego = {
   lpMax: 8000,
   dificultadIA: 'medio', // 'facil', 'medio', 'dificil'
   mazoSeleccionadoIdx: 0,
-  volumenMaster: 1.0,
+  volumenMaster: 0.5,
   volumenMusica: 0.8,
   volumenSFX: 0.8,
   silenciadoTotal: false
