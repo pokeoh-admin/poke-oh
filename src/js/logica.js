@@ -8974,6 +8974,65 @@ var UserManager = {
     } catch (e) {}
   },
 
+  saveSession(user) {
+    this.saveCurrentUser(user);
+  },
+
+  findUser(username) {
+    if (!username) return null;
+    const clean = String(username).trim().toLowerCase();
+    if (this.currentUser && this.currentUser.username && this.currentUser.username.toLowerCase() === clean) {
+      return this.currentUser;
+    }
+    const users = this.getAllUsers();
+    const found = users.find(u => u && u.username && u.username.toLowerCase() === clean);
+    if (found) return found;
+
+    try {
+      const cached = localStorage.getItem('pokeoh_cached_user_' + clean);
+      if (cached) return this.normalizarUsuario(JSON.parse(cached));
+    } catch (e) {}
+
+    return null;
+  },
+
+  seleccionarTab(tabId) {
+    const tabs = document.querySelectorAll('.user-nav-tabs .rules-tab-btn');
+    const panes = document.querySelectorAll('.user-content-area .rules-tab-pane');
+    tabs.forEach(t => {
+      if (t.getAttribute('data-tab') === tabId) {
+        t.classList.add('active');
+      } else {
+        t.classList.remove('active');
+      }
+    });
+    panes.forEach(p => {
+      if (p.id === tabId) {
+        p.classList.add('active');
+      } else {
+        p.classList.remove('active');
+      }
+    });
+    if (tabId === 'tab-user-admin') {
+      this.sincronizarDesdeSupabase().then(() => this.renderAdminTable());
+    }
+  },
+
+  abrirModalUsuario(tabDeseada = null) {
+    const modal = document.getElementById('user-modal');
+    this.sincronizarDesdeSupabase();
+    this.renderUserUI();
+
+    if (this.currentUser) {
+      this.seleccionarTab(tabDeseada || 'tab-user-profile');
+    } else {
+      this.seleccionarTab(tabDeseada || 'tab-user-login');
+    }
+
+    if (modal) modal.classList.remove('hidden');
+    AudioManager.reproducirSFX('enter');
+  },
+
   loadCurrentUser() {
     const saved = this.getSavedUsername();
     if (!saved) {
@@ -9418,21 +9477,52 @@ var UserManager = {
     const elScoreTier = document.getElementById('scoreboard-tier');
     if (elScoreTier) elScoreTier.textContent = `Rango: ${infoRango.rango.nombre}`;
 
+    const btnArenaProf = document.getElementById('btn-arena-profile');
+    if (btnArenaProf) {
+      btnArenaProf.innerHTML = user ? `👤 <span>${escapeHtml(user.username)}</span>` : `🔑 <span>Acceso</span>`;
+      btnArenaProf.title = user ? `Mi Perfil (${user.username})` : 'Iniciar Sesión / Registrarse';
+    }
+
     this.renderProfileTab();
     this.renderAdminTable();
   },
 
   renderProfileTab() {
     const user = this.currentUser;
+    const tabProfile = document.getElementById('btn-tab-profile');
+    const tabLogin = document.getElementById('btn-tab-login');
+    const tabRegister = document.getElementById('btn-tab-register');
     const tabAdmin = document.getElementById('btn-tab-admin');
+    const modalTitle = document.getElementById('user-modal-title');
 
-    if (tabAdmin) {
-      tabAdmin.style.display = (user && user.role === 'admin') ? 'inline-block' : 'none';
-    }
+    if (user) {
+      // Sesión iniciada: SOLO mostrar Mi Perfil (y Panel Admin si es admin)
+      // Ocultar Iniciar Sesión y Registrarse
+      if (tabProfile) tabProfile.style.display = 'inline-flex';
+      if (tabLogin) tabLogin.style.display = 'none';
+      if (tabRegister) tabRegister.style.display = 'none';
+      if (tabAdmin) tabAdmin.style.display = (user.role === 'admin') ? 'inline-flex' : 'none';
+      if (modalTitle) modalTitle.innerHTML = '👤 Cuenta de Duelista & Perfil';
 
-    if (!user) {
-      const tabLogin = document.getElementById('btn-tab-login');
-      if (tabLogin) tabLogin.click();
+      const tabActualActive = document.querySelector('.user-nav-tabs .rules-tab-btn.active');
+      const targetTab = (tabActualActive && typeof tabActualActive.getAttribute === 'function') ? tabActualActive.getAttribute('data-tab') : null;
+      if (targetTab !== 'tab-user-admin') {
+        this.seleccionarTab('tab-user-profile');
+      }
+    } else {
+      // Sin sesión: SOLO mostrar Iniciar Sesión y Registrarse
+      // Ocultar Mi Perfil y Panel Admin
+      if (tabProfile) tabProfile.style.display = 'none';
+      if (tabAdmin) tabAdmin.style.display = 'none';
+      if (tabLogin) tabLogin.style.display = 'inline-flex';
+      if (tabRegister) tabRegister.style.display = 'inline-flex';
+      if (modalTitle) modalTitle.innerHTML = '🔑 Acceso de Duelista';
+
+      const tabActualActive = document.querySelector('.user-nav-tabs .rules-tab-btn.active');
+      const targetTab = (tabActualActive && typeof tabActualActive.getAttribute === 'function') ? tabActualActive.getAttribute('data-tab') : null;
+      if (targetTab !== 'tab-user-register') {
+        this.seleccionarTab('tab-user-login');
+      }
       return;
     }
 
@@ -9741,21 +9831,31 @@ var UserManager = {
     user.stats.pokedolares = nuevoDinero;
     user.stats.puntos = nuevosPuntos;
     user.stats.expLiga = nuevaExp;
+    const infoRango = obtenerInfoRangoLiga(nuevaExp);
+    user.stats.rango = infoRango.rango.nombre;
 
     // Actualizar en array local y persistir
     const users = this.getAllUsers();
-    const idx = users.findIndex(u => u.username.toLowerCase() === username.toLowerCase());
+    const idx = users.findIndex(u => u && u.username && u.username.toLowerCase() === username.toLowerCase());
     if (idx !== -1) {
       users[idx] = user;
       this.saveUsers(users);
+    } else {
+      users.push(user);
+      this.saveUsers(users);
     }
+
+    try {
+      localStorage.setItem('pokeoh_cached_user_' + username.toLowerCase(), JSON.stringify(user));
+    } catch (e) {}
 
     // Si el usuario editado es el actual o admin, refrescar sesión activa y badges en pantalla
     if (this.currentUser && this.currentUser.username.toLowerCase() === username.toLowerCase()) {
       this.currentUser.stats.pokedolares = nuevoDinero;
       this.currentUser.stats.puntos = nuevosPuntos;
       this.currentUser.stats.expLiga = nuevaExp;
-      this.saveSession(this.currentUser);
+      this.currentUser.stats.rango = infoRango.rango.nombre;
+      this.saveCurrentUser(this.currentUser);
       this.renderUserUI();
 
       const menuPokedolares = document.getElementById('menu-user-pokedolares');
@@ -9767,7 +9867,9 @@ var UserManager = {
 
     // Sincronizar en Supabase Cloud
     try {
-      await SupabaseCloud.updateUserByUsername(user.username, { stats: user.stats });
+      if (typeof SupabaseCloud !== 'undefined' && typeof SupabaseCloud.updateUserByUsername === 'function') {
+        await SupabaseCloud.updateUserByUsername(user.username, { stats: user.stats });
+      }
     } catch (err) {
       console.warn("[Admin] Datos sincronizados localmente.");
     }
@@ -9785,10 +9887,7 @@ var UserManager = {
     const btnClose = document.getElementById('btn-close-user');
 
     const abrir = () => {
-      this.sincronizarDesdeSupabase();
-      this.renderUserUI();
-      if (modal) modal.classList.remove('hidden');
-      AudioManager.reproducirSFX('enter');
+      this.abrirModalUsuario();
     };
 
     const cerrar = () => {
@@ -11838,6 +11937,13 @@ function actualizarBotonesFullscreenUI() {
   if (btnArenaFs) {
     btnArenaFs.innerHTML = isFull ? `${SVG_FS_EXIT} <span>Salir Full</span>` : `${SVG_FS_ENTER} <span>Full</span>`;
   }
+
+  const btnArenaProf = document.getElementById('btn-arena-profile');
+  if (btnArenaProf && typeof UserManager !== 'undefined') {
+    const usr = UserManager.currentUser;
+    btnArenaProf.innerHTML = usr ? `👤 <span>${escapeHtml(usr.username)}</span>` : `🔑 <span>Acceso</span>`;
+    btnArenaProf.title = usr ? `Mi Perfil (${usr.username})` : 'Iniciar Sesión / Registrarse';
+  }
 }
 
 async function toggleFullscreenJuego() {
@@ -11924,6 +12030,33 @@ function inicializarAdaptacionMovilYRotacion() {
     btnFsArena.title = 'Alternar Pantalla Completa';
     btnFsArena.addEventListener('click', toggleFullscreenJuego);
     phaseControls.appendChild(btnFsArena);
+  }
+
+  if (phaseControls && !document.getElementById('btn-arena-profile')) {
+    const btnProfileArena = document.createElement('button');
+    btnProfileArena.type = 'button';
+    btnProfileArena.id = 'btn-arena-profile';
+    btnProfileArena.className = 'btn-arena-fullscreen';
+    btnProfileArena.innerHTML = '👤 <span>Perfil</span>';
+    btnProfileArena.title = 'Ver mi perfil de usuario y estadísticas';
+    btnProfileArena.addEventListener('click', () => {
+      if (typeof UserManager !== 'undefined') {
+        UserManager.abrirModalUsuario('tab-user-profile');
+      }
+    });
+    phaseControls.appendChild(btnProfileArena);
+  }
+
+  const playerHud = document.querySelector('.player-hud .hud-profile');
+  if (playerHud && !playerHud._hasProfileClick) {
+    playerHud._hasProfileClick = true;
+    playerHud.style.cursor = 'pointer';
+    playerHud.title = 'Ver mi perfil de usuario y estadísticas';
+    playerHud.addEventListener('click', () => {
+      if (typeof UserManager !== 'undefined') {
+        UserManager.abrirModalUsuario('tab-user-profile');
+      }
+    });
   }
 
   const btnMenuFs = document.getElementById('btn-menu-fullscreen');

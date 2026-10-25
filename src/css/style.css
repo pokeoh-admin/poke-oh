@@ -136,6 +136,12 @@ body {
   align-items: center;
   gap: 10px;
   min-width: 140px;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.player-hud .hud-profile:hover {
+  transform: scale(1.03);
 }
 
 .avatar-icon {
@@ -3652,6 +3658,13 @@ body {
   padding: 20px 24px;
 }
 
+.user-content-area {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
 .user-form {
   max-width: 500px;
   margin: 0 auto;
@@ -3921,6 +3934,10 @@ body {
 }
 
 /* Modal de Modificación de Datos de Usuario (Admin) */
+#admin-edit-user-modal {
+  z-index: 70000 !important;
+}
+
 .admin-edit-box {
   width: 92%;
   max-width: 480px;
