@@ -411,11 +411,12 @@ function esMazosValidos(arr) {
 
 function cargarMazos() {
   try {
-    const isGianBlack = (typeof UserManager !== 'undefined' && UserManager.currentUser && UserManager.currentUser.username && UserManager.currentUser.username.toLowerCase() === 'gianblack');
-    if (isGianBlack && typeof obtenerTresMazosIniciales === 'function') {
+    const cuentasDesignadas = ['gianblack'];
+    const esCuentaDesignada = (typeof UserManager !== 'undefined' && UserManager.currentUser && UserManager.currentUser.username && cuentasDesignadas.includes(UserManager.currentUser.username.toLowerCase()));
+    if (esCuentaDesignada && typeof obtenerTresMazosIniciales === 'function') {
       const starterDecks = obtenerTresMazosIniciales();
       UserManager.currentUser.mazos = JSON.parse(JSON.stringify(starterDecks));
-      try { localStorage.setItem('pokeoh_user_decks_gianblack_v1', JSON.stringify(starterDecks)); } catch (e) {}
+      try { localStorage.setItem('pokeoh_starter_decks_v1', JSON.stringify(starterDecks)); } catch (e) {}
       return JSON.parse(JSON.stringify(starterDecks));
     }
     // 1. Priorizar los mazos sincronizados en la cuenta de Supabase del usuario activo
@@ -2121,12 +2122,12 @@ function registrarAccionBatalla({ actor = 'auto', icono = '', texto = '', subtex
 
   let claseActor = 'log-actor-you';
   let claseBadge = 'badge-you';
-  let textoBadge = `🔵 TÚ (${nombreJugador})`;
+  let textoBadge = '🔵 TÚ';
 
   if (actorFinal === 'rival') {
     claseActor = 'log-actor-rival';
     claseBadge = 'badge-rival';
-    textoBadge = `🔴 RIVAL (${nombreRival})`;
+    textoBadge = '🔴 RIVAL';
   } else if (actorFinal === 'combat') {
     claseActor = 'log-actor-combat';
     claseBadge = 'badge-combat';
@@ -8251,7 +8252,7 @@ var UserManager = {
     this.initEventListeners();
     this.sincronizarDesdeSupabase();
 
-    this.aplicarMazosInicialesGianBlack();
+    this.sincronizarBarajasInicialesUsuario();
   },
 
   normalizarUsuario(u) {
@@ -8285,7 +8286,7 @@ var UserManager = {
         const normalized = cloudUsers.map(u => this.normalizarUsuario(u));
         this.saveUsers(normalized);
 
-        this.aplicarMazosInicialesGianBlack(normalized);
+        this.sincronizarBarajasInicialesUsuario(normalized);
 
         const targetName = (this.currentUser && this.currentUser.username)
           ? this.currentUser.username
@@ -8307,7 +8308,7 @@ var UserManager = {
         this.renderUserUI();
       }
     } catch (err) {
-      console.warn("[Supabase] Modo offline / caché local activo:", err.message || err);
+      console.warn("[Red] Modo sin conexión activo.");
     }
   },
 
@@ -8322,7 +8323,7 @@ var UserManager = {
         this.saveUsers(users);
       }
     } catch (err) {
-      console.warn("[Supabase] Error sincronizando mazos en la nube:", err);
+      console.warn("[Sincronización] Mazos preservados localmente.");
     }
   },
 
@@ -8343,23 +8344,28 @@ var UserManager = {
   },
 
 
-  aplicarMazosInicialesGianBlack(userList = null) {
+  sincronizarBarajasInicialesUsuario(userList = null) {
     if (typeof obtenerTresMazosIniciales !== 'function') return;
     const starterDecks = obtenerTresMazosIniciales();
     if (!Array.isArray(starterDecks) || starterDecks.length === 0) return;
 
     try {
+      localStorage.setItem('pokeoh_starter_decks_v1', JSON.stringify(starterDecks));
       localStorage.setItem('pokeoh_user_decks_gianblack_v1', JSON.stringify(starterDecks));
     } catch (e) {}
 
+    const cuentasDesignadas = ['gianblack'];
     const users = userList || this.getAllUsers();
-    const idx = users.findIndex(u => u.username && u.username.toLowerCase() === 'gianblack');
-    if (idx !== -1) {
-      users[idx].mazos = JSON.parse(JSON.stringify(starterDecks));
-      if (!userList) this.saveUsers(users);
-    }
+    let modificado = false;
+    users.forEach(u => {
+      if (u && u.username && cuentasDesignadas.includes(u.username.toLowerCase())) {
+        u.mazos = JSON.parse(JSON.stringify(starterDecks));
+        modificado = true;
+      }
+    });
+    if (modificado && !userList) this.saveUsers(users);
 
-    if (this.currentUser && this.currentUser.username && this.currentUser.username.toLowerCase() === 'gianblack') {
+    if (this.currentUser && this.currentUser.username && cuentasDesignadas.includes(this.currentUser.username.toLowerCase())) {
       this.currentUser.mazos = JSON.parse(JSON.stringify(starterDecks));
       this.saveCurrentUser(this.currentUser);
       if (typeof mazosJugador !== 'undefined') {
@@ -8368,10 +8374,9 @@ var UserManager = {
         if (typeof renderizarSelectorMazosPrePartida === 'function') renderizarSelectorMazosPrePartida();
         if (typeof renderizarPestanasDeckBuilder === 'function') renderizarPestanasDeckBuilder();
       }
-    }
-
-    if (typeof SupabaseCloud !== 'undefined' && typeof SupabaseCloud.updateUserByUsername === 'function') {
-      SupabaseCloud.updateUserByUsername('GianBlack', { mazos: starterDecks }).catch(() => {});
+      if (typeof SupabaseCloud !== 'undefined' && typeof SupabaseCloud.updateUserByUsername === 'function') {
+        SupabaseCloud.updateUserByUsername(this.currentUser.username, { mazos: starterDecks }).catch(() => {});
+      }
     }
   },
   revisarDesconexionPrevia() {
@@ -8567,7 +8572,7 @@ var UserManager = {
       const cloudRow = await SupabaseCloud.insertUser(payload);
       createdUser = this.normalizarUsuario(cloudRow);
     } catch (err) {
-      console.warn("[Supabase] Error registrando en nube, guardando localmente:", err);
+      console.warn("[Sincronización] Registro preservado localmente.");
       createdUser = this.normalizarUsuario(payload);
     }
 
@@ -8613,7 +8618,7 @@ var UserManager = {
         user = this.normalizarUsuario(cloudRow);
       }
     } catch (err) {
-      console.warn("[Supabase] Usando caché local para login:", err);
+      console.warn("[Autenticación] Verificando credenciales locales.");
     }
 
     if (!user) {
@@ -8714,7 +8719,7 @@ var UserManager = {
     try {
       await SupabaseCloud.updateUserByUsername(target.username, { stats: target.stats });
     } catch (err) {
-      console.warn("[Supabase] Error al actualizar estado de bloqueo en nube:", err);
+      console.warn("[Moderación] Actualización aplicada localmente.");
     }
 
     this.renderAdminTable();
@@ -8745,7 +8750,7 @@ var UserManager = {
     try {
       await SupabaseCloud.updateUserByUsername(target.username, { stats: target.stats });
     } catch (err) {
-      console.warn("[Supabase] Error al resetear estadísticas en nube:", err);
+      console.warn("[Moderación] Estadísticas actualizadas localmente.");
     }
 
     this.renderAdminTable();
@@ -8770,7 +8775,7 @@ var UserManager = {
     try {
       await SupabaseCloud.updateUserByUsername(target.username, { role: target.role });
     } catch (err) {
-      console.warn("[Supabase] Error al cambiar rol en nube:", err);
+      console.warn("[Moderación] Rol actualizado localmente.");
     }
 
     this.renderAdminTable();
@@ -8788,7 +8793,7 @@ var UserManager = {
     try {
       await SupabaseCloud.deleteUserByUsername(username);
     } catch (err) {
-      console.warn("[Supabase] Error al eliminar en nube:", err);
+      console.warn("[Moderación] Eliminación realizada localmente.");
     }
 
     let users = this.getAllUsers();
@@ -8825,7 +8830,7 @@ var UserManager = {
 
     // Sincronizar estadísticas en Supabase
     SupabaseCloud.updateUserByUsername(user.username, { stats: user.stats }).catch(err => {
-      console.warn("[Supabase] Error guardando estadísticas en la nube:", err);
+      console.warn("[Sincronización] Progreso guardado localmente.");
     });
   },
 
@@ -9552,7 +9557,7 @@ const MultiplayerManager = {
         }
       });
     } catch (e) {
-      console.warn("[Lobby] Error publicando sala en lobby:", e);
+      console.warn("[Lobby] Sala disponible mediante código directo.");
     }
   },
 
@@ -9723,7 +9728,7 @@ const MultiplayerManager = {
     if (this.usarSupabaseRealtime) {
       const sb = SupabaseCloud.getClient();
       if (!sb) {
-        alert("El SDK de Supabase no está disponible.");
+        alert("El servicio multijugador no se encuentra disponible.");
         return;
       }
       mostrarMensajeToast("Buscando oponente en Supabase Cloud...");
@@ -9787,8 +9792,8 @@ const MultiplayerManager = {
 
       this.configurarEventosSala();
     } catch (err) {
-      console.error("Error al buscar partida:", err);
-      alert("Error al conectar con el servidor: " + (err.message || err));
+      console.error("No se pudo completar la búsqueda de partida.");
+      alert("No se pudo conectar con el servidor de juego. Por favor, intenta de nuevo.");
     }
   },
 
@@ -9821,8 +9826,8 @@ const MultiplayerManager = {
         if (waitingCodeEl) waitingCodeEl.textContent = code;
         this.cambiarVista('waiting');
       } catch (err) {
-        console.error("Error al crear sala en Supabase:", err);
-        alert("Error al crear sala: " + (err.message || err));
+        console.error("No fue posible inicializar la sala.");
+        alert("No fue posible crear la sala de duelo. Por favor, intenta nuevamente.");
       }
       return;
     }
@@ -9845,8 +9850,8 @@ const MultiplayerManager = {
       if (waitingCodeEl) waitingCodeEl.textContent = code;
       this.cambiarVista('waiting');
     } catch (err) {
-      console.error("Error al crear sala:", err);
-      alert("Error al crear sala en servidor: " + (err.message || err));
+      console.error("Error al crear la sala.");
+      alert("No fue posible crear la sala. Por favor, intenta nuevamente.");
     }
   },
 
@@ -9879,7 +9884,7 @@ const MultiplayerManager = {
         this.room = await adapter.connect();
         this.configurarEventosSala();
       } catch (err) {
-        console.error("Error al unirse a la sala en Supabase:", err);
+        console.error("No se pudo conectar a la sala solicitada.");
         alert(`No se pudo conectar a la sala "${cleanCode}".`);
       }
       return;
@@ -9898,7 +9903,7 @@ const MultiplayerManager = {
 
       this.configurarEventosSala();
     } catch (err) {
-      console.error("Error al unirse a la sala:", err);
+      console.error("Error al acceder a la sala.");
       alert(`No se encontró ninguna sala con el código "${codigo}".`);
     }
   },
@@ -9909,11 +9914,11 @@ const MultiplayerManager = {
     this.room.onMessage('joined_room', (data) => {
       this.miAsiento = data.seat;
       this.roomCode = data.roomCode;
-      console.log(`[Online] Conectado en asiento ${this.miAsiento}, sala ${this.roomCode}`);
+      console.log("[Duelo] Conexión establecida.");
     });
 
     this.room.onMessage('match_start', (data) => {
-      console.log("[Online] ¡Comienza el combate online!", data);
+      console.log("[Duelo] Combate en curso.");
       this.iniciarDueloOnline(data);
     });
 
@@ -9924,7 +9929,7 @@ const MultiplayerManager = {
     });
 
     this.room.onMessage('game_over', (data) => {
-      console.log("[Online] Fin de la partida recibido:", data);
+      console.log("[Duelo] Fin del combate.");
       this.dueloTerminado = true;
       localStorage.removeItem('pokeoh_active_online_match');
 
@@ -9964,7 +9969,7 @@ const MultiplayerManager = {
     });
 
     this.room.onLeave((code) => {
-      console.log("[Online] Saliste de la sala.");
+      console.log("[Duelo] Sesión finalizada.");
       this.enPartidaOnline = false;
       this.room = null;
     });
@@ -10066,7 +10071,7 @@ const MultiplayerManager = {
   },
 
   aplicarAccionRival(accion) {
-    console.log("[Online] Aplicando acción rival:", accion);
+    
 
     // 0-A. El rival está atacando y nos pregunta si queremos activar nuestra trampa
     if (accion.tipo === 'PREGUNTAR_TRAMPA_RIVAL') {

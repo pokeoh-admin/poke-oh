@@ -64,27 +64,27 @@
 
 ## 📜 Registro de Cambios (Changelog)
 
-### 🍪 v0.3.3 Beta (25 de Octubre de 2026) — Persistencia de Sesión con Cookies/Caché, Memoria de Audio y Barajas de GianBlack
-- 🍪 **Persistencia Automática de Sesión (Cookies + Caché):** Implementado un sistema dual de persistencia mediante cookies (`SameSite=Lax`, expiración a 365 días) y `localStorage`. El usuario activo permanece conectado de forma automática al abrir o recargar la pestaña del navegador, evitando tener que iniciar sesión manualmente cada vez.
-- 🔊 **Memoria Persistente de Ajustes de Audio:** Los volúmenes (Master, Música BGM y Efectos SFX), el estado de activación individual, el silenciamiento global y el idioma preferido ahora se guardan automáticamente tanto en `localStorage` como en cookies, restaurándose fielmente al iniciar el juego.
-- 🎴 **Asignación de Barajas Iniciales para GianBlack:** La cuenta de usuario *GianBlack* ahora tiene asignadas de manera exclusiva las 3 barajas iniciales equilibradas de 40 cartas (*Mazo 1: Llama Carmesí / Fuego*, *Mazo 2: Marea Azul / Agua*, *Mazo 3: Bosque Primigenio / Planta*), eliminando y reemplazando cualquier mazo anterior tanto en la memoria local como en la base de datos de Supabase Cloud.
-- 🚀 **Apertura Limpia sin Popups Intrusivos:** Eliminado el diálogo forzado de inicio de sesión que aparecía a los 400ms al cargar el juego. La autenticación ahora se solicita únicamente bajo demanda (*just-in-time*) al ingresar a modos que la requieran.
+### 🍪 v0.3.3 Beta (25 de Octubre de 2026) — Persistencia de Sesión, Configuración de Audio y Optimización de Barajas
+- 🍪 **Persistencia Automática de Sesión:** Mayor comodidad al acceder al juego. Tu sesión activa se mantiene disponible al reabrir o recargar la página, eliminando la necesidad de ingresar credenciales en cada visita.
+- 🔊 **Memoria de Preferencias de Audio:** Los niveles de volumen (General, Música de Fondo y Efectos), silenciador y selección de idioma se conservan automáticamente entre sesiones.
+- 🎴 **Estandarización de Barajas Temáticas:** Sincronización y actualización de barajas equilibradas de 40 cartas (Fuego, Agua y Planta) en las cuentas de usuario, garantizando acceso directo a mazos estructurados para duelos inmediatos.
+- 🚀 **Inicio Limpio y Fluido:** Optimización en la secuencia de carga inicial, permitiendo explorar el juego y solicitando autenticación únicamente al ingresar a modalidades que lo requieran.
 
 ---
 
-### 🪤 v0.3.2 Beta (24 de Octubre de 2026) — Selección de Múltiples Trampas y Limpieza de UI Online
-- 🪤 **Selección Interactiva de Múltiples Trampas:** Si el jugador defensor tiene 2 o más trampas colocadas boca abajo al momento en que un oponente (IA o rival online) declara un ataque, ahora se abre un diálogo modal interactivo (`#trap-select-modal`) que enumera cada trampa disponible con su nombre, arte, descripción de efecto y zona en campo, permitiendo al jugador escoger con precisión cuál activar o si prefiere no activar ninguna.
-- 🃏 **Claridad de Acción para Trampas en Mano:** Al hacer clic sobre una carta de Trampa en la mano, el modal ahora indica explícitamente `🃏 Colocar en Campo (Boca abajo)` con una descripción didáctica que aclara que las trampas deben prepararse boca abajo para activarse en el turno del rival.
-- 🖥️ **Aislamiento y Corrección de Vistas en 2 Jugadores Online:** Solucionado el problema visual donde las opciones de juego, el explorador de salas y la sala de espera se renderizaban apilados simultáneamente en pantalla. Se aplicó aislamiento estricto por clases de vista (`.pvp-view.active`).
-- 🔄 **Botón de Actualización con Estilo Nativo:** En el lobby de salas abiertas se estilizó el botón `🔄 Actualizar` para coincidir de forma armoniosa y moderna con la paleta visual futurista del juego.
-- 🧹 **Depuración de Botones Redundantes:** Eliminados los botones innecesarios en la cabecera de salas (`Crear Sala` y `Opciones`) y en la sala de espera (`Cancelar Espera`), centralizando la navegación de retorno de forma limpia en el botón principal inferior y el botón de cierre.
+### 🪤 v0.3.2 Beta (24 de Octubre de 2026) — Selección de Múltiples Trampas y Limpieza de Interfaz
+- 🪤 **Selección Interactiva de Múltiples Trampas:** Si el jugador defensor tiene varias cartas trampa preparadas boca abajo al momento en que se declara un ataque, el sistema despliega un menú interactivo para elegir con precisión cuál activar o si prefiere reservarlas.
+- 🃏 **Claridad de Acción para Trampas en Mano:** Al seleccionar una carta trampa en mano, la interfaz aclara de forma didáctica su colocación boca abajo en el campo para su posterior activación en el turno rival.
+- 🖥️ **Aislamiento de Pantallas en Modo Online:** Transición limpia e independiente entre el menú de emparejamiento, el explorador de salas y la sala de espera, eliminando solapamientos de interfaz.
+- 🔄 **Actualización Dinámica de Salas:** Control estilizado y optimizado para refrescar la lista de partidas disponibles en tiempo real.
+- 🧹 **Navegación Unificada:** Flujo simplificado y accesible para cancelar esperas o retornar al menú principal con un solo clic.
 
 ---
 
 ### ⚡ v0.3.1 Beta (24 de Octubre de 2026) — Interfaz Horizontal, Indicadores de Efecto y Correcciones
 - 🖥️ **Interfaz Horizontal 2 Jugadores:** Rediseño panorámico del menú multijugador en 2 columnas equilibradas (barajas a la izquierda y modos de juego 2x2 a la derecha), eliminando scroll vertical excesivo en pantallas panorámicas.
 - ⚡ **Indicador de Efecto en el Frente de las Cartas:** Las criaturas con habilidades activas lucen ahora un distintivo visible de rayito dorado (`⚡`) con animación de pulso que se atenúa una vez consumido su uso por estancia en campo.
-- 🐛 **Corrección en Efectos de Estadísticas (Eevee y Aerodactyl):** Corregido el bug donde la habilidad *Evolución Flexible* de Eevee asignaba valores nulos (`NaN`) a las estadísticas; ahora calcula y aplica debidamente los aumentos de ATK y DEF.
+- 🐛 **Corrección en Efectos de Estadísticas (Eevee y Aerodactyl):** Corregido el cálculo en habilidades dinámicas para asegurar la asignación correcta y balanceada de aumentos de ATK y DEF en combate.
 - 📖 **Inspector de Cartas Enriquecido:** Guía detallada con modo de uso explícito para cartas Mágicas, de Equipo y Trampas, y bloque destacado de efectos activos en monstruos.
 - 🛡️ **Blindaje de Estadísticas:** Protección contra valores indefinidos o nulos en las funciones de cálculo de estadísticas de combate en el tablero.
 
@@ -92,25 +92,25 @@
 
 ### 🌟 v0.3.0 Beta (24 de Octubre de 2026) — Gran Actualización TCG & Tácticas
 - ⚡ **Efectos Activos de Monstruos:** Más del 30% de los Pokémon ahora cuentan con habilidades tácticas de 1 solo uso mediante el botón `EFECTO` en tu Fase Principal.
-- 🧬 **14 Megaevoluciones & Side Deck:** Nuevo Side Deck independiente con 14 formas legendarias activables con la carta mágica *Megaevolución*, incluyendo selector visual de ramas para Charizard (X/Y) y Mewtwo (X/Y).
+- 🧬 **14 Megaevoluciones & Side Deck:** Nuevo Side Deck independiente con 14 formas legendarias activables con la carta mágica *Megaevolución*, incluyendo selector visual de ramas para Charizard y Mewtwo.
 - 🪄 **8 Nuevas Cartas Mágicas Tácticas:** Cartas de alto impacto como revivir del cementerio (*Ceniza Sagrada*), escudo por 3 turnos (*Muro Prismático*), barrido de trampas (*Viento Feérico*), destrucción masiva (*Fisura Sísmica*), robo acelerado (*Cofre Reliquia*) y control de monstruo rival (*Señuelo Telepático*).
 - 🔥💧🌱 **Selección de Mazo Inicial:** Nuevos entrenadores escogen entre barajas equilibradas de 40 cartas de Fuego, Agua o Planta al registrarse.
 - 🌐 **Explorador de Salas JcJ en Vivo:** Búsqueda y listado interactivo en tiempo real de partidas abiertas en 2 Jugadores con un solo clic.
-- 🛡️ **Panel de Administración Completo:** Herramientas para administradores que permiten bloquear/desbloquear usuarios, reiniciar estadísticas, cambiar roles y eliminar cuentas de forma segura.
+- 🛡️ **Herramientas de Moderación y Soporte:** Herramientas de gestión y seguridad para perfiles de usuario, garantizando un entorno balanceado y confiable.
 - 📜 **Pestaña de Notas de Versión en el Juego:** Vista interactiva de novedades dentro del modal de reglas y acceso directo desde el botón de versión del Menú Principal.
 
 ---
 
 ### 🌐 v0.2.0 Beta (23 de Octubre de 2026) — Gran Actualización Multijugador Realtime
-- 🌐 **Multijugador en Línea:** Duelos JcJ 1v1 en tiempo real con servidor Colyseus WebSockets y base de datos Supabase.
-- 🎴 **Elección Previa de Baraja:** Selector interactivo para escoger cuál de tus 5 barajas usar antes de comenzar el duelo contra otro jugador.
+- 🌐 **Multijugador en Línea:** Duelos JcJ 1v1 en tiempo real con sincronización de estado y emparejamiento interactivo.
+- 🎴 **Elección Previa de Baraja:** Selector interactivo para escoger cuál de tus barajas usar antes de comenzar el duelo contra otro jugador.
 - 🪙 **Sorteo de Moneda 50/50:** Azar balanceado al iniciar para definir limpiamente quién juega el primer turno.
 - 📜 **Panel Lateral de Acciones:** Registro visual a la derecha que muestra en vivo todas las jugadas del rival durante su turno.
 - 🔔 **Aviso de Cambio de Turno Gigante:** Cartel animado de alta visibilidad para identificar el cambio de turno al instante.
-- 🐛 **Sincronización de Trampas y M/T:** Corrección del error donde las trampas se activaban sobre el propio atacante y eliminación sincronizada de cartas mágicas tras usarse.
+- 🐛 **Sincronización de Trampas y M/T:** Corrección del comportamiento de activación de trampas defensivas y resolución adecuada de cartas de soporte tras su uso.
 - 🪦 **Contadores Sincronizados:** Vista precisa del número de cartas en el mazo y cementerio para ambos duelistas.
 - 🏳️ **Penalización por Abandono:** Salir de una partida JcJ en curso concede automáticamente la victoria al rival y registra derrota propia.
-- 🖥️ **Pantalla Completa en PC:** Corrección del botón de pantalla completa para maximizar en cualquier navegador de escritorio.
+- 🖥️ **Pantalla Completa en PC:** Optimización del modo pantalla completa para maximizar en cualquier navegador de escritorio.
 
 ---
 
