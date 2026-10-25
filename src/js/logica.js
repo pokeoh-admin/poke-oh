@@ -7360,12 +7360,18 @@ function inicializarMenuPrincipal() {
   }
 
   if (btnShop) {
-    btnShop.onclick = () => abrirNotice(
-      "Tienda de Cartas", "Card Shop",
-      "La tienda de sobres de refuerzo y accesorios estará disponible próximamente.",
-      "Booster packs and cosmetic store will be available soon.",
-      "🛒"
-    );
+    btnShop.onclick = () => {
+      if (typeof TiendaCartas !== 'undefined') {
+        TiendaCartas.abrirTienda();
+      } else {
+        abrirNotice(
+          "Tienda de Cartas", "Card Shop",
+          "La tienda de sobres de refuerzo y accesorios estará disponible próximamente.",
+          "Booster packs and cosmetic store will be available soon.",
+          "🛒"
+        );
+      }
+    };
   }
 
   const btnCloseNotice = document.getElementById('btn-close-notice');
@@ -9481,6 +9487,19 @@ var UserManager = {
     }
   },
 
+  calcularRangoLiga(exp) {
+    const info = obtenerInfoRangoLiga(exp);
+    return {
+      nombre: info.rango.nombre,
+      icono: info.rango.icono,
+      color: info.rango.color,
+      esMax: !info.siguiente,
+      expEnRango: info.expEnDivision,
+      expNecesaria: info.expRequerida || 50,
+      porcentaje: info.porcentaje
+    };
+  },
+
   renderAdminTable() {
     const tbody = document.getElementById('admin-users-tbody');
     const countBadge = document.getElementById('admin-user-count');
@@ -11571,8 +11590,11 @@ function ajustarEscalaResponsiva() {
   const vh = window.innerHeight || document.documentElement.clientHeight || 0;
   const esVertical = vh > vw;
 
-  if (esVertical) {
-    // Mientras está en vertical con el aviso activo, limpiar transformaciones
+  const menuOverlay = document.getElementById('main-menu-overlay');
+  const enMenuPrincipal = menuOverlay && !menuOverlay.classList.contains('hidden');
+
+  if (esVertical || enMenuPrincipal) {
+    // Mientras está en vertical con el aviso activo o en el menú principal, limpiar transformaciones
     gameContainer.style.position = '';
     gameContainer.style.top = '';
     gameContainer.style.left = '';
@@ -11909,10 +11931,12 @@ function inicializarAdaptacionMovilYRotacion() {
     }
   }, { passive: true });
 
+  let timerVerificacion = null;
   const dispararVerificacion = () => {
-    verificarOrientacionDispositivo();
-    setTimeout(verificarOrientacionDispositivo, 120);
-    setTimeout(verificarOrientacionDispositivo, 320);
+    if (timerVerificacion) clearTimeout(timerVerificacion);
+    timerVerificacion = setTimeout(() => {
+      verificarOrientacionDispositivo();
+    }, 60);
   };
 
   window.addEventListener('resize', dispararVerificacion);
