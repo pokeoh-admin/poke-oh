@@ -11778,90 +11778,144 @@ const DEFINICION_SOBRES = [
   {
     id: "fuego",
     nombre: "Sobre Fuego Voraz",
+    nombreCorto: "FUEGO VORAZ",
+    subtitulo: "EDICIÓN FUEGO & VOLCANES",
     elemento: "fuego",
     icono: "🔥",
     costo: 5000,
-    colorFondo: "linear-gradient(135deg, #e74c3c, #c0392b)",
+    colorFondo: "linear-gradient(155deg, #78281f 0%, #c0392b 30%, #e74c3c 60%, #d35400 100%)",
+    colorBorde: "#e74c3c",
+    colorAura: "radial-gradient(circle, rgba(231, 76, 60, 0.75) 0%, rgba(211, 84, 0, 0.2) 60%, transparent 70%)",
+    mascotaImg: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/6.png",
+    mascotaNombre: "Charizard",
     descripcion: "Contiene 5 cartas distintas de tipo Fuego. Posibilidad de Charizard, Arcanine, Magmar y Llamarada.",
     filtro: (c) => c.tipoCarta === 'monstruo' && c.elemento === 'fuego'
   },
   {
     id: "agua",
     nombre: "Sobre Marea Abisal",
+    nombreCorto: "MAREA ABISAL",
+    subtitulo: "EDICIÓN AGUA & TORRENTES",
     elemento: "agua",
     icono: "💧",
     costo: 5000,
-    colorFondo: "linear-gradient(135deg, #0984e3, #2980b9)",
+    colorFondo: "linear-gradient(155deg, #154360 0%, #1f618d 30%, #2980b9 60%, #0984e3 100%)",
+    colorBorde: "#3498db",
+    colorAura: "radial-gradient(circle, rgba(52, 152, 219, 0.75) 0%, rgba(41, 128, 185, 0.2) 60%, transparent 70%)",
+    mascotaImg: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/9.png",
+    mascotaNombre: "Blastoise",
     descripcion: "Contiene 5 cartas distintas de tipo Agua. Posibilidad de Blastoise, Gyarados, Lapras y Vaporeon.",
     filtro: (c) => c.tipoCarta === 'monstruo' && c.elemento === 'agua'
   },
   {
     id: "planta",
     nombre: "Sobre Selva Eterna",
+    nombreCorto: "SELVA ETERNA",
+    subtitulo: "EDICIÓN SELVA & BICHO",
     elemento: "planta",
     icono: "🌿",
     costo: 5000,
-    colorFondo: "linear-gradient(135deg, #27ae60, #2ecc71)",
+    colorFondo: "linear-gradient(155deg, #145a32 0%, #1e8449 30%, #27ae60 60%, #2ecc71 100%)",
+    colorBorde: "#2ecc71",
+    colorAura: "radial-gradient(circle, rgba(46, 204, 113, 0.75) 0%, rgba(39, 174, 96, 0.2) 60%, transparent 70%)",
+    mascotaImg: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/3.png",
+    mascotaNombre: "Venusaur",
     descripcion: "Contiene 5 cartas distintas de tipo Planta y Bicho. Posibilidad de Venusaur, Scyther, Pinsir y Vileplume.",
     filtro: (c) => c.tipoCarta === 'monstruo' && (c.elemento === 'planta' || c.elemento === 'bicho')
   },
   {
     id: "electrico",
     nombre: "Sobre Trueno Salvaje",
+    nombreCorto: "TRUENO SALVAJE",
+    subtitulo: "EDICIÓN RAYO & VOLTAJE",
     elemento: "electrico",
     icono: "⚡",
     costo: 5000,
-    colorFondo: "linear-gradient(135deg, #f39c12, #f1c40f)",
+    colorFondo: "linear-gradient(155deg, #7d6608 0%, #b7950b 30%, #f39c12 60%, #f1c40f 100%)",
+    colorBorde: "#f1c40f",
+    colorAura: "radial-gradient(circle, rgba(241, 196, 15, 0.75) 0%, rgba(243, 156, 18, 0.2) 60%, transparent 70%)",
+    mascotaImg: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png",
+    mascotaNombre: "Pikachu",
     descripcion: "Contiene 5 cartas distintas de tipo Eléctrico. Posibilidad de Raichu, Electabuzz, Jolteon y Magneton.",
     filtro: (c) => c.tipoCarta === 'monstruo' && c.elemento === 'electrico'
   },
   {
     id: "psiquico",
     nombre: "Sobre Mente Cósmica",
+    nombreCorto: "MENTE CÓSMICA",
+    subtitulo: "EDICIÓN PSI & FANTASMA",
     elemento: "psiquico",
     icono: "🔮",
     costo: 5000,
-    colorFondo: "linear-gradient(135deg, #8e44ad, #9b59b6)",
+    colorFondo: "linear-gradient(155deg, #4a235a 0%, #6c3483 30%, #8e44ad 60%, #9b59b6 100%)",
+    colorBorde: "#9b59b6",
+    colorAura: "radial-gradient(circle, rgba(155, 89, 182, 0.75) 0%, rgba(142, 68, 173, 0.2) 60%, transparent 70%)",
+    mascotaImg: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/94.png",
+    mascotaNombre: "Gengar",
     descripcion: "Contiene 5 cartas distintas de tipo Psíquico y Fantasma. Posibilidad de Alakazam, Gengar, Hypno y Haunter.",
     filtro: (c) => c.tipoCarta === 'monstruo' && (c.elemento === 'psiquico' || c.elemento === 'fantasma')
   },
   {
     id: "combate",
     nombre: "Sobre Puño de Roca",
+    nombreCorto: "PUÑO DE ROCA",
+    subtitulo: "EDICIÓN LUCHA & TIERRA",
     elemento: "lucha",
     icono: "🥊",
     costo: 5000,
-    colorFondo: "linear-gradient(135deg, #d35400, #e67e22)",
+    colorFondo: "linear-gradient(155deg, #6e2c00 0%, #a04000 30%, #d35400 60%, #e67e22 100%)",
+    colorBorde: "#e67e22",
+    colorAura: "radial-gradient(circle, rgba(230, 126, 34, 0.75) 0%, rgba(211, 84, 0, 0.2) 60%, transparent 70%)",
+    mascotaImg: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/68.png",
+    mascotaNombre: "Machamp",
     descripcion: "Contiene 5 cartas distintas de tipo Lucha, Tierra y Roca. Posibilidad de Machamp, Golem, Rhydon y Onix.",
     filtro: (c) => c.tipoCarta === 'monstruo' && (c.elemento === 'lucha' || c.elemento === 'tierra' || c.elemento === 'roca')
   },
   {
     id: "normal_dragon",
     nombre: "Sobre Dragón & Viento",
+    nombreCorto: "DRAGÓN & VIENTO",
+    subtitulo: "EDICIÓN DRAGÓN & HIELO",
     elemento: "dragon",
     icono: "🐉",
     costo: 5000,
-    colorFondo: "linear-gradient(135deg, #34495e, #2c3e50)",
+    colorFondo: "linear-gradient(155deg, #17202a 0%, #2c3e50 30%, #34495e 60%, #5dade2 100%)",
+    colorBorde: "#5dade2",
+    colorAura: "radial-gradient(circle, rgba(93, 173, 226, 0.75) 0%, rgba(44, 62, 80, 0.2) 60%, transparent 70%)",
+    mascotaImg: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/149.png",
+    mascotaNombre: "Dragonite",
     descripcion: "Contiene 5 cartas distintas de tipo Dragón, Hielo, Hada y Normal. Posibilidad de Snorlax, Dragonair, Tauros y Chansey.",
     filtro: (c) => c.tipoCarta === 'monstruo' && (c.elemento === 'dragon' || c.elemento === 'hielo' || c.elemento === 'hada' || c.elemento === 'normal')
   },
   {
     id: "magias_trampas",
     nombre: "Sobre Arcano & Trampas",
+    nombreCorto: "ARCANO & TRAMPAS",
+    subtitulo: "HECHIZOS & EQUIPOS",
     elemento: "magia",
     icono: "🪄",
     costo: 5000,
-    colorFondo: "linear-gradient(135deg, #16a085, #1abc9c)",
+    colorFondo: "linear-gradient(155deg, #0b5345 0%, #117a65 30%, #16a085 60%, #1abc9c 100%)",
+    colorBorde: "#1abc9c",
+    colorAura: "radial-gradient(circle, rgba(26, 188, 156, 0.75) 0%, rgba(22, 160, 133, 0.2) 60%, transparent 70%)",
+    mascotaImg: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/151.png",
+    mascotaNombre: "Mew Místico",
     descripcion: "Contiene 5 cartas mágicas, equipos y trampas secretas. Posibilidad de Poción Max, Protección, Manto Espejo y Ceniza Sagrada.",
     filtro: (c) => (c.tipoCarta === 'magia' || c.tipoCarta === 'trampa') && c.id !== 250
   },
   {
     id: "legendario",
     nombre: "Sobre Leyendas Primigenias",
+    nombreCorto: "LEYENDAS PRIMIGENIAS",
+    subtitulo: "COLECCIÓN SUPREMA",
     elemento: "legendario",
     icono: "👑",
     costo: 10000,
-    colorFondo: "linear-gradient(135deg, #f1c40f, #d4ac0d, #f39c12)",
+    colorFondo: "linear-gradient(155deg, #5b4600 0%, #b7950b 25%, #f1c40f 50%, #d4ac0d 75%, #f39c12 100%)",
+    colorBorde: "#f1c40f",
+    colorAura: "radial-gradient(circle, rgba(241, 196, 15, 0.85) 0%, rgba(243, 156, 18, 0.3) 60%, transparent 70%)",
+    mascotaImg: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/150.png",
+    mascotaNombre: "Mewtwo",
     esLegendario: true,
     descripcion: "¡SOBRE SUPREMO! Garantiza 1 Pokémon Legendario (Mewtwo, Mew, Articuno, Zapdos, Moltres o Dragonite) + 4 cartas raras, tácticas o de Megaevolución.",
     filtro: null
@@ -12054,7 +12108,7 @@ var TiendaCartas = {
 
     const btnBuy = document.getElementById(`shop-btn-buy-${sobreId}`);
     if (btnBuy) {
-      btnBuy.textContent = `Comprar (${qty}) - ${costoTotal.toLocaleString()}`;
+      btnBuy.textContent = `🛒 Comprar (${qty}) • $${costoTotal.toLocaleString()}`;
       btnBuy.disabled = (saldo < costoTotal);
     }
   },
@@ -12065,7 +12119,7 @@ var TiendaCartas = {
     const saldo = this.obtenerSaldoUsuario();
 
     if (walletDisplay) {
-      walletDisplay.textContent = `${saldo.toLocaleString()}`;
+      walletDisplay.textContent = `$${saldo.toLocaleString()}`;
     }
 
     if (!grid) return;
@@ -12080,31 +12134,69 @@ var TiendaCartas = {
       card.className = `shop-pack-card ${s.esLegendario ? 'pack-legendary' : ''}`;
       card.id = `shop-pack-${s.id}`;
 
+      const fallbackSrc = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';
+      const mascotSrc = s.mascotaImg || fallbackSrc;
+
       card.innerHTML = `
-        <div class="shop-pack-header">
-          <div class="shop-pack-icon-wrap" style="background: ${s.colorFondo};">
-            ${s.icono}
+        <!-- SOBRE DE CARTAS 3D FOIL PACK -->
+        <div class="booster-pack-wrapper ${s.esLegendario ? 'foil-legendary' : ''}" style="--pack-theme-gradient: ${s.colorFondo}; --pack-theme-color: ${s.colorBorde || '#3498db'};">
+          <div class="pack-crimp-top">
+            <div class="pack-euro-slot"></div>
           </div>
-          <div class="shop-pack-title-box">
-            <span class="shop-pack-title">${escapeHtml(s.nombre)}</span>
-            <span class="shop-pack-price">${s.costo.toLocaleString()} Pokédólares</span>
-          </div>
-        </div>
-        <p class="shop-pack-desc">${escapeHtml(s.descripcion)}</p>
-        ${s.esLegendario ? '<div class="shop-pack-guarantee">✨ ¡1 Legendario Garantizado por Sobre!</div>' : ''}
-        <div class="shop-pack-footer">
-          <div class="shop-qty-row">
-            <span class="shop-qty-label">Cantidad:</span>
-            <div class="shop-qty-controls">
-              <button type="button" class="btn-qty-adj" onclick="TiendaCartas.ajustarCantidad('${s.id}', -1)">-</button>
-              <span class="shop-qty-display" id="shop-qty-val-${s.id}">${qty}</span>
-              <button type="button" class="btn-qty-adj" onclick="TiendaCartas.ajustarCantidad('${s.id}', 1)">+</button>
-              <button type="button" class="btn-qty-max" onclick="TiendaCartas.fijarMaxCantidad('${s.id}')">Máx</button>
+
+          <div class="pack-foil-body">
+            <div class="pack-foil-sheen"></div>
+            
+            <div class="pack-brand-header">
+              <span class="pack-brand-logo">⚡ POKÉ-OH!</span>
+              <span class="pack-brand-sub">5 CARTAS</span>
+            </div>
+
+            <div class="pack-art-container">
+              <div class="pack-art-aura" style="background: ${s.colorAura || s.colorFondo};"></div>
+              <img class="pack-mascot-img" src="${mascotSrc}" alt="${escapeHtml(s.mascotaNombre || s.nombre)}" onerror="this.onerror=null; this.src='${fallbackSrc}';" draggable="false" loading="lazy">
+            </div>
+
+            <div class="pack-nameplate">
+              <div class="pack-nameplate-row">
+                <span class="pack-emblem-badge">${s.icono}</span>
+                <span class="pack-nameplate-title">${escapeHtml(s.nombreCorto || s.nombre)}</span>
+              </div>
+              <span class="pack-nameplate-sub">${escapeHtml(s.subtitulo || 'EXPANSIÓN OFICIAL')}</span>
             </div>
           </div>
-          <button type="button" class="shop-btn-buy" id="shop-btn-buy-${s.id}" onclick="TiendaCartas.comprarSobres('${s.id}')" ${!puedeComprar ? 'disabled' : ''}>
-            Comprar (${qty}) - ${costoTotal.toLocaleString()}
-          </button>
+
+          <div class="pack-crimp-bottom">
+            <span class="pack-serial-code">PKOH-TCG-${s.id.toUpperCase().slice(0, 4)}</span>
+          </div>
+
+          ${s.esLegendario ? '<div class="pack-legendary-ribbon">👑 1 LEGENDARIO GARANTIZADO</div>' : ''}
+        </div>
+
+        <!-- DETALLES Y CONTROLES DE COMPRA -->
+        <div class="shop-pack-details">
+          <div class="shop-pack-meta-row">
+            <span class="shop-pack-name-clean">${escapeHtml(s.nombre)}</span>
+            <span class="shop-pack-price-tag">$${s.costo.toLocaleString()}</span>
+          </div>
+
+          <p class="shop-pack-desc">${escapeHtml(s.descripcion)}</p>
+
+          <div class="shop-pack-controls-wrap">
+            <div class="shop-qty-row">
+              <span class="shop-qty-label">Cantidad:</span>
+              <div class="shop-qty-controls">
+                <button type="button" class="btn-qty-adj" onclick="TiendaCartas.ajustarCantidad('${s.id}', -1)" title="Reducir 1">-</button>
+                <span class="shop-qty-display" id="shop-qty-val-${s.id}">${qty}</span>
+                <button type="button" class="btn-qty-adj" onclick="TiendaCartas.ajustarCantidad('${s.id}', 1)" title="Aumentar 1">+</button>
+                <button type="button" class="btn-qty-max" onclick="TiendaCartas.fijarMaxCantidad('${s.id}')" title="Máximo con tu saldo">Máx</button>
+              </div>
+            </div>
+
+            <button type="button" class="shop-btn-buy" id="shop-btn-buy-${s.id}" onclick="TiendaCartas.comprarSobres('${s.id}')" ${!puedeComprar ? 'disabled' : ''}>
+              🛒 Comprar (${qty}) • $${costoTotal.toLocaleString()}
+            </button>
+          </div>
         </div>
       `;
       grid.appendChild(card);
