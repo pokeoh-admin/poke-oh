@@ -7221,6 +7221,7 @@ function mostrarFinDelDuelo(esVictoria) {
       reiniciarDuelo();
       const menuOverlay = document.getElementById('main-menu-overlay');
       if (menuOverlay) menuOverlay.classList.remove('hidden');
+      ajustarEscalaResponsiva();
       AudioManager.reproducirMusicaTema('menu');
       AudioManager.reproducirSFX('enter');
     };
@@ -7301,6 +7302,7 @@ function reiniciarDuelo() {
   mostrarMensajeToast(isEn
     ? "Duel Reset! Turn 1: Main Phase (1 normal summon/turn; Red attacks from Turn 2)."
     : "¡Duelo reiniciado! Turno 1: Fase Principal (1 invocación por turno, Blue puede atacar ya; Red ataca en Turno 2).");
+  ajustarEscalaResponsiva();
 }
 
 // ==========================================
@@ -7456,6 +7458,7 @@ function inicializarMenuPrincipal() {
         await MultiplayerManager.rendirseYSalirAlMenu();
       } else {
         if (overlay) overlay.classList.remove('hidden');
+        ajustarEscalaResponsiva();
         AudioManager.reproducirMusicaTema('menu');
       }
     };
@@ -7475,6 +7478,7 @@ function inicializarMenuPrincipal() {
         }
       }
       if (overlay) overlay.classList.remove('hidden');
+      ajustarEscalaResponsiva();
       AudioManager.reproducirMusicaTema('menu');
       AudioManager.reproducirSFX('enter');
     };
@@ -7576,6 +7580,7 @@ function inicializarModalPrePartida() {
 
       modal.classList.add('hidden');
       if (menuOverlay) menuOverlay.classList.add('hidden');
+      ajustarEscalaResponsiva();
       iniciarDuelo();
       mostrarBannerCambioTurno(true, 1, "Fase Principal • 1 invocación de Pokémon por turno");
       AudioManager.reproducirSFX('hit-super');
@@ -7786,6 +7791,7 @@ function iniciarDuelo() {
     return;
   }
 
+  ajustarEscalaResponsiva();
   console.log("¡Duelo de Poké-Oh iniciado con éxito (151 Pokémon + Ítems multigeneración)!");
 
   // Restaurar stats base por seguridad
@@ -7847,6 +7853,7 @@ function iniciarDuelo() {
   mostrarMensajeToast(isEn
     ? `Duel started! Turn 1: Main Phase (${lpConfig} LP, Difficulty: ${configuracionJuego.dificultadIA.toUpperCase()}). Red attacks from Turn 2.`
     : `¡Duelo iniciado! Turno 1: Fase Principal (${lpConfig} LP, Dificultad: ${configuracionJuego.dificultadIA.toUpperCase()}). Red ataca desde Turno 2.`);
+  ajustarEscalaResponsiva();
 }
 
 // ==========================================
@@ -11435,6 +11442,7 @@ const MultiplayerManager = {
     this.desconectar(true);
     const menuOverlay = document.getElementById('main-menu-overlay');
     if (menuOverlay) menuOverlay.classList.remove('hidden');
+    ajustarEscalaResponsiva();
     AudioManager.reproducirMusicaTema('menu');
   },
 
@@ -11593,6 +11601,9 @@ function ajustarEscalaResponsiva() {
   const menuOverlay = document.getElementById('main-menu-overlay');
   const enMenuPrincipal = menuOverlay && !menuOverlay.classList.contains('hidden');
 
+  // SIEMPRE garantizar que los eventos táctiles y de ratón estén activos
+  gameContainer.style.pointerEvents = '';
+
   if (enMenuPrincipal) {
     // En el menú principal, mantener el tablero de fondo acotado a la pantalla sin forzar anchos ni provocar scroll
     gameContainer.style.position = 'fixed';
@@ -11604,10 +11615,12 @@ function ajustarEscalaResponsiva() {
     gameContainer.style.maxHeight = '100vh';
     gameContainer.style.overflow = 'hidden';
     gameContainer.style.transform = '';
-    gameContainer.style.pointerEvents = 'none';
     document.documentElement.style.removeProperty('--card-width');
     return;
   }
+
+  // En partida activa, remover overflow forzado
+  gameContainer.style.overflow = '';
 
   if (esVertical) {
     // Mientras está en vertical con el aviso activo, limpiar transformaciones
@@ -11630,10 +11643,10 @@ function ajustarEscalaResponsiva() {
   const logPanel = document.getElementById('duel-action-log-panel');
   const logColapsado = !logPanel || logPanel.classList.contains('action-log-collapsed');
 
-  // Dimensiones base cómodas en horizontal para que el tablero y los paneles laterales se vean completos
+  // Dimensiones base cómodas en horizontal para que el tablero, manos y los paneles laterales se vean completos
   let minW = sidebarColapsado ? 760 : 1040;
   if (!logColapsado) minW += 210;
-  const minH = 625;
+  const minH = 780;
 
   if (vh < minH || vw < minW) {
     const scaleX = (vw - 8) / minW;
@@ -11652,6 +11665,8 @@ function ajustarEscalaResponsiva() {
     gameContainer.style.maxHeight = 'none';
     gameContainer.style.transformOrigin = 'center center';
     gameContainer.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    gameContainer.style.pointerEvents = '';
+    gameContainer.style.overflow = '';
     document.documentElement.style.setProperty('--card-width', '68px');
   } else {
     gameContainer.style.position = '';
@@ -11662,6 +11677,8 @@ function ajustarEscalaResponsiva() {
     gameContainer.style.maxWidth = '';
     gameContainer.style.maxHeight = '';
     gameContainer.style.transform = '';
+    gameContainer.style.pointerEvents = '';
+    gameContainer.style.overflow = '';
     document.documentElement.style.removeProperty('--card-width');
   }
 }
