@@ -11593,8 +11593,24 @@ function ajustarEscalaResponsiva() {
   const menuOverlay = document.getElementById('main-menu-overlay');
   const enMenuPrincipal = menuOverlay && !menuOverlay.classList.contains('hidden');
 
-  if (esVertical || enMenuPrincipal) {
-    // Mientras está en vertical con el aviso activo o en el menú principal, limpiar transformaciones
+  if (enMenuPrincipal) {
+    // En el menú principal, mantener el tablero de fondo acotado a la pantalla sin forzar anchos ni provocar scroll
+    gameContainer.style.position = 'fixed';
+    gameContainer.style.top = '0';
+    gameContainer.style.left = '0';
+    gameContainer.style.width = '100vw';
+    gameContainer.style.height = '100vh';
+    gameContainer.style.maxWidth = '100vw';
+    gameContainer.style.maxHeight = '100vh';
+    gameContainer.style.overflow = 'hidden';
+    gameContainer.style.transform = '';
+    gameContainer.style.pointerEvents = 'none';
+    document.documentElement.style.removeProperty('--card-width');
+    return;
+  }
+
+  if (esVertical) {
+    // Mientras está en vertical con el aviso activo, limpiar transformaciones
     gameContainer.style.position = '';
     gameContainer.style.top = '';
     gameContainer.style.left = '';
@@ -11603,6 +11619,8 @@ function ajustarEscalaResponsiva() {
     gameContainer.style.maxWidth = '';
     gameContainer.style.maxHeight = '';
     gameContainer.style.transform = '';
+    gameContainer.style.overflow = '';
+    gameContainer.style.pointerEvents = '';
     document.documentElement.style.removeProperty('--card-width');
     return;
   }
@@ -12277,37 +12295,79 @@ var TiendaCartas = {
     const sobre = DEFINICION_SOBRES.find(s => s.id === sobreId);
     if (!sobre) return;
     const saldo = this.obtenerSaldoUsuario();
-    const maxPossible = Math.max(1, Math.floor(saldo / sobre.costo));
+    const maxPossible = Math.max(0, Math.floor(saldo / sobre.costo));
 
-    let actual = this.cantidades[sobreId] || 1;
-    actual = Math.max(1, Math.min(maxPossible, actual + delta));
+    let actual = typeof this.cantidades[sobreId] === 'number' ? this.cantidades[sobreId] : 1;
+    actual = Math.max(0, Math.min(maxPossible, actual + delta));
     this.cantidades[sobreId] = actual;
-    this.actualizarTarjetaSobre(sobreId);
+    this.actualizarTarjetaSobre(sobreId, true);
   },
 
   fijarMaxCantidad(sobreId) {
     const sobre = DEFINICION_SOBRES.find(s => s.id === sobreId);
     if (!sobre) return;
     const saldo = this.obtenerSaldoUsuario();
-    const maxPossible = Math.max(1, Math.floor(saldo / sobre.costo));
+    const maxPossible = Math.max(0, Math.floor(saldo / sobre.costo));
     this.cantidades[sobreId] = maxPossible;
-    this.actualizarTarjetaSobre(sobreId);
+    this.actualizarTarjetaSobre(sobreId, true);
   },
 
-  actualizarTarjetaSobre(sobreId) {
+  resetearCantidad(sobreId) {
+    this.cantidades[sobreId] = 0;
+    this.actualizarTarjetaSobre(sobreId, true);
+  },
+
+  establecerCantidadDirecta(sobreId, valStr) {
     const sobre = DEFINICION_SOBRES.find(s => s.id === sobreId);
     if (!sobre) return;
-    const qty = this.cantidades[sobreId] || 1;
+    if (valStr === '' || valStr === null) {
+      this.cantidades[sobreId] = 0;
+      this.actualizarTarjetaSobre(sobreId, false);
+      return;
+    }
+    let parsed = parseInt(valStr, 10);
+    if (isNaN(parsed) || parsed < 0) parsed = 0;
+    parsed = Math.min(999, parsed);
+    this.cantidades[sobreId] = parsed;
+    this.actualizarTarjetaSobre(sobreId, false);
+  },
+
+  validarCantidadBlur(sobreId) {
+    const sobre = DEFINICION_SOBRES.find(s => s.id === sobreId);
+    if (!sobre) return;
+    const saldo = this.obtenerSaldoUsuario();
+    const maxPossible = Math.max(0, Math.floor(saldo / sobre.costo));
+    let actual = parseInt(this.cantidades[sobreId], 10);
+    if (isNaN(actual) || actual < 0) actual = 0;
+    if (actual > maxPossible && maxPossible > 0) actual = maxPossible;
+    this.cantidades[sobreId] = actual;
+    this.actualizarTarjetaSobre(sobreId, true);
+  },
+
+  actualizarTarjetaSobre(sobreId, syncInput = true) {
+    const sobre = DEFINICION_SOBRES.find(s => s.id === sobreId);
+    if (!sobre) return;
+    const qty = Math.max(0, parseInt(this.cantidades[sobreId], 10) || 0);
     const costoTotal = qty * sobre.costo;
     const saldo = this.obtenerSaldoUsuario();
 
-    const displayEl = document.getElementById(`shop-qty-val-${sobreId}`);
-    if (displayEl) displayEl.textContent = qty;
+    const inputEl = document.getElementById(`shop-qty-val-${sobreId}`);
+    if (inputEl && (syncInput || document.activeElement !== inputEl)) {
+      inputEl.value = qty;
+    }
 
     const btnBuy = document.getElementById(`shop-btn-buy-${sobreId}`);
     if (btnBuy) {
-      btnBuy.textContent = `🛒 Comprar (${qty}) • $${costoTotal.toLocaleString()}`;
-      btnBuy.disabled = (saldo < costoTotal);
+      if (qty === 0) {
+        btnBuy.textContent = `🛒 Comprar (0) • $0`;
+        btnBuy.disabled = true;
+      } else if (saldo < costoTotal) {
+        btnBuy.textContent = `❌ Fondos Insuficientes ($${costoTotal.toLocaleString()})`;
+        btnBuy.disabled = true;
+      } else {
+        btnBuy.textContent = `🛒 Comprar (${qty}) • $${costoTotal.toLocaleString()}`;
+        btnBuy.disabled = false;
+      }
     }
   },
 
@@ -12324,9 +12384,10 @@ var TiendaCartas = {
     grid.innerHTML = '';
 
     DEFINICION_SOBRES.forEach(s => {
-      const qty = this.cantidades[s.id] || 1;
+      const qty = typeof this.cantidades[s.id] === 'number' ? this.cantidades[s.id] : 1;
       const costoTotal = qty * s.costo;
-      const puedeComprar = saldo >= costoTotal;
+      const maxPossible = Math.max(0, Math.floor(saldo / s.costo));
+      const puedeComprar = (qty > 0) && (saldo >= costoTotal);
 
       const card = document.createElement('div');
       card.className = `shop-pack-card ${s.esLegendario ? 'pack-legendary' : ''}`;
@@ -12385,14 +12446,15 @@ var TiendaCartas = {
               <span class="shop-qty-label">Cantidad:</span>
               <div class="shop-qty-controls">
                 <button type="button" class="btn-qty-adj" onclick="TiendaCartas.ajustarCantidad('${s.id}', -1)" title="Reducir 1">-</button>
-                <span class="shop-qty-display" id="shop-qty-val-${s.id}">${qty}</span>
+                <input type="number" class="shop-qty-input" id="shop-qty-val-${s.id}" min="0" max="${maxPossible}" value="${qty}" oninput="TiendaCartas.establecerCantidadDirecta('${s.id}', this.value)" onblur="TiendaCartas.validarCantidadBlur('${s.id}')" aria-label="Cantidad de sobres ${escapeHtml(s.nombre)}">
                 <button type="button" class="btn-qty-adj" onclick="TiendaCartas.ajustarCantidad('${s.id}', 1)" title="Aumentar 1">+</button>
-                <button type="button" class="btn-qty-max" onclick="TiendaCartas.fijarMaxCantidad('${s.id}')" title="Máximo con tu saldo">Máx</button>
+                <button type="button" class="btn-qty-reset" onclick="TiendaCartas.resetearCantidad('${s.id}')" title="Resetear a 0">0</button>
+                <button type="button" class="btn-qty-max" onclick="TiendaCartas.fijarMaxCantidad('${s.id}')" title="Máximo con tu saldo">MÁX</button>
               </div>
             </div>
 
             <button type="button" class="shop-btn-buy" id="shop-btn-buy-${s.id}" onclick="TiendaCartas.comprarSobres('${s.id}')" ${!puedeComprar ? 'disabled' : ''}>
-              🛒 Comprar (${qty}) • $${costoTotal.toLocaleString()}
+              ${qty === 0 ? '🛒 Comprar (0) • $0' : (!puedeComprar ? `❌ Fondos Insuficientes ($${costoTotal.toLocaleString()})` : `🛒 Comprar (${qty}) • $${costoTotal.toLocaleString()}`)}
             </button>
           </div>
         </div>
@@ -12413,7 +12475,11 @@ var TiendaCartas = {
       return;
     }
 
-    const qty = this.cantidades[sobreId] || 1;
+    const qty = Math.max(0, parseInt(this.cantidades[sobreId], 10) || 0);
+    if (qty <= 0) {
+      mostrarMensajeToast("Debes seleccionar al menos 1 sobre para comprar.");
+      return;
+    }
     const costoTotal = qty * sobre.costo;
     const saldo = this.obtenerSaldoUsuario();
 
