@@ -5421,6 +5421,9 @@ function mostrarDeclaracionAtaqueVisual({
   `;
 
   document.body.appendChild(banner);
+  requestAnimationFrame(() => {
+    banner.classList.add('visible');
+  });
 
   if (autoClearMs > 0) {
     _combatBannerTimeout = setTimeout(() => {
@@ -5512,7 +5515,8 @@ function resolverEfectoTrampaRivalSobreMiAtaque(slotIndexAtacante, slotIndexObje
         lpAtacanteFinal: estadoJugador.lp,
         lpObjetivoFinal: estadoOponente.lp,
         trampaActivada: trampaData.id,
-        trampaSlotIndex: trampaOponenteIndex
+        trampaSlotIndex: trampaOponenteIndex,
+        ataqueDetenidoPorTrampa: true
       }
     });
     MultiplayerManager.sincronizarEstadoCampo();
@@ -5541,29 +5545,28 @@ function ejecutarAtaqueDirecto(slotIndexAtacante, ignorarTrampas = false) {
     autoClearMs: 1600
   });
 
-  // Comprobar trampas del oponente ante ataque directo (estrictamente en estadoOponente)
-  const trampaOponenteIndex = (!ignorarTrampas && Array.isArray(estadoOponente.zonaMagiasTrampas))
-    ? estadoOponente.zonaMagiasTrampas.findIndex(t => t !== null && t.bocaAbajo === true && bdCartas[t.id] && bdCartas[t.id].tipoCarta === 'trampa')
-    : -1;
+  // En 2 Jugadores Online: si el oponente tiene cartas boca abajo en su zona M/T (o trampas),
+  // preguntar al jugador defensor si desea activar su trampa antes de aplicar el daño directo
+  if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline() && !ignorarTrampas) {
+    const hayPosibleTrampa = Array.isArray(estadoOponente.zonaMagiasTrampas) &&
+      estadoOponente.zonaMagiasTrampas.some(t => t !== null && (t.bocaAbajo || (t.id && bdCartas[t.id] && bdCartas[t.id].tipoCarta === 'trampa')));
 
-  if (trampaOponenteIndex !== -1) {
-    const trampaData = estadoOponente.zonaMagiasTrampas[trampaOponenteIndex];
-
-    // En 2 Jugadores Online: preguntar primero al jugador defensor si desea activar su trampa
-    if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline()) {
-      mostrarMensajeToast(`⏳ Ataque declarado con ${datosAtacante.nombre}. Esperando respuesta del rival...`);
+    if (hayPosibleTrampa) {
+      mostrarMensajeToast(`⏳ Ataque directo declarado con ${datosAtacante.nombre}. Esperando respuesta del rival...`);
       if (_pvpTrapWaitTimeout) clearTimeout(_pvpTrapWaitTimeout);
-      _pvpPendingAttackResolver = (activarTrampa, trampaSlotIndexElegido) => {
+      _pvpPendingAttackResolver = (activarTrampa, trampaSlotIndexElegido, trampaIdElegido) => {
         if (_pvpTrapWaitTimeout) {
           clearTimeout(_pvpTrapWaitTimeout);
           _pvpTrapWaitTimeout = null;
         }
         _pvpPendingAttackResolver = null;
         if (activarTrampa) {
-          const slotElegido = (typeof trampaSlotIndexElegido === 'number' && estadoOponente.zonaMagiasTrampas[trampaSlotIndexElegido])
+          const slotElegido = (typeof trampaSlotIndexElegido === 'number' && trampaSlotIndexElegido >= 0)
             ? trampaSlotIndexElegido
-            : trampaOponenteIndex;
-          const trampaElegida = estadoOponente.zonaMagiasTrampas[slotElegido] || trampaData;
+            : (Array.isArray(estadoOponente.zonaMagiasTrampas) && estadoOponente.zonaMagiasTrampas.findIndex(t => t !== null) !== -1 ? estadoOponente.zonaMagiasTrampas.findIndex(t => t !== null) : 0);
+          const trampaElegida = (estadoOponente.zonaMagiasTrampas && estadoOponente.zonaMagiasTrampas[slotElegido])
+            ? { ...estadoOponente.zonaMagiasTrampas[slotElegido], id: trampaIdElegido || estadoOponente.zonaMagiasTrampas[slotElegido].id }
+            : { id: trampaIdElegido || 240, bocaAbajo: true, activa: false };
           resolverEfectoTrampaRivalSobreMiAtaque(slotIndexAtacante, null, true, slotElegido, trampaElegida, dano);
         } else {
           ejecutarAtaqueDirecto(slotIndexAtacante, true);
@@ -5575,8 +5578,8 @@ function ejecutarAtaqueDirecto(slotIndexAtacante, ignorarTrampas = false) {
         targetSlot: null,
         esDirecto: true,
         atkAtacante: dano,
-        trampaSlotIndex: trampaOponenteIndex,
-        trampaId: trampaData.id
+        atacanteAtk: dano,
+        atacanteNombre: datosAtacante.nombre
       });
       _pvpTrapWaitTimeout = setTimeout(() => {
         if (_pvpPendingAttackResolver) {
@@ -5585,8 +5588,15 @@ function ejecutarAtaqueDirecto(slotIndexAtacante, ignorarTrampas = false) {
       }, 14000);
       return;
     }
+  }
 
-    // Contra la IA: el rival IA activa su trampa
+  // Contra la IA: comprobar si el rival IA tiene trampas colocadas boca abajo
+  const trampaOponenteIndex = (!ignorarTrampas && Array.isArray(estadoOponente.zonaMagiasTrampas))
+    ? estadoOponente.zonaMagiasTrampas.findIndex(t => t !== null && t.bocaAbajo === true && bdCartas[t.id] && bdCartas[t.id].tipoCarta === 'trampa')
+    : -1;
+
+  if (trampaOponenteIndex !== -1) {
+    const trampaData = estadoOponente.zonaMagiasTrampas[trampaOponenteIndex];
     resolverEfectoTrampaRivalSobreMiAtaque(slotIndexAtacante, null, true, trampaOponenteIndex, trampaData, dano);
     return;
   }
@@ -5672,29 +5682,28 @@ function resolverCombate(slotIndexAtacante, slotIndexObjetivo, ignorarTrampas = 
     autoClearMs: 1600
   });
 
-  // Comprobar trampas del oponente antes de resolver el combate (estrictamente en estadoOponente)
-  const trampaOponenteIndex = (!ignorarTrampas && Array.isArray(estadoOponente.zonaMagiasTrampas))
-    ? estadoOponente.zonaMagiasTrampas.findIndex(t => t !== null && t.bocaAbajo === true && bdCartas[t.id] && bdCartas[t.id].tipoCarta === 'trampa')
-    : -1;
+  // En 2 Jugadores Online: si el oponente tiene cartas boca abajo en su zona M/T (o trampas),
+  // preguntar al jugador defensor si desea activar su trampa antes de resolver el combate
+  if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline() && !ignorarTrampas) {
+    const hayPosibleTrampa = Array.isArray(estadoOponente.zonaMagiasTrampas) &&
+      estadoOponente.zonaMagiasTrampas.some(t => t !== null && (t.bocaAbajo || (t.id && bdCartas[t.id] && bdCartas[t.id].tipoCarta === 'trampa')));
 
-  if (trampaOponenteIndex !== -1) {
-    const trampaData = estadoOponente.zonaMagiasTrampas[trampaOponenteIndex];
-
-    // En 2 Jugadores Online: preguntar primero al jugador defensor si desea activar su trampa
-    if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline()) {
+    if (hayPosibleTrampa) {
       mostrarMensajeToast(`⏳ ${datosAtacante.nombre} ataca a ${datosObjetivo.nombre}. Esperando respuesta del rival...`);
       if (_pvpTrapWaitTimeout) clearTimeout(_pvpTrapWaitTimeout);
-      _pvpPendingAttackResolver = (activarTrampa, trampaSlotIndexElegido) => {
+      _pvpPendingAttackResolver = (activarTrampa, trampaSlotIndexElegido, trampaIdElegido) => {
         if (_pvpTrapWaitTimeout) {
           clearTimeout(_pvpTrapWaitTimeout);
           _pvpTrapWaitTimeout = null;
         }
         _pvpPendingAttackResolver = null;
         if (activarTrampa) {
-          const slotElegido = (typeof trampaSlotIndexElegido === 'number' && estadoOponente.zonaMagiasTrampas[trampaSlotIndexElegido])
+          const slotElegido = (typeof trampaSlotIndexElegido === 'number' && trampaSlotIndexElegido >= 0)
             ? trampaSlotIndexElegido
-            : trampaOponenteIndex;
-          const trampaElegida = estadoOponente.zonaMagiasTrampas[slotElegido] || trampaData;
+            : (Array.isArray(estadoOponente.zonaMagiasTrampas) && estadoOponente.zonaMagiasTrampas.findIndex(t => t !== null) !== -1 ? estadoOponente.zonaMagiasTrampas.findIndex(t => t !== null) : 0);
+          const trampaElegida = (estadoOponente.zonaMagiasTrampas && estadoOponente.zonaMagiasTrampas[slotElegido])
+            ? { ...estadoOponente.zonaMagiasTrampas[slotElegido], id: trampaIdElegido || estadoOponente.zonaMagiasTrampas[slotElegido].id }
+            : { id: trampaIdElegido || 240, bocaAbajo: true, activa: false };
           resolverEfectoTrampaRivalSobreMiAtaque(slotIndexAtacante, slotIndexObjetivo, false, slotElegido, trampaElegida, atkAtacante);
         } else {
           resolverCombate(slotIndexAtacante, slotIndexObjetivo, true);
@@ -5706,8 +5715,8 @@ function resolverCombate(slotIndexAtacante, slotIndexObjetivo, ignorarTrampas = 
         targetSlot: slotIndexObjetivo,
         esDirecto: false,
         atkAtacante: atkAtacante,
-        trampaSlotIndex: trampaOponenteIndex,
-        trampaId: trampaData.id
+        atacanteAtk: atkAtacante,
+        atacanteNombre: datosAtacante.nombre
       });
       _pvpTrapWaitTimeout = setTimeout(() => {
         if (_pvpPendingAttackResolver) {
@@ -5716,8 +5725,15 @@ function resolverCombate(slotIndexAtacante, slotIndexObjetivo, ignorarTrampas = 
       }, 14000);
       return;
     }
+  }
 
-    // Contra la IA: el rival IA activa su trampa
+  // Contra la IA: comprobar si el rival IA tiene trampas colocadas boca abajo
+  const trampaOponenteIndex = (!ignorarTrampas && Array.isArray(estadoOponente.zonaMagiasTrampas))
+    ? estadoOponente.zonaMagiasTrampas.findIndex(t => t !== null && t.bocaAbajo === true && bdCartas[t.id] && bdCartas[t.id].tipoCarta === 'trampa')
+    : -1;
+
+  if (trampaOponenteIndex !== -1) {
+    const trampaData = estadoOponente.zonaMagiasTrampas[trampaOponenteIndex];
     resolverEfectoTrampaRivalSobreMiAtaque(slotIndexAtacante, slotIndexObjetivo, false, trampaOponenteIndex, trampaData, atkAtacante);
     return;
   }
@@ -7229,6 +7245,13 @@ function mostrarFinDelDuelo(esVictoria) {
 }
 
 function reiniciarDuelo() {
+  if (_pvpTrapWaitTimeout) {
+    clearTimeout(_pvpTrapWaitTimeout);
+    _pvpTrapWaitTimeout = null;
+  }
+  _pvpPendingAttackResolver = null;
+  limpiarDeclaracionAtaqueVisual();
+
   restaurarStatsBase(); // Garantiza que ninguna mejora de equipo persista entre partidas
 
   const lpConfig = configuracionJuego.lpInicial || 8000;
@@ -10926,34 +10949,37 @@ const MultiplayerManager = {
         ? document.querySelector(`#player-side .monsters-row .monster-slot[data-slot-index="${accion.targetSlot}"]`)
         : document.getElementById('player-lp-val');
 
+      const atkAtacanteNum = Number(accion.atkAtacante || accion.atacanteAtk || (mAtacante ? obtenerAtkActual(mAtacante) : 0)) || 0;
       const datosAtacante = (mAtacante && bdCartas[mAtacante.id]) ? bdCartas[mAtacante.id] : {
         nombre: accion.atacanteNombre || 'Pokémon Rival',
-        atk: accion.atacanteAtk || 0,
+        atk: atkAtacanteNum,
         def: 0
       };
       const datosDefensor = (mTarget && bdCartas[mTarget.id]) ? bdCartas[mTarget.id] : null;
 
-      // Mostrar indicador visual de quién nos ataca
-      mostrarIndicadorAtaqueVisual({
-        slotOrigenElem: slotRivalElem,
-        slotDestinoElem: slotJugadorElem,
+      // Mostrar indicador visual de combate en curso
+      mostrarDeclaracionAtaqueVisual({
+        slotAtacanteElem: slotRivalElem,
+        slotObjetivoElem: slotJugadorElem,
         datosAtacante,
-        datosDefensor,
+        atkAtacante: atkAtacanteNum,
+        datosObjetivo: datosDefensor,
+        statObjetivo: mTarget ? obtenerStatEfectivo(mTarget, mTarget.posicion === 'ataque' ? 'atk' : 'def') : 0,
+        modoObjetivo: mTarget ? mTarget.posicion : 'ataque',
         esDirecto: !!accion.esDirecto,
-        posicionDefensor: mTarget ? mTarget.posicion : 'ataque',
-        atkAtacante: accion.atacanteAtk,
-        statDefensor: mTarget ? obtenerStatEfectivo(mTarget, mTarget.posicion === 'ataque' ? 'atk' : 'def') : undefined
+        etiquetaDirecto: 'Tus Puntos de Vida',
+        autoClearMs: 0
       });
 
       const trampasDefensor = obtenerTrampasJugadorDisponibles();
-      if (trampasDefensor.length === 0) {
-        setTimeout(() => ocultarIndicadorAtaqueVisual(), 400);
+      if (!trampasDefensor || trampasDefensor.length === 0) {
+        setTimeout(() => limpiarDeclaracionAtaqueVisual(), 400);
         this.enviarAccion({ tipo: 'RESPUESTA_TRAMPA_RIVAL', activar: false });
         return;
       }
 
       const resumenHtml = `
-        <span class="trap-vs-side">🔴 Rival: ${datosAtacante.nombre} (ATK ${accion.atacanteAtk})</span>
+        <span class="trap-vs-side">🔴 Rival: ${datosAtacante.nombre} (ATK ${atkAtacanteNum})</span>
         <span class="trap-vs-arrow">⚔️➔</span>
         <span class="trap-vs-target">🔵 ${accion.esDirecto ? '🎯 Directo a tus LP' : `Tu ${datosDefensor ? datosDefensor.nombre : 'Pokémon'}`}</span>
       `;
@@ -10961,11 +10987,11 @@ const MultiplayerManager = {
       solicitarActivacionTrampaJugador({
         resumenAtaqueHtml: resumenHtml,
         datosAtacante,
-        atacanteAtk: accion.atacanteAtk,
+        atacanteAtk: atkAtacanteNum,
         esDirecto: !!accion.esDirecto,
         datosDefensor,
         onActivarTrampa: (slotIndexElegido, slotDataElegido, datosTrampaElegida) => {
-          ocultarIndicadorAtaqueVisual();
+          limpiarDeclaracionAtaqueVisual();
           this.enviarAccion({
             tipo: 'RESPUESTA_TRAMPA_RIVAL',
             activar: true,
@@ -10974,7 +11000,7 @@ const MultiplayerManager = {
           });
         },
         onNoActivar: () => {
-          ocultarIndicadorAtaqueVisual();
+          limpiarDeclaracionAtaqueVisual();
           this.enviarAccion({ tipo: 'RESPUESTA_TRAMPA_RIVAL', activar: false });
         }
       });
@@ -10986,7 +11012,7 @@ const MultiplayerManager = {
       if (typeof _pvpPendingAttackResolver === 'function') {
         const resolver = _pvpPendingAttackResolver;
         _pvpPendingAttackResolver = null;
-        resolver(!!accion.activar, accion.trampaSlotIndex);
+        resolver(!!accion.activar, accion.trampaSlotIndex, accion.trampaId);
       }
       return;
     }
