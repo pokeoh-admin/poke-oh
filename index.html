@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="src/css/style.css?v=20261025_041">
+  <link rel="stylesheet" href="src/css/style.css?v=20261029_043">
 </head>
 <body>
   <!-- ============================================== -->
@@ -251,6 +251,9 @@
           </button>
           <button class="sidebar-action-btn btn-home" id="btn-return-menu" type="button" title="Volver al Menú Principal / Main Menu">
             <span class="btn-icon">🏠</span> <b data-i18n="btnMainMenu">MENÚ</b>
+          </button>
+          <button class="sidebar-action-btn btn-surrender-action" id="btn-surrender-duel" type="button" title="Rendirse en este duelo / Forfeit Duel">
+            <span class="btn-icon">🏳️</span> <b data-i18n="btnSurrender">RENDIRSE</b>
           </button>
         </div>
       </div>
@@ -1863,11 +1866,11 @@
     </div>
   </div>
 
-  <!-- Modal de Advertencia al Abandonar Partida Online (2 Jugadores) -->
+  <!-- Modal de Advertencia al Abandonar / Rendirse en Duelo -->
   <div class="modal-overlay hidden" id="surrender-confirm-modal">
     <div class="modal-box surrender-confirm-box">
-      <div class="game-over-badge">⚠️</div>
-      <h3 class="modal-title" style="color: #ff6b81;">¿Abandonar Duelo Online?</h3>
+      <div class="game-over-badge">🏳️</div>
+      <h3 class="modal-title" id="surrender-confirm-title" style="color: #ff6b81;">¿Abandonar Duelo Online?</h3>
       <p class="modal-desc" id="surrender-confirm-desc" style="margin: 12px 0 18px; line-height: 1.5; font-size: 0.95rem;">
         Estás en medio de una partida de <b>2 Jugadores</b>. Si sales al menú principal ahora, se registrará como <b style="color:#ff4757;">DERROTA 💀</b> para ti y tu rival recibirá automáticamente la <b style="color:#2ed573;">VICTORIA 🏆</b>.
       </p>
@@ -1878,6 +1881,23 @@
         <button class="phase-btn btn-confirm" id="btn-confirm-surrender-no" type="button">
           ⚔️ Continuar en el Duelo
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Inspeccionar Cartas del Cementerio -->
+  <div class="modal-overlay hidden" id="graveyard-modal">
+    <div class="modal-box graveyard-box">
+      <div class="modal-header-with-close">
+        <h3 class="modal-title" id="graveyard-modal-title">⚰️ Cementerio (0 Cartas)</h3>
+        <button class="modal-close-x" id="btn-close-graveyard-x" type="button" title="Cerrar">&times;</button>
+      </div>
+      <p class="modal-desc" id="graveyard-modal-desc">Cartas enviadas al cementerio durante el duelo (pasa el cursor o tócalas para ver detalles):</p>
+      <div class="graveyard-cards-grid" id="graveyard-cards-grid">
+        <!-- Render dinámico de cartas en el cementerio -->
+      </div>
+      <div class="modal-actions">
+        <button class="phase-btn btn-confirm" id="btn-close-graveyard" type="button">Cerrar</button>
       </div>
     </div>
   </div>
@@ -1905,9 +1925,9 @@
   <!-- SDK Cliente de Colyseus para Multijugador Online -->
   <script src="lib/colyseus.js"></script>
   <!-- Base de Datos de Cartas (151 Pokémon + Ítems de todas las generaciones) -->
-  <script src="src/js/cartas.js?v=20261028_042"></script>
+  <script src="src/js/cartas.js?v=20261029_043"></script>
   <!-- Lógica del Duelo -->
-  <script src="src/js/logica.js?v=20261028_042"></script>
+  <script src="src/js/logica.js?v=20261029_043"></script>
 </body>
 </html>
 

@@ -79,6 +79,7 @@ const I18N = {
     btnKeepFaceDown: "Cerrar / Mantener Oculta",
     btnSettings: "AJUSTES",
     btnMainMenu: "MENÚ",
+    btnSurrender: "RENDIRSE",
     btnRules: "REGLAS",
     btnDeckShort: "MAZOS",
     noticeTitle: "Próximamente",
@@ -190,6 +191,7 @@ const I18N = {
     btnKeepFaceDown: "Close / Keep Face-Down",
     btnSettings: "SETTINGS",
     btnMainMenu: "MENU",
+    btnSurrender: "SURRENDER",
     btnRules: "RULES",
     btnDeckShort: "DECKS",
     noticeTitle: "Coming Soon",
@@ -1275,6 +1277,7 @@ function abrirModalConfirmacionCarta({
   ocultarBtnSet = false,
   textoBtnCancel = null,
   resumenAtaqueHtml = null,
+  mostrarTimer = false,
   onConfirm = () => {},
   onSet = null,
   onCancel = null
@@ -1328,6 +1331,22 @@ function abrirModalConfirmacionCarta({
     bannerAtaquePrevio.style.display = 'none';
   }
 
+  let timerBadgeElem = modal.querySelector('#trap-timer-indicator');
+  if (mostrarTimer) {
+    if (!timerBadgeElem) {
+      timerBadgeElem = document.createElement('div');
+      timerBadgeElem.id = 'trap-timer-indicator';
+      timerBadgeElem.className = 'trap-timer-badge';
+      const actionsElem = modal.querySelector('.spell-actions-3col');
+      if (actionsElem && actionsElem.parentNode) {
+        actionsElem.parentNode.insertBefore(timerBadgeElem, actionsElem);
+      }
+    }
+    timerBadgeElem.style.display = 'inline-flex';
+  } else if (timerBadgeElem) {
+    timerBadgeElem.style.display = 'none';
+  }
+
   if (infoTarget) {
     targetInfoElem.style.display = 'block';
     targetNameElem.textContent = infoTarget;
@@ -1377,12 +1396,14 @@ function abrirModalConfirmacionCarta({
   }
 
   btnYes.onclick = () => {
+    detenerTimerSeleccionTrampa();
     modal.classList.add('hidden');
     onConfirm();
   };
 
   if (btnSet) {
     btnSet.onclick = () => {
+      detenerTimerSeleccionTrampa();
       modal.classList.add('hidden');
       if (onSet) {
         onSet();
@@ -1393,6 +1414,7 @@ function abrirModalConfirmacionCarta({
   }
 
   btnNo.onclick = () => {
+    detenerTimerSeleccionTrampa();
     modal.classList.add('hidden');
     if (onCancel) {
       onCancel();
@@ -1411,6 +1433,46 @@ function abrirModalConfirmacionCarta({
 // ==============================================================
 // GESTIÓN Y SELECCIÓN DE CARTAS TRAMPA ANTE ATAQUES
 // ==============================================================
+
+let _trapResponseTimer = null;
+let _trapSecondsRemaining = 15;
+
+function detenerTimerSeleccionTrampa() {
+  if (_trapResponseTimer) {
+    clearInterval(_trapResponseTimer);
+    _trapResponseTimer = null;
+  }
+  const badge1 = document.getElementById('trap-timer-indicator');
+  if (badge1) {
+    badge1.style.display = 'none';
+    badge1.classList.remove('timer-urgent');
+  }
+  const badge2 = document.getElementById('trap-select-timer-indicator');
+  if (badge2) {
+    badge2.style.display = 'none';
+    badge2.classList.remove('timer-urgent');
+  }
+}
+
+function actualizarBadgeTimer(segundos) {
+  const isEn = configuracionJuego.idioma === 'en';
+  const texto = isEn
+    ? `⏳ Time to decide: <b>${segundos}s</b>`
+    : `⏳ Tiempo para decidir: <b>${segundos}s</b>`;
+
+  const b1 = document.getElementById('trap-timer-indicator');
+  if (b1) {
+    b1.innerHTML = texto;
+    if (segundos <= 5) b1.classList.add('timer-urgent');
+    else b1.classList.remove('timer-urgent');
+  }
+  const b2 = document.getElementById('trap-select-timer-indicator');
+  if (b2) {
+    b2.innerHTML = texto;
+    if (segundos <= 5) b2.classList.add('timer-urgent');
+    else b2.classList.remove('timer-urgent');
+  }
+}
 
 // Obtener todas las cartas de trampa que el jugador tiene colocadas boca abajo en el campo
 function obtenerTrampasJugadorDisponibles() {
@@ -1465,6 +1527,17 @@ function abrirModalSeleccionTrampas({
     }
   }
 
+  let timerBadgeElem = modal.querySelector('#trap-select-timer-indicator');
+  if (!timerBadgeElem) {
+    timerBadgeElem = document.createElement('div');
+    timerBadgeElem.id = 'trap-select-timer-indicator';
+    timerBadgeElem.className = 'trap-timer-badge';
+    if (gridElem && gridElem.parentNode) {
+      gridElem.parentNode.insertBefore(timerBadgeElem, gridElem);
+    }
+  }
+  timerBadgeElem.style.display = 'inline-flex';
+
   if (promptElem) {
     const textoObj = esDirecto
       ? (isEn ? "attacking your Life Points directly" : "atacando tus Puntos de Vida directamente")
@@ -1477,9 +1550,11 @@ function abrirModalSeleccionTrampas({
   gridElem.innerHTML = '';
 
   const cerrarModal = () => {
+    detenerTimerSeleccionTrampa();
     modal.classList.add('hidden');
     if (btnCloseX) btnCloseX.onclick = null;
     if (btnCancel) btnCancel.onclick = null;
+    modal.onclick = null;
   };
 
   trampas.forEach((t) => {
@@ -1526,11 +1601,18 @@ function abrirModalSeleccionTrampas({
     };
   }
 
+  modal.onclick = (e) => {
+    if (e.target === modal) {
+      cerrarModal();
+      onNoActivar();
+    }
+  };
+
   modal.classList.remove('hidden');
   AudioManager.reproducirSFX('enter');
 }
 
-// Orquestador unificado de activación de trampa: pregunta al jugador si tiene 1 o múltiples trampas
+// Orquestador unificado de activación de trampa: pregunta al jugador si tiene 1 o múltiples trampas con temporizador de 15 segundos
 function solicitarActivacionTrampaJugador({
   resumenAtaqueHtml = null,
   datosAtacante,
@@ -1541,6 +1623,8 @@ function solicitarActivacionTrampaJugador({
   onActivarTrampa = () => {},
   onNoActivar = () => {}
 }) {
+  detenerTimerSeleccionTrampa();
+
   const trampas = obtenerTrampasJugadorDisponibles();
   if (!trampas || trampas.length === 0) {
     onNoActivar();
@@ -1548,6 +1632,44 @@ function solicitarActivacionTrampaJugador({
   }
 
   const isEn = configuracionJuego.idioma === 'en';
+  let decisionTomada = false;
+
+  const responderActivar = (slotIdx, slotData, datos) => {
+    if (decisionTomada) return;
+    decisionTomada = true;
+    detenerTimerSeleccionTrampa();
+    onActivarTrampa(slotIdx, slotData, datos);
+  };
+
+  const responderNoActivar = (porTiempo = false) => {
+    if (decisionTomada) return;
+    decisionTomada = true;
+    detenerTimerSeleccionTrampa();
+    if (porTiempo) {
+      const msg = isEn
+        ? "⏳ Time expired! Attack proceeds without trap."
+        : "⏳ ¡Tiempo agotado (15s)! El ataque procede sin activar trampa.";
+      mostrarMensajeToast(msg);
+    }
+    onNoActivar();
+  };
+
+  // Temporizador de 15 segundos visible para que el jugador elija
+  _trapSecondsRemaining = 15;
+  _trapResponseTimer = setInterval(() => {
+    _trapSecondsRemaining--;
+    if (_trapSecondsRemaining > 0) {
+      actualizarBadgeTimer(_trapSecondsRemaining);
+    } else {
+      detenerTimerSeleccionTrampa();
+      const modalConfirm = document.getElementById('spell-confirm-modal');
+      if (modalConfirm) modalConfirm.classList.add('hidden');
+      const modalSelect = document.getElementById('trap-select-modal');
+      if (modalSelect) modalSelect.classList.add('hidden');
+      limpiarDeclaracionAtaqueVisual();
+      responderNoActivar(true);
+    }
+  }, 1000);
 
   if (trampas.length === 1) {
     const tUnica = trampas[0];
@@ -1561,6 +1683,7 @@ function solicitarActivacionTrampaJugador({
       cartaId: tUnica.id,
       slotMTIndex: tUnica.slotIndex,
       ocultarBtnSet: true,
+      mostrarTimer: true,
       resumenAtaqueHtml: resumenAtaqueHtml,
       infoTarget: `${datosAtacante.nombre} (ATK ${atacanteAtk}) ➔ ${textoObjetivo}`,
       preguntaCustom: isEn
@@ -1569,12 +1692,13 @@ function solicitarActivacionTrampaJugador({
       textoBtnConfirm: isEn ? "⚡ Activate Trap!" : "⚡ ¡Activar Trampa!",
       textoBtnCancel: isEn ? "🛡️ Keep Set (Do Not Activate)" : "🛡️ No Activar (Guardar)",
       onConfirm: () => {
-        onActivarTrampa(tUnica.slotIndex, tUnica.slotData, tUnica.datos);
+        responderActivar(tUnica.slotIndex, tUnica.slotData, tUnica.datos);
       },
       onCancel: () => {
-        onNoActivar();
+        responderNoActivar(false);
       }
     });
+    actualizarBadgeTimer(_trapSecondsRemaining);
     return;
   }
 
@@ -1586,9 +1710,10 @@ function solicitarActivacionTrampaJugador({
     atacanteAtk,
     esDirecto,
     datosDefensor,
-    onActivarTrampa,
-    onNoActivar
+    onActivarTrampa: responderActivar,
+    onNoActivar: () => responderNoActivar(false)
   });
+  actualizarBadgeTimer(_trapSecondsRemaining);
 }
 
 // Colocar carta mágica, de equipo o trampa boca abajo en el campo sin usarla
@@ -2353,6 +2478,136 @@ function crearNumeroFlotante(texto, elementoOrigen, tipo = 'damage') {
 let _ultimoMensajeLogBatalla = '';
 let _ultimoTiempoLogBatalla = 0;
 let _turnBannerTimeout = null;
+
+// ==============================================================
+// INSPECCIÓN DE CARTAS DEL CEMENTERIO (GY)
+// ==============================================================
+
+function abrirModalCementerio(dueno = 'jugador') {
+  const modal = document.getElementById('graveyard-modal');
+  const titleEl = document.getElementById('graveyard-modal-title');
+  const descEl = document.getElementById('graveyard-modal-desc');
+  const gridEl = document.getElementById('graveyard-cards-grid');
+  const btnClose = document.getElementById('btn-close-graveyard');
+  const btnCloseX = document.getElementById('btn-close-graveyard-x');
+
+  if (!modal || !gridEl) return;
+
+  const isEn = configuracionJuego && configuracionJuego.idioma === 'en';
+  const esJugador = dueno === 'jugador';
+  const lista = esJugador ? (estadoJugador.cementerio || []) : (estadoOponente.cementerio || []);
+  const count = lista.length;
+  const nombreDuelo = esJugador 
+    ? (isEn ? "Your Graveyard" : "Tu Cementerio")
+    : (isEn ? `${(estadoOponente && estadoOponente.nombre) || 'Opponent'}'s Graveyard` : `Cementerio de ${(estadoOponente && estadoOponente.nombre) || 'Rival'}`);
+
+  if (titleEl) {
+    titleEl.textContent = `⚰️ ${nombreDuelo} (${count} ${isEn ? (count === 1 ? 'Card' : 'Cards') : (count === 1 ? 'Carta' : 'Cartas')})`;
+  }
+  if (descEl) {
+    descEl.textContent = isEn
+      ? `Cards sent to this graveyard during the duel (hover or tap to inspect in sidebar):`
+      : `Cartas enviadas a este cementerio durante el duelo (pasa el cursor o tócalas para ver detalles en el inspector):`;
+  }
+
+  gridEl.innerHTML = '';
+
+  if (count === 0) {
+    gridEl.innerHTML = `
+      <div class="empty-gy-notice" style="grid-column: 1 / -1; text-align: center; color: #94a3b8; padding: 28px 10px; font-style: italic; font-size: 0.95rem;">
+        ⚰️ ${isEn ? "The graveyard is currently empty." : "El cementerio se encuentra actualmente vacío."}
+      </div>
+    `;
+  } else {
+    // Mostrar del más recientemente derrotado/descartado al más antiguo (tope del cementerio primero)
+    const reversedCards = lista.slice().reverse();
+    reversedCards.forEach((item) => {
+      const cardId = (typeof item === 'object' && item !== null) ? item.id : item;
+      const datosCarta = bdCartas[cardId] || (typeof item === 'object' ? item : null) || {
+        nombre: isEn ? 'Unknown Card' : 'Carta Desconocida',
+        tipoCarta: 'monstruo',
+        id: cardId
+      };
+
+      const cardEl = document.createElement('div');
+      cardEl.className = 'graveyard-card-item';
+      
+      const fallbackSrc = datosCarta.spriteEstatico || datosCarta.imagenOficial;
+      const imgSrc = datosCarta.imagenOficial || fallbackSrc || 'src/assets/cards/card_back.png';
+
+      let statsOrSubtypeHtml = '';
+      if (datosCarta.tipoCarta === 'monstruo') {
+        const infoT = datosCarta.elemento ? obtenerInfoTipo(datosCarta.elemento) : null;
+        const elemBadge = infoT ? `${infoT.icono}` : '⚡';
+        statsOrSubtypeHtml = `
+          <div class="graveyard-card-tag">${elemBadge} ${datosCarta.etapa || 'POKÉMON'}</div>
+          <div class="graveyard-card-stats">
+            <span class="stat-a">A:${datosCarta.atk || 0}</span>
+            <span class="stat-d">D:${datosCarta.def || 0}</span>
+          </div>
+        `;
+      } else {
+        const tipoLabel = (datosCarta.tipoCarta || 'M/T').toUpperCase();
+        statsOrSubtypeHtml = `
+          <div class="graveyard-card-tag">${tipoLabel}</div>
+          <div class="graveyard-card-stats" style="color: #94a3b8; font-size: 0.65rem;">
+            ${datosCarta.subtipo || 'Soporte'}
+          </div>
+        `;
+      }
+
+      cardEl.innerHTML = `
+        <div class="graveyard-card-art">
+          <img src="${imgSrc}" alt="${datosCarta.nombre}" onerror="this.onerror=null; this.src='${fallbackSrc}';" draggable="false">
+        </div>
+        <span class="graveyard-card-name" title="${datosCarta.nombre}">${datosCarta.nombre}</span>
+        ${statsOrSubtypeHtml}
+      `;
+
+      // Vincular al inspector izquierdo
+      configurarInspectorHover(cardEl, datosCarta, false, false);
+
+      cardEl.addEventListener('click', () => {
+        AudioManager.reproducirSFX('enter');
+      });
+
+      gridEl.appendChild(cardEl);
+    });
+  }
+
+  const cerrarModal = () => {
+    modal.classList.add('hidden');
+    if (btnClose) btnClose.onclick = null;
+    if (btnCloseX) btnCloseX.onclick = null;
+    modal.onclick = null;
+  };
+
+  if (btnClose) btnClose.onclick = cerrarModal;
+  if (btnCloseX) btnCloseX.onclick = cerrarModal;
+  modal.onclick = (e) => {
+    if (e.target === modal) cerrarModal();
+  };
+
+  modal.classList.remove('hidden');
+  AudioManager.reproducirSFX('enter');
+}
+
+function inicializarRanurasCementerio() {
+  const pGy = document.getElementById('player-gy');
+  if (pGy && !pGy._gyWired) {
+    pGy._gyWired = true;
+    pGy.style.cursor = 'pointer';
+    pGy.title = 'Ver cartas en tu Cementerio / View Graveyard';
+    pGy.addEventListener('click', () => abrirModalCementerio('jugador'));
+  }
+  const oGy = document.getElementById('opponent-gy');
+  if (oGy && !oGy._gyWired) {
+    oGy._gyWired = true;
+    oGy.style.cursor = 'pointer';
+    oGy.title = 'Ver cartas en el Cementerio del rival / View Rival Graveyard';
+    oGy.addEventListener('click', () => abrirModalCementerio('oponente'));
+  }
+}
 
 function actualizarContadoresMazoYCementerio() {
   const deckSubPlayer = document.querySelector('#player-deck .slot-sub');
@@ -5585,7 +5840,7 @@ function ejecutarAtaqueDirecto(slotIndexAtacante, ignorarTrampas = false) {
         if (_pvpPendingAttackResolver) {
           _pvpPendingAttackResolver(false);
         }
-      }, 14000);
+      }, 18000);
       return;
     }
   }
@@ -5722,7 +5977,7 @@ function resolverCombate(slotIndexAtacante, slotIndexObjetivo, ignorarTrampas = 
         if (_pvpPendingAttackResolver) {
           _pvpPendingAttackResolver(false);
         }
-      }, 14000);
+      }, 18000);
       return;
     }
   }
@@ -7190,6 +7445,7 @@ function comprobarFinDelDuelo() {
 }
 
 function mostrarFinDelDuelo(esVictoria) {
+  detenerTimerSeleccionTrampa();
   const modal = document.getElementById('game-over-modal');
   const icon = document.getElementById('game-over-icon');
   const title = document.getElementById('game-over-title');
@@ -7245,6 +7501,7 @@ function mostrarFinDelDuelo(esVictoria) {
 }
 
 function reiniciarDuelo() {
+  detenerTimerSeleccionTrampa();
   if (_pvpTrapWaitTimeout) {
     clearTimeout(_pvpTrapWaitTimeout);
     _pvpTrapWaitTimeout = null;
@@ -7461,11 +7718,48 @@ function inicializarMenuPrincipal() {
     };
   }
 
-  // Regresar al Menú Principal en todo momento (con advertencia de rendición si está en duelo PvP Online)
+  // Modal y lógica de rendición (compatible con JcJ Online y JcIA)
   const surrenderModal = document.getElementById('surrender-confirm-modal');
   const btnConfirmSurrenderYes = document.getElementById('btn-confirm-surrender-yes');
   const btnConfirmSurrenderNo = document.getElementById('btn-confirm-surrender-no');
   const surrenderDescEl = document.getElementById('surrender-confirm-desc');
+  const surrenderTitleEl = document.getElementById('surrender-confirm-title');
+
+  function abrirModalRendicion() {
+    if (!surrenderModal) return;
+    const isEn = configuracionJuego && configuracionJuego.idioma === 'en';
+    const isOnline = typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline() && !MultiplayerManager.dueloTerminado;
+    const rivalNombre = escapeHtml((estadoOponente && estadoOponente.nombre) || (isEn ? 'Rival' : 'Blue'));
+
+    if (surrenderTitleEl) {
+      surrenderTitleEl.textContent = isEn
+        ? (isOnline ? "🏳️ Forfeit Online Duel?" : "🏳️ Forfeit Duel?")
+        : (isOnline ? "🏳️ ¿Rendirte en este Duelo Online?" : "🏳️ ¿Rendirte en este Duelo?");
+    }
+
+    if (surrenderDescEl) {
+      if (isOnline) {
+        surrenderDescEl.innerHTML = isEn
+          ? `You are currently in an <b>Online Match</b> against <b>${rivalNombre}</b>.<br>If you forfeit now, you will receive a <b style="color:#ff4757;">DEFEAT 💀</b> and <b>${rivalNombre}</b> will automatically be awarded the <b style="color:#2ed573;">VICTORY 🏆</b>.`
+          : `Estás en medio de una partida de <b>2 Jugadores</b> contra <b>${rivalNombre}</b>.<br>Si te rindes ahora, se registrará como <b style="color:#ff4757;">DERROTA 💀</b> para ti y <b>${rivalNombre}</b> recibirá automáticamente la <b style="color:#2ed573;">VICTORIA 🏆</b>.`;
+      } else {
+        surrenderDescEl.innerHTML = isEn
+          ? `Are you sure you want to forfeit this duel against <b>${rivalNombre}</b>?<br>This match will immediately conclude as a <b style="color:#ff4757;">DEFEAT 💀</b>.`
+          : `¿Estás seguro de que deseas rendirte en este duelo contra <b>${rivalNombre}</b>?<br>La partida concluirá de inmediato y se registrará como una <b style="color:#ff4757;">DERROTA 💀</b>.`;
+      }
+    }
+
+    surrenderModal.classList.remove('hidden');
+    AudioManager.reproducirSFX('hit');
+  }
+
+  // Botón de Rendición dedicado en la barra lateral
+  const btnSurrenderDuel = document.getElementById('btn-surrender-duel');
+  if (btnSurrenderDuel) {
+    btnSurrenderDuel.onclick = () => {
+      abrirModalRendicion();
+    };
+  }
 
   if (btnConfirmSurrenderNo && surrenderModal) {
     btnConfirmSurrenderNo.onclick = () => {
@@ -7480,9 +7774,8 @@ function inicializarMenuPrincipal() {
       if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline()) {
         await MultiplayerManager.rendirseYSalirAlMenu();
       } else {
-        if (overlay) overlay.classList.remove('hidden');
-        ajustarEscalaResponsiva();
-        AudioManager.reproducirMusicaTema('menu');
+        // En partida en solitario vs IA: registrar derrota y mostrar pantalla de fin de duelo
+        mostrarFinDelDuelo(false);
       }
     };
   }
@@ -7490,15 +7783,8 @@ function inicializarMenuPrincipal() {
   if (btnReturnMenu) {
     btnReturnMenu.onclick = () => {
       if (typeof MultiplayerManager !== 'undefined' && MultiplayerManager.estaEnPartidaOnline() && !MultiplayerManager.dueloTerminado) {
-        if (surrenderModal) {
-          if (surrenderDescEl) {
-            const rivalNombre = escapeHtml(estadoOponente.nombre || 'tu rival');
-            surrenderDescEl.innerHTML = `Estás en medio de una partida de <b>2 Jugadores</b> contra <b>${rivalNombre}</b>.<br>Si sales al menú principal ahora, se registrará como <b style="color:#ff4757;">DERROTA 💀</b> para ti y <b>${rivalNombre}</b> recibirá automáticamente la <b style="color:#2ed573;">VICTORIA 🏆</b>.`;
-          }
-          surrenderModal.classList.remove('hidden');
-          AudioManager.reproducirSFX('hit');
-          return;
-        }
+        abrirModalRendicion();
+        return;
       }
       if (overlay) overlay.classList.remove('hidden');
       ajustarEscalaResponsiva();
@@ -10964,7 +11250,7 @@ const MultiplayerManager = {
         datosAtacante,
         atkAtacante: atkAtacanteNum,
         datosObjetivo: datosDefensor,
-        statObjetivo: mTarget ? obtenerStatEfectivo(mTarget, mTarget.posicion === 'ataque' ? 'atk' : 'def') : 0,
+        statObjetivo: mTarget ? (mTarget.posicion === 'defensa' ? obtenerDefActual(mTarget) : obtenerAtkActual(mTarget)) : 0,
         modoObjetivo: mTarget ? mTarget.posicion : 'ataque',
         esDirecto: !!accion.esDirecto,
         etiquetaDirecto: 'Tus Puntos de Vida',
@@ -10990,6 +11276,7 @@ const MultiplayerManager = {
         atacanteAtk: atkAtacanteNum,
         esDirecto: !!accion.esDirecto,
         datosDefensor,
+        modoTargetTexto: mTarget ? (mTarget.posicion === 'defensa' ? 'Defensa' : 'Ataque') : '',
         onActivarTrampa: (slotIndexElegido, slotDataElegido, datosTrampaElegida) => {
           limpiarDeclaracionAtaqueVisual();
           this.enviarAccion({
@@ -11572,6 +11859,7 @@ const MultiplayerManager = {
   },
 
   desconectar(esTerminacionNormal = false) {
+    detenerTimerSeleccionTrampa();
     if (this.enPartidaOnline && !esTerminacionNormal && !this.dueloTerminado) {
       this.dueloTerminado = true;
       if (typeof UserManager !== 'undefined') {
@@ -12772,6 +13060,7 @@ function inicializarJuegoCompleto() {
   inicializarPanelRegistroAcciones();
   configurarZonasMonstruo();
   configurarZonasMagiaTrampa();
+  inicializarRanurasCementerio();
   configurarBotonesAudio();
   inicializarModalTablaTipos();
 
